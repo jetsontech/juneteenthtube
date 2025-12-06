@@ -32,12 +32,14 @@ body {
   /* Prevent horizontal scroll */
 
   /* Juneteenth Styled Background */
+  /* Juneteenth Styled Background */
   background-image:
-    linear-gradient(rgba(18, 18, 18, 0.92), rgba(18, 18, 18, 0.95)),
-    url("https://www.transparenttextures.com/patterns/cubes.png"),
-    /* Subtle pattern */
-    linear-gradient(135deg, #121212 0%, #201010 100%);
-  /* Slight red tint at bottom */
+    /* Red to Green Gradient Overlay (Transparent) */
+    linear-gradient(135deg, rgba(227, 28, 35, 0.85), rgba(0, 107, 61, 0.85)),
+    /* Crowd/People Image */
+    url("https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=1920");
+
   background-attachment: fixed;
   background-size: cover;
+  background-position: center;
 }
