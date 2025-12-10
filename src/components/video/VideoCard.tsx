@@ -9,11 +9,13 @@ export interface VideoProps {
     title: string;
     thumbnail: string;
     channelName: string;
-    channelAvatar: string;
+    channelAvatar?: string;
     views: string;
     postedAt: string;
     duration: string;
     videoUrl?: string;
+    category?: string;
+    likes?: number;
 }
 
 export function VideoCard({ video }: { video: VideoProps }) {

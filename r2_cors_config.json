@@ -1,0 +1,27 @@
+[
+    {
+        "AllowedOrigins": [
+            "http://localhost:3000",
+            "http://localhost:3001",
+            "http://localhost:*",
+            "https://juneteenthtube.vercel.app",
+            "https://*.vercel.app"
+        ],
+        "AllowedMethods": [
+            "GET",
+            "PUT",
+            "POST",
+            "DELETE",
+            "HEAD"
+        ],
+        "AllowedHeaders": [
+            "*"
+        ],
+        "ExposeHeaders": [
+            "ETag",
+            "Content-Length",
+            "Content-Type"
+        ],
+        "MaxAgeSeconds": 3600
+    }
+]

@@ -21,7 +21,7 @@ export default function ClientShell({ children }: { children: React.ReactNode })
                         isSidebarOpen ? "sm:pl-64" : "sm:pl-[72px]"
                     )}
                 >
-                    <div className="p-4 sm:p-6 max-w-[1600px] mx-auto">
+                    <div className="max-w-[1600px] mx-auto">
                         {children}
                     </div>
                 </main>

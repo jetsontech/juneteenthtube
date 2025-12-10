@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { Menu, Search, Video, Bell, User, X, UploadCloud } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -10,17 +10,53 @@ interface NavbarProps {
     onMenuClick: () => void;
 }
 
+const CATEGORIES = ["All", "Parade", "Music", "Food", "History", "Speeches", "Live", "2024"] as const;
+
 export function Navbar({ onMenuClick }: NavbarProps) {
     const [isUploadOpen, setIsUploadOpen] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
+    const [selectedCategory, setSelectedCategory] = useState<string>("All");
     const { uploadVideo } = useVideo();
-    const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            uploadVideo(file);
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        try {
+            const file = e.target.files?.[0];
+            if (!file) return;
+
+            // File selected, starting upload logic...
+            // Note: S3/R2 supports large files via presigned URLs - no size limit needed
+
+            setIsUploading(true);
+
+            // Simulate delay to show UI state (Keep this for visual feedback even if fast)
+            // await new Promise(resolve => setTimeout(resolve, 1000));
+
+            // CRITICAL: Await the upload so errors are caught here!
+            await uploadVideo(file, selectedCategory);
+
             setIsUploadOpen(false);
-            alert("Video uploaded successfully! It may take a moment to appear in your feed.");
+            setIsUploading(false);
+            setSelectedCategory("All"); // Reset category after upload
+
+            if (confirm("Upload Successful! Press OK to refresh and see your video.")) {
+                window.location.reload();
+            }
+
+            // Explicit success feedback for mobile users who might miss the UI update
+            // alert("Upload Success! Scroll to the top of the feed to see your video.");
+
+        } catch (error: any) {
+            console.error("Upload error:", error);
+
+            let errorMessage = "Unknown error occurred";
+            if (error instanceof Error) {
+                errorMessage = error.message;
+            } else if (typeof error === "object") {
+                errorMessage = JSON.stringify(error);
+            }
+
+            // Detailed error for user debugging
+            alert(`Upload Failed: ${errorMessage}\n\nCheck the Console (F12) for more details.`);
         }
     };
 
@@ -46,7 +82,13 @@ export function Navbar({ onMenuClick }: NavbarProps) {
 
                 {/* Middle Section - Search */}
                 <div className="hidden md:flex flex-1 max-w-2xl mx-4">
-                    <div className="flex w-full">
+                    <form
+                        onSubmit={(e) => {
+                            e.preventDefault();
+                            // Optional: strict form submission if needed, but handled by Enter key usually
+                        }}
+                        className="flex w-full"
+                    >
                         <div className="flex-1 flex items-center pl-4 bg-white/5 border border-white/10 rounded-l-full focus-within:border-j-gold/50 transition-colors">
                             <Search className="w-5 h-5 text-gray-400" />
                             <input
@@ -54,15 +96,37 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                                 placeholder="Search Juneteenth Atlanta..."
                                 className="w-full bg-transparent border-none outline-none px-4 py-2 text-white placeholder-gray-400"
                                 aria-label="Search"
+                                onChange={(e) => {
+                                    // Simple debounce could go here, but direct update for now
+                                    const params = new URLSearchParams(window.location.search);
+                                    if (e.target.value) {
+                                        params.set('q', e.target.value);
+                                    } else {
+                                        params.delete('q');
+                                    }
+                                    // Use window.history to update URL without full reload
+                                    window.history.replaceState({}, '', `${window.location.pathname}?${params.toString()}`);
+
+                                    // Trigger a custom event or relying on Next.js router might be better for Server Components, 
+                                    // but for this Client Component setup, we need to communicate with the page.
+                                    // stronger approach: Use Next.js router.push with scroll:false
+                                }}
+                                onKeyDown={(e) => {
+                                    if (e.key === "Enter") {
+                                        const val = (e.target as HTMLInputElement).value;
+                                        window.location.href = `/?q=${encodeURIComponent(val)}`;
+                                    }
+                                }}
                             />
                         </div>
                         <button
+                            type="submit"
                             className="px-6 bg-white/10 border border-l-0 border-white/10 rounded-r-full hover:bg-white/20 transition-colors"
                             aria-label="Search button"
                         >
                             <Search className="w-5 h-5 text-white" />
                         </button>
-                    </div>
+                    </form>
                 </div>
 
                 {/* Right Section */}
@@ -113,21 +177,53 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                                 <p className="text-sm text-gray-400">Your videos will be private until you publish them.</p>
                             </div>
 
-                            <input
-                                type="file"
-                                accept="video/*"
-                                className="hidden"
-                                ref={fileInputRef}
-                                onChange={handleFileChange}
-                                aria-label="Upload video file"
-                            />
+                            {/* Category Selector */}
+                            <div className="w-full max-w-xs">
+                                <label className="block text-sm font-medium text-gray-300 mb-2">
+                                    Category
+                                </label>
+                                <select
+                                    value={selectedCategory}
+                                    onChange={(e) => setSelectedCategory(e.target.value)}
+                                    className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-j-gold/50 focus:border-j-gold/50 transition-all"
+                                    disabled={isUploading}
+                                    aria-label="Select video category"
+                                >
+                                    {CATEGORIES.map((cat) => (
+                                        <option key={cat} value={cat} className="bg-gray-900 text-white">
+                                            {cat}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
 
-                            <button
-                                onClick={() => fileInputRef.current?.click()}
-                                className="bg-j-red text-white font-bold px-6 py-2.5 rounded-sm hover:bg-red-700 transition-colors uppercase text-sm tracking-wide"
+                            <label
+                                className={cn(
+                                    "bg-j-red text-white font-bold px-6 py-2.5 rounded-sm transition-colors uppercase text-sm tracking-wide cursor-pointer inline-block",
+                                    isUploading ? "opacity-50 cursor-wait" : "hover:bg-red-700"
+                                )}
                             >
-                                Select Files
-                            </button>
+                                {isUploading ? "Uploading..." : "Select Files"}
+                                <input
+                                    type="file"
+                                    accept="video/*"
+                                    className="absolute opacity-0 w-1 h-1 overflow-hidden" // Mobile fix: hidden sometimes blocks events
+                                    onChange={handleFileChange}
+                                    disabled={isUploading}
+                                    aria-label="Upload video file"
+                                />
+                            </label>
+
+                            {isUploading && (
+                                <div className="mt-4 text-center">
+                                    <p className="text-j-gold animate-pulse text-sm font-semibold mb-1">
+                                        Uploading to Cloud...
+                                    </p>
+                                    <p className="text-xs text-gray-400 max-w-[200px] mx-auto">
+                                        Please keep this tab open.<br />Large videos may take several minutes.
+                                    </p>
+                                </div>
+                            )}
                         </div>
 
                         <div className="p-4 border-t border-white/10 bg-black/20 text-center text-xs text-gray-500 rounded-b-2xl">
