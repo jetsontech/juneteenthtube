@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, Suspense } from "react";
 import { VideoGrid } from "@/components/video/VideoGrid";
 import { useVideo } from "@/context/VideoContext";
 import { useSearchParams } from "next/navigation";
 
 const CATEGORIES = ["All", "Parade", "Music", "Food", "History", "Speeches", "Live", "2024"] as const;
 
-export default function Home() {
+function HomeContent() {
   const { videos } = useVideo();
   const searchParams = useSearchParams();
   const searchQuery = searchParams.get('q')?.toLowerCase() || "";
@@ -48,5 +48,13 @@ export default function Home() {
         <VideoGrid videos={filteredVideos} />
       </section>
     </div>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={<div className="text-white p-8 text-center">Loading videos...</div>}>
+      <HomeContent />
+    </Suspense>
   );
 }

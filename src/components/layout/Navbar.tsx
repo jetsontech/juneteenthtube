@@ -144,12 +144,13 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                     >
                         <Bell className="w-6 h-6" />
                     </button>
-                    <button
-                        className="w-8 h-8 bg-j-green rounded-full flex items-center justify-center text-white font-bold overflow-hidden border border-white/20"
-                        aria-label="User profile"
+                    <Link
+                        href="/settings"
+                        className="w-8 h-8 bg-j-green rounded-full flex items-center justify-center text-white font-bold overflow-hidden border border-white/20 hover:scale-105 transition-transform"
+                        aria-label="User settings"
                     >
                         <User className="w-5 h-5" />
-                    </button>
+                    </Link>
                 </div>
             </nav>
 

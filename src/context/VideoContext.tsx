@@ -24,6 +24,17 @@ interface VideoContextType {
     getVideoById: (id: string) => VideoProps | undefined;
 }
 
+interface DBVideo {
+    id: string;
+    title: string;
+    thumbnail_url?: string;
+    views?: number;
+    created_at: string;
+    duration?: string;
+    video_url: string;
+    category?: string;
+}
+
 const VideoContext = createContext<VideoContextType | undefined>(undefined);
 
 export function VideoProvider({ children }: { children: ReactNode }) {
@@ -45,7 +56,7 @@ export function VideoProvider({ children }: { children: ReactNode }) {
                 }
 
                 if (data && data.length > 0) {
-                    const dbVideos: VideoProps[] = data.map((video: any) => ({
+                    const dbVideos: VideoProps[] = data.map((video: DBVideo) => ({
                         id: video.id,
                         title: video.title,
                         thumbnail: video.thumbnail_url || "https://images.unsplash.com/photo-1610483145520-412708686f94?q=80&w=600&auto=format&fit=crop",
@@ -71,7 +82,7 @@ export function VideoProvider({ children }: { children: ReactNode }) {
     }, []);
 
     // --- MULTIPART UPLOAD LOGIC (For files > 50MB) ---
-    const uploadMultipart = async (file: File, category: string): Promise<string> => {
+    const uploadMultipart = async (file: File, _category: string): Promise<string> => {
         const CHUNK_SIZE = 20 * 1024 * 1024; // 20MB chunks
         const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
 
@@ -189,7 +200,7 @@ export function VideoProvider({ children }: { children: ReactNode }) {
             console.log("Step 3: Saving to DB...");
 
             // 3. Save Metadata to Supabase Database
-            const { data: dbData, error: dbError } = await supabase
+            const { error: dbError } = await supabase
                 .from('videos')
                 .insert([
                     {
@@ -207,7 +218,7 @@ export function VideoProvider({ children }: { children: ReactNode }) {
             console.log("Upload Sequence Complete!");
             window.location.reload();
 
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error("Upload process failed", err);
             throw err;
         }
