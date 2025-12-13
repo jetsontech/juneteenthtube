@@ -4,8 +4,8 @@ import { NextRequest, NextResponse } from "next/server";
 // Admin client to bypass RLS for guest operations if needed, 
 // or just to ensure we can write to tables with our custom 'guest_id' logic safely.
 const supabaseAdmin = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
+    process.env.NEXT_PUBLIC_SUPABASE_URL || "https://example.com",
+    process.env.SUPABASE_SERVICE_ROLE_KEY || "placeholder"
 );
 
 export async function GET(req: NextRequest) {
