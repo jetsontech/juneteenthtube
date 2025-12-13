@@ -1,6 +1,6 @@
 "use client";
 
-import { Home, Compass, Library, History, Box, PlaySquare, Clock } from "lucide-react";
+import { Home, Compass, Library, History, Box, PlaySquare, Clock, Users, PlayCircle, Film } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -11,15 +11,15 @@ interface SidebarProps {
 
 const mainLinks = [
     { icon: Home, label: "Home", href: "/" },
-    { icon: Compass, label: "Explore", href: "/explore" },
-    { icon: Library, label: "Library", href: "/library" },
+    { icon: Film, label: "Shorts", href: "/shorts" }, // Lucide doesn't have exact Shorts logo, Film is close enough for icon
+    { icon: Users, label: "Subscriptions", href: "/subscriptions" },
 ];
 
 const secondaryLinks = [
+    { icon: Library, label: "You", href: "/you" },
     { icon: History, label: "History", href: "/history" },
-    { icon: Box, label: "Your Videos", href: "/studio" },
+    { icon: PlaySquare, label: "Your Videos", href: "/studio" },
     { icon: Clock, label: "Watch Later", href: "/playlist/watch-later" },
-    { icon: PlaySquare, label: "Parade 2024", href: "/playlist/parade-2024" },
 ];
 
 export function Sidebar({ isOpen }: SidebarProps) {
@@ -28,7 +28,7 @@ export function Sidebar({ isOpen }: SidebarProps) {
     return (
         <aside
             className={cn(
-                "fixed top-16 left-0 bottom-0 z-40 bg-j-black/95 backdrop-blur-xl border-r border-white/5 overflow-y-auto transition-all duration-300 scrollbar-none",
+                "fixed top-16 left-0 bottom-0 z-40 bg-transparent backdrop-blur-xl overflow-y-auto transition-all duration-300 scrollbar-none",
                 isOpen ? "w-64" : "w-[72px] hidden sm:block"
             )}
         >

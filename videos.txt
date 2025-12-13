@@ -1,0 +1,15 @@
+[dotenv@17.2.3] injecting env (9) from .env.local -- tip: ÔÜÖ´©Å  override existing env vars with { override: true }
+Fetching all videos from DB...
+Found 12 videos:
+- [65120940-3bd1-4591-87d2-22cbacd31f46] "DELETEME_TEST" (Thumb: No)
+- [9d4580ca-7691-4bce-b79d-a3955d49e8cb] "DJI_20240623_182037_459_video" (Thumb: Yes)
+- [1c655584-0942-4a8a-912d-55e66ad3e7f2] "DEBUG: conn-test.txt" (Thumb: Yes)
+- [2b90564d-49b5-4509-a87f-db6fdff42dde] "DEBUG: conn-test.txt" (Thumb: Yes)
+- [fa0fa550-edcc-44d5-a861-104bb0facb7b] "DJI_20250615_211427_150_video (MP4)" (Thumb: Yes)
+- [b38ae17e-6416-48d5-8d5c-3cedfe7484a5] "DJI_20250615_211427_150_video" (Thumb: Yes)
+- [985d3a60-8fba-4bf8-b022-def99221968f] "test" (Thumb: Yes)
+- [196674a3-f4d3-4a88-b6f9-6b52be6dd104] "DJI_20250615_211427_150_video (MP4)" (Thumb: Yes)
+- [ee99a856-9941-4ad6-8a87-099c71367a96] "Juneteenth Stage (Official High-Res MP4)" (Thumb: Yes)
+- [943c0271-8704-44cb-97aa-37e1fcaa835e] "upload_target (MP4)" (Thumb: Yes)
+- [f1bbbd2b-9a9a-4710-9fde-3d59634a94d3] "DJI_20240623_214432_631_video" (Thumb: Yes)
+- [cae2a60f-95dd-4de5-9afc-1736980547f1] "Test Video" (Thumb: Yes)

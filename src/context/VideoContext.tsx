@@ -1,8 +1,9 @@
 "use client";
 
-import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { VideoProps } from '@/components/video/VideoCard';
+import pLimit from 'p-limit';
 
 // Initial Mock Data (Fallback)
 const MOCK_VIDEOS: VideoProps[] = [
@@ -22,6 +23,21 @@ interface VideoContextType {
     videos: VideoProps[];
     uploadVideo: (file: File, category?: string) => Promise<void>;
     getVideoById: (id: string) => VideoProps | undefined;
+    isUploading: boolean;
+    uploadProgress: number;
+    cancelUpload: () => void;
+    // New Management Functions
+    deleteVideo: (id: string) => Promise<void>;
+    updateVideoTitle: (id: string, newTitle: string) => Promise<void>;
+    updateVideoThumbnail: (id: string, file: File) => Promise<void>;
+    incrementView: (id: string) => Promise<void>;
+    // Engagement
+    getVideoComments: (videoId: string) => Promise<any[]>;
+    postComment: (videoId: string, text: string, userName: string) => Promise<any>;
+    getLikes: (videoId: string) => Promise<{ likes: number, userStatus: string | null }>;
+    toggleLike: (videoId: string, type: 'like' | 'dislike') => Promise<any>;
+    getSubscription: (channelName: string) => Promise<boolean>;
+    toggleSubscription: (channelName: string) => Promise<boolean>;
 }
 
 interface DBVideo {
@@ -37,121 +53,360 @@ interface DBVideo {
 
 const VideoContext = createContext<VideoContextType | undefined>(undefined);
 
+// Helper to simulate rich data if DB columns are missing
+const getMockChannelData = (title: string) => {
+    const t = title.toLowerCase();
+    if (t.includes('parade') || t.includes('juneteenth')) return { name: 'Juneteenth ATL', avatar: 'https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=100', views: '14K', duration: '12:30' };
+    if (t.includes('food') || t.includes('bbq') || t.includes('vegan')) return { name: 'ATL Eats', avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100', views: '5K', duration: '8:15' };
+    if (t.includes('music') || t.includes('jazz') || t.includes('drum')) return { name: 'Music City', avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100', views: '22K', duration: '4:20' };
+    if (t.includes('history')) return { name: 'History Buffs', avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=100', views: '120K', duration: '25:00' };
+    if (t.includes('speech') || t.includes('mayor')) return { name: 'City of Atlanta', avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100', views: '8K', duration: '15:45' };
+    return { name: 'Community User', avatar: 'https://i.pravatar.cc/150', views: '1.5K', duration: '3:00' };
+};
+
 export function VideoProvider({ children }: { children: ReactNode }) {
     const [videos, setVideos] = useState<VideoProps[]>([]);
+    const [isUploading, setIsUploading] = useState(false);
+    const [uploadProgress, setUploadProgress] = useState(0);
+    const abortControllerRef = useRef<AbortController | null>(null);
 
-    // Initial Fetch from Supabase
-    useEffect(() => {
-        const fetchVideos = async () => {
-            try {
-                const { data, error } = await supabase
-                    .from('videos')
-                    .select('*')
-                    .order('created_at', { ascending: false });
+    // Helper to fetch videos
+    const fetchVideos = async () => {
+        try {
+            const { data, error } = await supabase
+                .from('videos')
+                .select('*')
+                .order('created_at', { ascending: false });
 
-                if (error) {
-                    console.error('Error fetching videos:', error);
-                    setVideos(MOCK_VIDEOS);
-                    return;
-                }
+            if (error) {
+                console.error('Error fetching videos:', error);
+                setVideos(MOCK_VIDEOS);
+                return;
+            }
 
-                if (data && data.length > 0) {
-                    const dbVideos: VideoProps[] = data.map((video: DBVideo) => ({
+            if (data && data.length > 0) {
+                const dbVideos: VideoProps[] = data.map((video: DBVideo) => {
+                    // Smart Mocking for missing DB columns (Schema Parity)
+                    const mockChannel = getMockChannelData(video.title);
+
+                    return {
                         id: video.id,
                         title: video.title,
                         thumbnail: video.thumbnail_url || "https://images.unsplash.com/photo-1610483145520-412708686f94?q=80&w=600&auto=format&fit=crop",
-                        channelName: "Guest User",
-                        channelAvatar: "https://i.pravatar.cc/150?u=guest",
-                        views: video.views?.toString() || "0",
-                        postedAt: new Date(video.created_at).toLocaleDateString(),
-                        duration: video.duration || "00:00",
+                        channelName: video.category === 'Food' ? 'ATL Foodie' : (mockChannel.name || "JuneteenthTV"),
+                        channelAvatar: mockChannel.avatar || "https://i.pravatar.cc/150?u=jtube",
+                        views: video.views?.toString() || mockChannel.views || "1.2K",
+                        postedAt: video.created_at ? new Date(video.created_at).toLocaleDateString() : "Recently",
+                        duration: video.duration || mockChannel.duration || "5:00",
                         videoUrl: video.video_url,
-                        category: video.category || "All"
-                    }));
-                    setVideos(dbVideos);
-                } else {
-                    setVideos(MOCK_VIDEOS);
-                }
-            } catch (err) {
-                console.error("Unexpected error fetching videos:", err);
+                        category: video.category || "All",
+                        createdAt: video.created_at
+                    };
+                });
+                setVideos(dbVideos);
+            } else {
                 setVideos(MOCK_VIDEOS);
             }
-        };
+        } catch (err) {
+            console.error("Unexpected error fetching videos:", err);
+            setVideos(MOCK_VIDEOS);
+        }
+    };
 
+    // Initial Fetch
+    useEffect(() => {
         fetchVideos();
     }, []);
 
-    // --- MULTIPART UPLOAD LOGIC (For files > 50MB) ---
+    const cancelUpload = () => {
+        if (abortControllerRef.current) {
+            abortControllerRef.current.abort();
+            abortControllerRef.current = null;
+            setIsUploading(false);
+            setUploadProgress(0);
+            console.log("Upload cancelled by user");
+        }
+    };
+
+    // Helper for Guest ID (Persistent non-login user tracking)
+    const getGuestId = () => {
+        let guestId = localStorage.getItem("jtube_guest_id");
+        if (!guestId) {
+            guestId = crypto.randomUUID();
+            localStorage.setItem("jtube_guest_id", guestId);
+        }
+        return guestId;
+    };
+
+    // --- MANAGEMENT FUNCTIONS ---
+
+    // Engagement API Wrappers
+    const getVideoComments = async (videoId: string) => {
+        const res = await fetch(`/api/comments?videoId=${videoId}`);
+        if (!res.ok) return [];
+        const { comments } = await res.json();
+        return comments || [];
+    };
+
+    const postComment = async (videoId: string, text: string, userName: string) => {
+        const guestId = getGuestId();
+        const res = await fetch('/api/comments', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-guest-id': guestId
+            },
+            body: JSON.stringify({ videoId, text, userName })
+        });
+        if (!res.ok) throw new Error("Failed to post comment");
+        return await res.json();
+    };
+
+    const getLikes = async (videoId: string) => {
+        const guestId = getGuestId();
+        const res = await fetch(`/api/likes?videoId=${videoId}`, {
+            headers: { 'x-guest-id': guestId }
+        });
+        if (!res.ok) return { likes: 0, userStatus: null };
+        return await res.json();
+    };
+
+    const toggleLike = async (videoId: string, type: 'like' | 'dislike') => {
+        const guestId = getGuestId();
+        const res = await fetch('/api/likes', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-guest-id': guestId
+            },
+            body: JSON.stringify({ videoId, type })
+        });
+        if (!res.ok) throw new Error("Failed to toggle like");
+        return await res.json();
+    };
+
+    const getSubscription = async (channelName: string) => {
+        const guestId = getGuestId();
+        const res = await fetch(`/api/subscribe?channelName=${encodeURIComponent(channelName)}`, {
+            headers: { 'x-guest-id': guestId }
+        });
+        if (!res.ok) return false;
+        const { subscribed } = await res.json();
+        return subscribed;
+    };
+
+    const toggleSubscription = async (channelName: string) => {
+        const guestId = getGuestId();
+        const res = await fetch('/api/subscribe', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-guest-id': guestId
+            },
+            body: JSON.stringify({ channelName })
+        });
+        if (!res.ok) throw new Error("Failed to toggle subscription");
+        const { subscribed } = await res.json();
+        return subscribed;
+    };
+
+    // --- EXISTING MANAGEMENT FUNCTIONS ---
+
+    // --- MANAGEMENT FUNCTIONS ---
+    // UPDATED: Now using Server-Side API to bypass RLS issues
+
+    const deleteVideo = async (id: string) => {
+        try {
+            // Using existing delete route or admin route? 
+            // For now, let's also move this to an API if RLS blocks delete, 
+            // but user didn't complain about delete yet. Sticking to client delete first, 
+            // or better, use the delete API we saw earlier if it exists?
+            // Actually, let's keep delete as is for now unless it fails. 
+            // If it fails, we should use the API too.
+            const response = await fetch(`/api/videos?id=${id}`, { method: 'DELETE' });
+            if (!response.ok) {
+                const { error } = await response.json();
+                throw new Error(error || 'Delete failed');
+            }
+            setVideos(prev => prev.filter(v => v.id !== id));
+            console.log(`Video ${id} deleted`);
+        } catch (error) {
+            console.error("Error deleting video:", error);
+            throw error;
+        }
+    };
+
+    const updateVideoTitle = async (id: string, newTitle: string) => {
+        try {
+            const response = await fetch('/api/videos/update', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id, title: newTitle })
+            });
+
+            if (!response.ok) throw new Error('Failed to update title');
+
+            setVideos(prev => prev.map(v => v.id === id ? { ...v, title: newTitle } : v));
+        } catch (error) {
+            console.error("Error updating title:", error);
+            throw error;
+        }
+    };
+
+    const updateVideoThumbnail = async (id: string, file: File) => {
+        try {
+            // 1. Upload Thumbnail Image using existing API
+            const response = await fetch("/api/upload", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    filename: `thumb_${id}_${file.name}`,
+                    contentType: file.type || "image/jpeg",
+                }),
+            });
+
+            if (!response.ok) throw new Error("Failed to sign thumbnail upload");
+            const { signedUrl, publicUrl } = await response.json();
+
+            // 2. Upload to Storage (Client-side is fine for storage if bucket is public/authenticated)
+            await new Promise<void>((resolve, reject) => {
+                const xhr = new XMLHttpRequest();
+                xhr.open("PUT", signedUrl);
+                xhr.setRequestHeader("Content-Type", file.type || "image/jpeg");
+                xhr.onload = () => (xhr.status >= 200 && xhr.status < 300) ? resolve() : reject(new Error("Thumbnail upload failed"));
+                xhr.onerror = () => reject(new Error("Network Error during upload"));
+                xhr.send(file);
+            });
+
+            // 3. Update DB via Secure API
+            const updateRes = await fetch('/api/videos/update', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id, thumbnail_url: publicUrl })
+            });
+
+            if (!updateRes.ok) throw new Error('Failed to update video record');
+
+            // 4. Update Local State
+            setVideos(prev => prev.map(v => v.id === id ? { ...v, thumbnail: publicUrl } : v));
+
+        } catch (error) {
+            console.error("Error updating thumbnail:", error);
+            throw error;
+        }
+    };
+
+    const incrementView = async (id: string) => {
+        try {
+            // Optimistic UI update
+            setVideos(prev => prev.map(v => {
+                if (v.id === id) {
+                    const current = parseInt(v.views.replace(/,/g, '') || "0");
+                    return { ...v, views: (current + 1).toString() };
+                }
+                return v;
+            }));
+
+            // Background API call
+            const { data } = await supabase.from('videos').select('views').eq('id', id).single();
+            if (data) {
+                const newViews = (data.views || 0) + 1;
+                await fetch('/api/videos/update', {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id, views: newViews })
+                });
+            }
+        } catch (error) {
+            console.error("Error incrementing view:", error);
+        }
+    };
+
+    // --- UPLOAD LOGIC ---
     const uploadMultipart = async (file: File, _category: string): Promise<string> => {
         const CHUNK_SIZE = 20 * 1024 * 1024; // 20MB chunks
         const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
+        const signal = abortControllerRef.current?.signal;
+        const limit = pLimit(3);
 
         console.log(`Starting Multipart Upload: ${file.name} (${totalChunks} chunks)`);
+        if (signal?.aborted) throw new Error("Upload cancelled");
 
-        // 1. INIT
         const initRes = await fetch("/api/upload-multipart", {
             method: "POST",
-            body: JSON.stringify({ action: "create", filename: file.name, contentType: file.type || "video/mp4" })
+            body: JSON.stringify({ action: "create", filename: file.name, contentType: file.type || "video/mp4" }),
+            signal
         });
         if (!initRes.ok) throw new Error("Failed to init multipart upload");
         const { uploadId, key } = await initRes.json();
-        console.log("Multipart Init:", uploadId);
 
+        let completedChunks = 0;
         const parts: { ETag: string, PartNumber: number }[] = [];
 
-        // 2. CHUNK LOOP
-        for (let i = 0; i < totalChunks; i++) {
-            const start = i * CHUNK_SIZE;
-            const end = Math.min(start + CHUNK_SIZE, file.size);
-            const chunk = file.slice(start, end);
-            const partNumber = i + 1;
+        const uploadPromises = Array.from({ length: totalChunks }, (_, i) => {
+            return limit(async () => {
+                if (signal?.aborted) throw new Error("Upload cancelled");
 
-            console.log(`Uploading Part ${partNumber}/${totalChunks}...`);
+                const partNumber = i + 1;
+                const start = i * CHUNK_SIZE;
+                const end = Math.min(start + CHUNK_SIZE, file.size);
+                const chunk = file.slice(start, end);
 
-            // Get Signed URL for Part
-            const signRes = await fetch("/api/upload-multipart", {
-                method: "POST",
-                body: JSON.stringify({ action: "sign-part", key, uploadId, partNumber })
-            });
-            const { signedUrl } = await signRes.json();
-
-            // Upload Part with Retry
-            const uploadPartWithRetry = async (retries = 3): Promise<string> => {
-                return new Promise((resolve, reject) => {
-                    const xhr = new XMLHttpRequest();
-                    xhr.open("PUT", signedUrl);
-
-                    xhr.onload = () => {
-                        if (xhr.status >= 200 && xhr.status < 300) {
-                            const etag = xhr.getResponseHeader("ETag");
-                            if (etag) resolve(etag);
-                            else reject(new Error("No ETag in response"));
-                        } else {
-                            if (retries > 1) setTimeout(() => resolve(uploadPartWithRetry(retries - 1)), 2000);
-                            else reject(new Error(`Part Upload Failed: ${xhr.status}`));
-                        }
-                    };
-                    xhr.onerror = () => {
-                        if (retries > 1) setTimeout(() => resolve(uploadPartWithRetry(retries - 1)), 2000);
-                        else reject(new Error("Network Error"));
-                    };
-                    xhr.send(chunk);
+                const signRes = await fetch("/api/upload-multipart", {
+                    method: "POST",
+                    body: JSON.stringify({ action: "sign-part", key, uploadId, partNumber }),
+                    signal
                 });
-            };
+                const { signedUrl } = await signRes.json();
 
-            const etag = await uploadPartWithRetry();
-            parts.push({ ETag: etag, PartNumber: partNumber });
+                const uploadPartWithRetry = async (retries = 3): Promise<string> => {
+                    return new Promise((resolve, reject) => {
+                        if (signal?.aborted) {
+                            reject(new Error("Upload cancelled"));
+                            return;
+                        }
+                        const xhr = new XMLHttpRequest();
+                        xhr.open("PUT", signedUrl);
 
-            // Progress Calculation (Approximate)
-            const percent = Math.round((partNumber / totalChunks) * 100);
-            console.log(`Part ${partNumber} Complete. Progress: ${percent}%`);
-        }
+                        if (signal) {
+                            signal.onabort = () => {
+                                xhr.abort();
+                                reject(new Error("Upload cancelled"));
+                            };
+                        }
+                        xhr.onload = () => {
+                            if (xhr.status >= 200 && xhr.status < 300) {
+                                const etag = xhr.getResponseHeader("ETag");
+                                if (etag) resolve(etag);
+                                else reject(new Error("No ETag in response"));
+                            } else {
+                                if (retries > 1 && !signal?.aborted) setTimeout(() => resolve(uploadPartWithRetry(retries - 1)), 2000);
+                                else reject(new Error(`Part Upload Failed: ${xhr.status}`));
+                            }
+                        };
+                        xhr.onerror = () => {
+                            if (retries > 1 && !signal?.aborted) setTimeout(() => resolve(uploadPartWithRetry(retries - 1)), 2000);
+                            else reject(new Error("Network Error"));
+                        };
+                        xhr.send(chunk);
+                    });
+                };
 
-        // 3. COMPLETE
-        console.log("Completing Multipart Upload...");
+                const etag = await uploadPartWithRetry();
+                completedChunks++;
+                const percent = Math.round((completedChunks / totalChunks) * 100);
+                setUploadProgress(percent);
+                return { ETag: etag, PartNumber: partNumber };
+            });
+        });
+
+        const results = await Promise.all(uploadPromises);
+        parts.push(...results);
+
         const completeRes = await fetch("/api/upload-multipart", {
             method: "POST",
-            body: JSON.stringify({ action: "complete", key, uploadId, parts })
+            body: JSON.stringify({ action: "complete", key, uploadId, parts: parts.sort((a, b) => a.PartNumber - b.PartNumber) }),
+            signal
         });
         if (!completeRes.ok) throw new Error("Failed to complete multipart upload");
 
@@ -161,16 +416,21 @@ export function VideoProvider({ children }: { children: ReactNode }) {
 
 
     const uploadVideo = async (file: File, category: string = "All") => {
+        setIsUploading(true);
+        setUploadProgress(0);
+
+        if (abortControllerRef.current) {
+            abortControllerRef.current.abort();
+        }
+        abortControllerRef.current = new AbortController();
+        const signal = abortControllerRef.current.signal;
+
         try {
             let publicUrl = "";
 
-            // Decision: Simple vs Multipart
             if (file.size > 50 * 1024 * 1024) {
-                // > 50MB: Use Multipart
-                console.log("Using Multipart Upload (>50MB)...");
                 publicUrl = await uploadMultipart(file, category);
             } else {
-                // < 50MB: Use Simple Upload
                 console.log("Using Simple Upload (<50MB)...");
                 const response = await fetch("/api/upload", {
                     method: "POST",
@@ -179,17 +439,31 @@ export function VideoProvider({ children }: { children: ReactNode }) {
                         filename: file.name,
                         contentType: file.type || "video/mp4",
                     }),
+                    signal
                 });
 
                 if (!response.ok) throw new Error(`API Sign Error: ${response.status} ${response.statusText}`);
                 const { signedUrl, publicUrl: simplePublicUrl, error } = await response.json();
                 if (error) throw new Error(`Sign Error: ${error}`);
 
-                // Simple XHR Upload
+                if (signal.aborted) throw new Error("Upload cancelled");
+
                 await new Promise<void>((resolve, reject) => {
                     const xhr = new XMLHttpRequest();
                     xhr.open("PUT", signedUrl);
                     xhr.setRequestHeader("Content-Type", file.type || "video/mp4");
+                    if (signal) {
+                        signal.onabort = () => {
+                            xhr.abort();
+                            reject(new Error("Upload cancelled"));
+                        };
+                    }
+                    xhr.upload.onprogress = (event) => {
+                        if (event.lengthComputable) {
+                            const percent = Math.round((event.loaded / event.total) * 100);
+                            setUploadProgress(percent);
+                        }
+                    };
                     xhr.onload = () => (xhr.status >= 200 && xhr.status < 300) ? resolve() : reject(new Error(`Upload Failed`));
                     xhr.onerror = () => reject(new Error("Network Error"));
                     xhr.send(file);
@@ -197,15 +471,15 @@ export function VideoProvider({ children }: { children: ReactNode }) {
                 publicUrl = simplePublicUrl;
             }
 
-            console.log("Step 3: Saving to DB...");
+            if (signal.aborted) throw new Error("Upload cancelled");
 
-            // 3. Save Metadata to Supabase Database
+            console.log("Saving to DB...");
             const { error: dbError } = await supabase
                 .from('videos')
                 .insert([
                     {
                         title: file.name.replace(/\.[^/.]+$/, ""),
-                        video_url: publicUrl, // Use the S3 Public URL
+                        video_url: publicUrl,
                         thumbnail_url: "https://images.unsplash.com/photo-1610483145520-412708686f94?q=80&w=600&auto=format&fit=crop",
                         category: category,
                     }
@@ -216,11 +490,19 @@ export function VideoProvider({ children }: { children: ReactNode }) {
             if (dbError) throw new Error(`DB Insert Failed: ${dbError.message}`);
 
             console.log("Upload Sequence Complete!");
-            window.location.reload();
+            await fetchVideos();
 
         } catch (err: unknown) {
-            console.error("Upload process failed", err);
-            throw err;
+            if (abortControllerRef.current?.signal.aborted || (err instanceof Error && err.message === 'Upload cancelled')) {
+                console.log('Upload was cancelled');
+            } else {
+                console.error("Upload process failed", err);
+                throw err;
+            }
+        } finally {
+            setIsUploading(false);
+            setUploadProgress(0);
+            abortControllerRef.current = null;
         }
     };
 
@@ -229,7 +511,11 @@ export function VideoProvider({ children }: { children: ReactNode }) {
     };
 
     return (
-        <VideoContext.Provider value={{ videos, uploadVideo, getVideoById }}>
+        <VideoContext.Provider value={{
+            videos, uploadVideo, getVideoById, isUploading, uploadProgress, cancelUpload,
+            deleteVideo, updateVideoTitle, updateVideoThumbnail, incrementView,
+            getVideoComments, postComment, getLikes, toggleLike, getSubscription, toggleSubscription
+        }}>
             {children}
         </VideoContext.Provider>
     );

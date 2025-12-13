@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #121212;
-  /* Dark background default */
+  --background: #0f0f0f;
+  /* YouTube Dark Background */
   --foreground: #ffffff;
 
   /* Juneteenth Palette */
@@ -31,11 +31,10 @@ body {
   overflow-x: hidden;
   /* Prevent horizontal scroll */
 
-  /* Juneteenth Styled Background */
-  /* Juneteenth Styled Background */
+  /* Juneteenth Premium Mesh Gradient */
   background-image:
-    /* Red to Green Gradient Overlay (Subtle Tint over Black) */
-    linear-gradient(135deg, rgba(227, 28, 35, 0.2), rgba(0, 107, 61, 0.2));
+    radial-gradient(circle at 0% 0%, rgba(227, 28, 35, 0.15), transparent 50%),
+    radial-gradient(circle at 100% 100%, rgba(0, 107, 61, 0.15), transparent 50%);
 
   background-attachment: fixed;
   background-size: cover;

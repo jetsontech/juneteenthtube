@@ -18,7 +18,7 @@ export default function WatchPage({
     params: Promise<{ id: string }>;
 }) {
     const resolvedParams = use(params);
-    const { getVideoById, videos } = useVideo();
+    const { getVideoById, videos, getVideoComments, postComment, getLikes, toggleLike, getSubscription, toggleSubscription } = useVideo();
     const [video, setVideo] = useState<VideoProps | undefined>();
 
     // Re-run when videos are loaded from database
@@ -32,57 +32,92 @@ export default function WatchPage({
     const [isSubscribed, setIsSubscribed] = useState(false);
     const [liked, setLiked] = useState(false);
     const [disliked, setDisliked] = useState(false);
-    const [likesCount, setLikesCount] = useState(video?.likes || 0);
+    const [likesCount, setLikesCount] = useState(0);
 
     // Comments State
-    const [comments, setComments] = useState<{ id: number, user: string, text: string, timestamp: string }[]>([]);
+    const [comments, setComments] = useState<any[]>([]);
     const [newComment, setNewComment] = useState("");
 
-    const handleComment = () => {
-        if (!newComment.trim()) return;
-
-        const comment = {
-            id: Date.now(),
-            user: "You",
-            text: newComment,
-            timestamp: "Just now"
-        };
-
-        setComments(prev => [comment, ...prev]);
-        setNewComment("");
-    };
-
-    // Update local state when video loads
+    // Fetch Engagement Data
     useEffect(() => {
-        if (video) {
-            setLikesCount(video.likes || 0);
-        }
-    }, [video]);
+        if (!resolvedParams.id) return;
 
-    const handleSubscribe = () => {
-        setIsSubscribed(!isSubscribed);
+        // Load Comments
+        getVideoComments(resolvedParams.id).then(setComments);
+
+        // Load Likes
+        getLikes(resolvedParams.id).then(({ likes, userStatus }) => {
+            setLikesCount(likes);
+            if (userStatus === 'like') setLiked(true);
+            else if (userStatus === 'dislike') setDisliked(true);
+        });
+
+        // Load Subs (Mock Channel Name for now based on video)
+        if (video?.channelName) {
+            getSubscription(video.channelName).then(setIsSubscribed);
+        }
+
+    }, [resolvedParams.id, video?.channelName]);
+
+    const handleComment = async () => {
+        if (!newComment.trim() || !video) return;
+        try {
+            const added = await postComment(video.id, newComment, "You"); // "You" is placeholder
+            // Optimistic update or refetch? Let's just append for speed
+            const newCommentObj = {
+                // Map DB response to UI
+                id: added.comment.id,
+                user: added.comment.user_name,
+                text: added.comment.content,
+                timestamp: new Date().toISOString() // or formatDistanceToNow
+            };
+            setComments(prev => [newCommentObj, ...prev]);
+            setNewComment("");
+        } catch (e) {
+            console.error("Comment failed", e);
+            alert("Failed to post comment. Try again.");
+        }
     };
 
-    const handleLike = () => {
+    const handleSubscribe = async () => {
+        if (!video) return;
+        try {
+            const newState = await toggleSubscription(video.channelName);
+            setIsSubscribed(newState);
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+    const handleLike = async () => {
+        if (!video) return;
+        // Optimistic
+        const wasLiked = liked;
+        setLiked(!wasLiked);
+        setLikesCount(prev => wasLiked ? prev - 1 : prev + 1);
+        if (disliked) setDisliked(false);
+
+        try {
+            await toggleLike(video.id, 'like');
+        } catch (e) {
+            // Revert if failed
+            setLiked(wasLiked);
+        }
+    };
+
+    const handleDislike = async () => {
+        if (!video) return;
+        const wasDisliked = disliked;
+        setDisliked(!wasDisliked);
         if (liked) {
             setLiked(false);
-            setLikesCount((prev: number) => prev - 1);
-        } else {
-            setLiked(true);
-            setLikesCount((prev: number) => prev + 1);
-            if (disliked) setDisliked(false);
+            setLikesCount(prev => prev - 1);
         }
-    };
 
-    const handleDislike = () => {
-        if (disliked) {
-            setDisliked(false);
-        } else {
-            setDisliked(true);
-            if (liked) {
-                setLiked(false);
-                setLikesCount((prev: number) => prev - 1);
-            }
+        try {
+            await toggleLike(video.id, 'dislike');
+        } catch (e) {
+            setDisliked(wasDisliked);
         }
     };
 
@@ -100,16 +135,16 @@ export default function WatchPage({
     }
 
     return (
-        <div className="flex flex-col lg:flex-row gap-6 max-w-[1800px] mx-auto md:pt-4">
+        <div className="flex flex-col lg:flex-row gap-6 mx-auto md:px-6 pt-6 max-w-[1700px]">
             {/* Primary Column - Player & Info */}
             <div className="flex-1 min-w-0">
-                {/* Player Container - Edge to Edge on Mobile */}
-                <div className="relative aspect-video bg-black shadow-2xl md:rounded-xl md:ring-1 md:ring-white/10 overflow-hidden">
+                {/* Player Container */}
+                <div className="relative aspect-video bg-black shadow-lg rounded-xl overflow-hidden ring-1 ring-white/10">
                     {video.videoUrl ? (
                         <CustomPlayer src={video.videoUrl} poster={video.thumbnail} />
                     ) : (
-                        /* Mock Player for videos without real URL */
                         <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
+                            {/* ... Mock Player content ... */}
                             <div className="text-center">
                                 <p className="text-white/50 mb-2">Mock Video ID: {video.id}</p>
                                 <p className="text-sm text-gray-500">(No actual video file associated with this mock data)</p>
@@ -122,63 +157,88 @@ export default function WatchPage({
                 </div>
 
                 {/* Video Info */}
-                <div className="p-4 md:p-0 mt-4">
-                    <h1 className="text-xl md:text-2xl font-bold text-white mb-2 line-clamp-2">
+                <div className="mt-4">
+                    <h1 className="text-xl font-bold text-white mb-2 line-clamp-2">
                         {video.title}
                     </h1>
 
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                        {/* Channel */}
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-j-green flex-shrink-0 overflow-hidden">
-                                {video.channelAvatar ? (
-                                    <img src={video.channelAvatar} alt={video.channelName} className="object-cover w-full h-full" />
-                                ) : (
-                                    <div className="w-full h-full bg-j-green" />
-                                )}
-                            </div>
-                            <div>
-                                <h3 className="font-bold text-white">{video.channelName}</h3>
-                                <p className="text-xs text-gray-400">1.2K subscribers</p>
-                            </div>
-                            <button
-                                onClick={handleSubscribe}
-                                className={`ml-4 px-4 py-2 rounded-full text-sm font-bold transition-colors ${isSubscribed
-                                    ? "bg-white/20 text-white hover:bg-white/30"
-                                    : "bg-white text-black hover:bg-gray-200"
-                                    }`}
-                            >
-                                {isSubscribed ? "Subscribed" : "Subscribe"}
-                            </button>
-                        </div>
-
-                        {/* Actions */}
-                        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-                            <div className="flex items-center bg-white/10 rounded-full p-1">
+                    <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+                        {/* Channel & Description Group */}
+                        <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-4">
+                                <div className="w-10 h-10 rounded-full bg-j-green flex-shrink-0 overflow-hidden cursor-pointer hover:opacity-90">
+                                    {video.channelAvatar ? (
+                                        <img src={video.channelAvatar} alt={video.channelName} className="object-cover w-full h-full" />
+                                    ) : (
+                                        <div className="w-full h-full bg-j-green" />
+                                    )}
+                                </div>
+                                <div className="flex flex-col">
+                                    <h3 className="font-bold text-white text-base hover:text-gray-200 cursor-pointer">{video.channelName}</h3>
+                                    <p className="text-xs text-gray-400">1.2K subscribers</p>
+                                </div>
                                 <button
-                                    onClick={handleLike}
-                                    className={`flex items-center gap-2 px-3 py-1.5 rounded-l-full transition-colors ${liked ? "text-white bg-white/20" : "text-white hover:bg-white/20"
+                                    onClick={handleSubscribe}
+                                    className={`ml-6 px-4 py-2 rounded-full text-sm font-medium transition-all ${isSubscribed
+                                        ? "bg-[#272727] text-white hover:bg-[#3f3f3f]"
+                                        : "bg-white text-black hover:bg-gray-200"
                                         }`}
                                 >
-                                    <ThumbsUp className={`w-5 h-5 ${liked ? "fill-current" : ""}`} />
-                                    <span className="text-sm font-bold">{likesCount}</span>
+                                    {isSubscribed ? "Subscribed" : "Subscribe"}
+                                </button>
+                            </div>
+
+                            {/* Description Box - YouTube Style */}
+                            <div className="bg-[#2a2a2a] rounded-xl p-3 text-sm hover:bg-[#3f3f3f] transition-colors cursor-pointer group">
+                                <div className="flex gap-2 font-bold mb-1 text-white text-sm">
+                                    <span>{parseInt(video.views).toLocaleString()} views</span>
+                                    <span>{video.postedAt}</span>
+                                    {/* Optional tags */}
+                                    <span className="text-gray-400 font-normal">#Juneteenth #Atlanta</span>
+                                </div>
+                                <p className="text-white whitespace-pre-line leading-relaxed">
+                                    {video.videoUrl ?
+                                        "Uploaded from your device. Watch and enjoy the highlights from this year's parade!" :
+                                        "Experience the vibrant energy of the 2024 Juneteenth Atlanta Parade! Featuring marching bands, dance troupes, and community floats."}
+                                </p>
+                                <button className="mt-2 text-white font-bold text-sm hidden group-hover:block">more</button>
+                            </div>
+                        </div>
+
+                        {/* Actions (Like/Share/Download) - Top Right aligned usually, or separated row */}
+                        {/* YouTube has Actions on the same row as Channel slightly to the right or below title. 
+                             Let's keep them in the row below title or to the right of channel? 
+                             Actually YouTube Layout:
+                             [Title]
+                             [Channel/Sub] [Spacer] [Actions]
+                             [Description Box]
+                         */}
+                        <div className="flex items-center gap-2 flex-shrink-0 self-start md:mt-1">
+                            <div className="flex items-center bg-[#272727] rounded-full">
+                                <button
+                                    onClick={handleLike}
+                                    className={`flex items-center gap-2 px-4 py-2 rounded-l-full hover:bg-[#3f3f3f] transition-colors relative ${liked ? "text-white" : "text-white"}`}
+                                    aria-label="Like video"
+                                >
+                                    <ThumbsUp className={`w-5 h-5 ${liked ? "fill-white" : ""}`} />
+                                    <span className="text-xs font-medium">{likesCount}</span>
                                 </button>
                                 <div className="w-px h-6 bg-white/20"></div>
                                 <button
                                     onClick={handleDislike}
-                                    className={`px-3 py-1.5 rounded-r-full transition-colors ${disliked ? "text-white bg-white/20" : "text-white hover:bg-white/20"
-                                        }`}
+                                    className={`px-4 py-2 rounded-r-full hover:bg-[#3f3f3f] transition-colors relative ${disliked ? "text-white" : "text-white"}`}
+                                    aria-label="Dislike video"
                                 >
-                                    <ThumbsDown className={`w-5 h-5 ${disliked ? "fill-current" : ""}`} />
+                                    <ThumbsDown className={`w-5 h-5 ${disliked ? "fill-white" : ""}`} />
                                 </button>
                             </div>
 
                             <button
                                 onClick={handleShare}
-                                className="flex items-center gap-2 px-3 py-2 bg-white/10 hover:bg-white/20 rounded-full transition-colors text-white"
+                                className="flex items-center gap-2 px-4 py-2 bg-[#272727] hover:bg-[#3f3f3f] rounded-full transition-colors text-white font-medium text-sm"
                             >
                                 <Share2 className="w-5 h-5" />
-                                <span className="text-sm font-bold hidden sm:inline">Share</span>
+                                <span className="hidden sm:inline">Share</span>
                             </button>
 
                             <a
@@ -186,29 +246,25 @@ export default function WatchPage({
                                 download
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="flex items-center gap-2 px-4 py-2 bg-j-green/20 text-j-green hover:bg-j-green/30 rounded-full transition-colors border border-j-green/50"
+                                className="flex items-center gap-2 px-3 py-2 bg-[#272727] text-white hover:bg-[#3f3f3f] rounded-full transition-colors font-medium text-sm"
+                                title="Download"
                             >
-                                <span className="text-sm font-bold">Download</span>
+                                <MoreHorizontal className="w-5 h-5" />
                             </a>
                         </div>
-                    </div>
-
-                    {/* Description */}
-                    <div className="bg-white/5 rounded-xl p-4 text-sm mt-4 hover:bg-white/10 transition-colors">
-                        <div className="flex gap-2 font-bold mb-2">
-                            <span>{video.views} views</span>
-                            <span>{video.postedAt}</span>
-                        </div>
-                        {video.videoUrl ? "Uploaded from your device." : "Experience the vibrant energy of the 2024 Juneteenth Atlanta Parade! Featuring marching bands, dance troupes, and community floats. #Juneteenth #Atlanta #FreedomDay"}
-
                     </div>
                 </div>
 
                 {/* Comments Section */}
-                <div className="mt-6">
-                    <h3 className="font-bold mb-4 text-white">Comments ({comments.length})</h3>
-                    <div className="flex items-start gap-3 mb-6">
-                        <div className="w-10 h-10 rounded-full bg-j-red flex-shrink-0 flex items-center justify-center text-white font-bold">
+                <div className="mt-6 max-w-4xl">
+                    <div className="flex items-center gap-8 mb-6">
+                        <h3 className="text-xl font-bold text-white">{comments.length} Comments</h3>
+                        {/* Sort button could go here */}
+                    </div>
+
+                    {/* Add Comment */}
+                    <div className="flex items-start gap-4 mb-8">
+                        <div className="w-10 h-10 rounded-full bg-j-red flex-shrink-0 flex items-center justify-center text-white font-bold text-lg select-none">
                             Y
                         </div>
                         <div className="flex-1">
@@ -217,14 +273,23 @@ export default function WatchPage({
                                 value={newComment}
                                 onChange={(e) => setNewComment(e.target.value)}
                                 placeholder="Add a comment..."
-                                className="w-full bg-transparent border-b border-white/20 pb-2 text-white focus:outline-none focus:border-white transition-colors"
+                                className="w-full bg-transparent border-b border-white/20 pb-1 text-white placeholder-gray-400 focus:outline-none focus:border-white transition-colors text-sm"
                                 onKeyDown={(e) => e.key === 'Enter' && handleComment()}
                             />
-                            <div className="flex justify-end mt-2">
+                            <div className="flex justify-end mt-2 gap-2">
+                                <button
+                                    className="px-4 py-2 text-sm font-medium text-white hover:bg-[#272727] rounded-full transition-colors"
+                                    onClick={() => setNewComment("")}
+                                >
+                                    Cancel
+                                </button>
                                 <button
                                     onClick={handleComment}
                                     disabled={!newComment.trim()}
-                                    className="px-4 py-2 bg-white/10 text-white rounded-full text-sm font-bold hover:bg-white/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${newComment.trim()
+                                        ? "bg-[#3ea6ff] text-black hover:bg-[#65b8ff]"
+                                        : "bg-[#272727] text-gray-500 cursor-not-allowed"
+                                        }`}
                                 >
                                     Comment
                                 </button>
@@ -232,21 +297,41 @@ export default function WatchPage({
                         </div>
                     </div>
 
-                    <div className="space-y-4">
+                    <div className="space-y-6">
                         {comments.length === 0 ? (
-                            <p className="text-gray-400 text-center py-4">No comments yet. Be the first to share your thoughts!</p>
+                            <p className="text-gray-400 py-4">No comments yet.</p>
                         ) : (
                             comments.map((comment) => (
-                                <div key={comment.id} className="flex gap-3">
-                                    <div className="w-8 h-8 rounded-full bg-gray-700 flex-shrink-0 flex items-center justify-center text-white text-xs font-bold">
-                                        {comment.user[0].toUpperCase()}
+                                <div key={comment.id} className="flex gap-4 group">
+                                    <div className="w-10 h-10 rounded-full bg-gray-700 flex-shrink-0 flex items-center justify-center text-white text-xs font-bold select-none">
+                                        {(comment.user_name || comment.user || "G")[0].toUpperCase()}
                                     </div>
-                                    <div>
-                                        <div className="flex items-baseline gap-2">
-                                            <span className="font-bold text-white text-sm">{comment.user}</span>
-                                            <span className="text-xs text-gray-500">{comment.timestamp}</span>
+                                    <div className="flex-1">
+                                        <div className="flex items-baseline gap-2 mb-1">
+                                            <span className="font-bold text-white text-sm cursor-pointer hover:text-gray-300">@{comment.user_name || comment.user || "Guest"}</span>
+                                            <span className="text-xs text-gray-400 hover:text-white cursor-pointer">
+                                                {comment.created_at ? new Date(comment.created_at).toLocaleDateString() : (comment.timestamp || "Just now")}
+                                            </span>
                                         </div>
-                                        <p className="text-sm text-gray-200 mt-1">{comment.text}</p>
+                                        <p className="text-sm text-white leading-normal">{comment.content || comment.text}</p>
+                                        <div className="flex items-center gap-4 mt-2">
+                                            <button
+                                                className="flex items-center gap-1.5 text-gray-400 hover:text-white group-hover:opacity-100 opacity-0 transition-opacity"
+                                                aria-label="Like comment"
+                                            >
+                                                <ThumbsUp className="w-3.5 h-3.5" />
+                                                <span className="text-xs"></span>
+                                            </button>
+                                            <button
+                                                className="flex items-center text-gray-400 hover:text-white group-hover:opacity-100 opacity-0 transition-opacity"
+                                                aria-label="Dislike comment"
+                                            >
+                                                <ThumbsDown className="w-3.5 h-3.5" />
+                                            </button>
+                                            <button className="text-xs font-medium text-gray-400 hover:text-white rounded-full px-2 py-1 hover:bg-[#272727]">
+                                                Reply
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             ))
@@ -256,19 +341,31 @@ export default function WatchPage({
             </div>
 
             {/* Secondary Column - Recommendations */}
-            <div className="lg:w-[350px] xl:w-[400px] flex-shrink-0 space-y-4 hidden lg:block">
-                <h3 className="font-bold mb-2 text-white">Up Next</h3>
-                {[1, 2, 3, 4].map((i) => (
-                    <div key={i} className="flex gap-2 cursor-pointer group">
-                        <div className="w-40 aspect-video bg-white/10 rounded-lg overflow-hidden flex-shrink-0">
-                            <div className="w-full h-full bg-white/5 animate-pulse" />
+            <div className="lg:w-[400px] xl:w-[420px] flex-shrink-0 space-y-2 hidden lg:block">
+                {/* Filters potentially? */}
+                <div className="flex gap-2 pb-4">
+                    <button className="bg-white text-black px-3 py-1.5 rounded-lg text-sm font-medium">All</button>
+                    <button className="bg-[#272727] text-white hover:bg-[#3f3f3f] px-3 py-1.5 rounded-lg text-sm font-medium transition-colors">From {video.channelName}</button>
+                    <button className="bg-[#272727] text-white hover:bg-[#3f3f3f] px-3 py-1.5 rounded-lg text-sm font-medium transition-colors">Related</button>
+                </div>
+
+                {videos.filter(v => v.id !== video?.id).map((v) => (
+                    <a href={`/watch/${v.id}`} key={v.id} className="flex gap-2 cursor-pointer group hover:bg-[#272727] p-2 rounded-xl transition-colors">
+                        <div className="w-[168px] aspect-video bg-gray-800 rounded-lg overflow-hidden flex-shrink-0 relative">
+                            <img src={v.thumbnail} className="w-full h-full object-cover" alt={v.title} />
+                            <div className="absolute bottom-1.5 right-1.5 bg-black/80 text-[10px] px-1.5 py-0.5 rounded text-white font-medium tracking-wide">
+                                {v.duration}
+                            </div>
                         </div>
-                        <div className="flex-1">
-                            <h4 className="font-bold text-white text-sm line-clamp-2 group-hover:text-j-red transition-colors">Recommended Video {i}</h4>
-                            <p className="text-xs text-gray-400 mt-1">Juneteenth Atlanta</p>
-                            <p className="text-xs text-gray-500">5K views • 2 days ago</p>
+                        <div className="flex-1 min-w-0 pr-4">
+                            <h4 className="font-bold text-white text-sm line-clamp-2 mb-1 group-hover:text-white transition-colors leading-tight">{v.title}</h4>
+                            <p className="text-xs text-gray-400 hover:text-white transition-colors">{v.channelName}</p>
+                            <p className="text-xs text-gray-400">{v.views} views • {v.postedAt}</p>
                         </div>
-                    </div>
+                        <div className="opacity-0 group-hover:opacity-100 self-start p-1 -mr-2">
+                            <MoreHorizontal className="w-5 h-5 text-white transform rotate-90" />
+                        </div>
+                    </a>
                 ))}
             </div>
         </div>

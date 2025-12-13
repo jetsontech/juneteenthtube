@@ -8,7 +8,9 @@ import {
     VolumeX,
     Maximize,
     Minimize,
-    RotateCcw
+    RotateCcw,
+    PictureInPicture,
+    Cast
 } from "lucide-react";
 
 interface CustomPlayerProps {
@@ -119,6 +121,61 @@ export function CustomPlayer({ src, poster }: CustomPlayerProps) {
         setVolume(newVolume);
     };
 
+    // Toggle PiP
+    const togglePip = async (e?: React.MouseEvent) => {
+        e?.stopPropagation();
+        if (!videoRef.current) return;
+
+        try {
+            if (document.pictureInPictureElement) {
+                await document.exitPictureInPicture();
+            } else {
+                await videoRef.current.requestPictureInPicture();
+            }
+        } catch (error) {
+            console.error("PiP failed:", error);
+        }
+    };
+
+    // Handle Casting (Experimental Remote Playback API)
+    const handleCast = async (e?: React.MouseEvent) => {
+        e?.stopPropagation();
+
+        if (!videoRef.current) return;
+
+        // TS Workaround for experimental API
+        const video = videoRef.current as any;
+
+        if (video.remote) {
+            try {
+                if (video.remote.state === 'disconnected') {
+                    // Start casting
+                    await video.remote.prompt();
+                } else {
+                    // Stop casting
+                    await video.remote.prompt();
+                }
+            } catch (error: any) {
+                // Provide friendly feedback for common errors
+                if (error.name === 'AbortError' || error.name === 'NotAllowedError' || error.message?.includes('dismissed')) {
+                    // No console.error for expected user cancellations
+                    alert("Casting cancelled or no device selected.");
+                } else if (error.message?.includes('No remote playback devices found')) {
+                    alert("No Cast devices found. Ensure your device is on the same Wi-Fi as your TV.");
+                } else {
+                    console.error("Cast error:", error);
+                    alert(`Casting failed: ${error.message || "Unknown error"}`);
+                }
+            }
+        } else if ((window as any).Chrome) {
+            // Fallback for older Chrome cast sender API? 
+            // Simplest is just alerting user if the API is entirely missing.
+            alert("Native Casting not supported. Try using your browser's Cast menu.");
+        } else {
+            alert("Casting not supported on this browser.");
+        }
+    };
+
     // Toggle Fullscreen
     const toggleFullscreen = (e?: React.MouseEvent) => {
         e?.stopPropagation();
@@ -183,7 +240,7 @@ export function CustomPlayer({ src, poster }: CustomPlayerProps) {
             className="group relative w-full h-full bg-black overflow-hidden flex flex-col"
             onMouseMove={handleMouseMove}
             onClick={resetControlsTimeout}
-            onMouseLeave={() => isPlaying && setShowControls(false)}
+            onMouseLeave={resetControlsTimeout} // Extend timeout instead of hiding immediately
         >
             <video
                 ref={videoRef}
@@ -196,6 +253,8 @@ export function CustomPlayer({ src, poster }: CustomPlayerProps) {
                 playsInline
                 webkit-playsinline="true"
                 x5-playsinline="true"
+                disablePictureInPicture={false}
+                disableRemotePlayback={false} // Explicitly allow casting
             />
 
             {/* Interaction Layer - Intercepts all clicks to prevent native iOS controls */}
@@ -308,6 +367,20 @@ export function CustomPlayer({ src, poster }: CustomPlayerProps) {
 
                     {/* Right Side */}
                     <div className="flex items-center gap-4">
+                        <button
+                            onClick={handleCast}
+                            className="text-white hover:text-white/80 transition-colors focus:outline-none hidden sm:block z-50 relative pointer-events-auto"
+                            title="Cast to Device"
+                        >
+                            <Cast className="w-5 h-5" />
+                        </button>
+                        <button
+                            onClick={togglePip}
+                            className="text-white hover:text-white/80 transition-colors focus:outline-none"
+                            title="Picture-in-Picture"
+                        >
+                            <PictureInPicture className="w-5 h-5" />
+                        </button>
                         <button
                             onClick={toggleFullscreen}
                             className="text-white hover:text-white/80 transition-colors focus:outline-none"

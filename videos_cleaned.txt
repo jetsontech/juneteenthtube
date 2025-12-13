@@ -1,0 +1,6 @@
+[dotenv@17.2.3] injecting env (9) from .env.local -- tip: ­ƒöÉ prevent committing .env to code: https://dotenvx.com/precommit
+Fetching all videos from DB...
+Found 3 videos:
+- [9d4580ca-7691-4bce-b79d-a3955d49e8cb] "DJI_20240623_182037_459_video" (Thumb: Yes)
+- [b38ae17e-6416-48d5-8d5c-3cedfe7484a5] "DJI_20250615_211427_150_video" (Thumb: Yes)
+- [ee99a856-9941-4ad6-8a87-099c71367a96] "Juneteenth Stage (Official High-Res MP4)" (Thumb: Yes)

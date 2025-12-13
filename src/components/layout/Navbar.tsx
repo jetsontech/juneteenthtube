@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Menu, Search, Video, Bell, User, X, UploadCloud } from "lucide-react";
+import { Menu, Search, Video, Bell, User, X, UploadCloud, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { useVideo } from "@/context/VideoContext";
@@ -14,39 +14,27 @@ const CATEGORIES = ["All", "Parade", "Music", "Food", "History", "Speeches", "Li
 
 export function Navbar({ onMenuClick }: NavbarProps) {
     const [isUploadOpen, setIsUploadOpen] = useState(false);
-    const [isUploading, setIsUploading] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState<string>("All");
-    const { uploadVideo } = useVideo();
+    const { uploadVideo, isUploading, uploadProgress, cancelUpload } = useVideo();
 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         try {
             const file = e.target.files?.[0];
             if (!file) return;
 
-            // File selected, starting upload logic...
-            // Note: S3/R2 supports large files via presigned URLs - no size limit needed
-
-            setIsUploading(true);
-
-            // Simulate delay to show UI state (Keep this for visual feedback even if fast)
-            // await new Promise(resolve => setTimeout(resolve, 1000));
-
             // CRITICAL: Await the upload so errors are caught here!
             await uploadVideo(file, selectedCategory);
 
             setIsUploadOpen(false);
-            setIsUploading(false);
             setSelectedCategory("All"); // Reset category after upload
-
             if (confirm("Upload Successful! Press OK to refresh and see your video.")) {
                 window.location.reload();
             }
 
-            // Explicit success feedback for mobile users who might miss the UI update
-            // alert("Upload Success! Scroll to the top of the feed to see your video.");
-
         } catch (error: any) {
             console.error("Upload error:", error);
+            // Don't alert if it was just cancelled
+            if (error?.message === "Upload cancelled") return;
 
             let errorMessage = "Unknown error occurred";
             if (error instanceof Error) {
@@ -60,9 +48,20 @@ export function Navbar({ onMenuClick }: NavbarProps) {
         }
     };
 
+    const handleClose = () => {
+        if (isUploading) {
+            if (confirm("Upload in progress. Are you sure you want to cancel?")) {
+                cancelUpload();
+                setIsUploadOpen(false);
+            }
+        } else {
+            setIsUploadOpen(false);
+        }
+    };
+
     return (
         <>
-            <nav className="fixed top-0 left-0 right-0 h-16 bg-j-black/80 backdrop-blur-md border-b border-white/10 z-50 flex items-center px-4 justify-between">
+            <nav className="fixed top-0 left-0 right-0 h-14 bg-[#0f0f0f]/90 backdrop-blur-sm z-50 flex items-center px-4 justify-between">
                 {/* Left Section */}
                 <div className="flex items-center gap-4">
                     <button
@@ -106,10 +105,6 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                                     }
                                     // Use window.history to update URL without full reload
                                     window.history.replaceState({}, '', `${window.location.pathname}?${params.toString()}`);
-
-                                    // Trigger a custom event or relying on Next.js router might be better for Server Components, 
-                                    // but for this Client Component setup, we need to communicate with the page.
-                                    // stronger approach: Use Next.js router.push with scroll:false
                                 }}
                                 onKeyDown={(e) => {
                                     if (e.key === "Enter") {
@@ -161,7 +156,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                         <div className="flex items-center justify-between p-4 border-b border-white/10">
                             <h2 className="text-xl font-bold text-white">Upload videos</h2>
                             <button
-                                onClick={() => setIsUploadOpen(false)}
+                                onClick={handleClose}
                                 className="p-2 hover:bg-white/10 rounded-full transition-colors text-gray-400 hover:text-white"
                                 aria-label="Close upload modal"
                             >
@@ -173,10 +168,29 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                             <div className="w-32 h-32 bg-black/40 rounded-full flex items-center justify-center mb-4">
                                 <UploadCloud className="w-16 h-16 text-gray-500" />
                             </div>
-                            <div>
-                                <p className="text-lg text-white mb-2">Drag and drop video files to upload</p>
-                                <p className="text-sm text-gray-400">Your videos will be private until you publish them.</p>
-                            </div>
+
+                            {!isUploading ? (
+                                <div>
+                                    <p className="text-lg text-white mb-2">Drag and drop video files to upload</p>
+                                    <p className="text-sm text-gray-400">Your videos will be private until you publish them.</p>
+                                </div>
+                            ) : (
+                                <div className="w-full max-w-sm space-y-4">
+                                    <div className="flex justify-between text-sm text-white mb-1">
+                                        <span>Uploading...</span>
+                                        <span className="font-mono">{uploadProgress}%</span>
+                                    </div>
+                                    <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
+                                        <div
+                                            className="h-full bg-j-red transition-all duration-300 ease-out"
+                                            style={{ width: `${uploadProgress}%` }}
+                                        />
+                                    </div>
+                                    <p className="text-xs text-gray-400">
+                                        Please keep this tab open. Large videos may take time.
+                                    </p>
+                                </div>
+                            )}
 
                             {/* Category Selector */}
                             <div className="w-full max-w-xs">
@@ -198,32 +212,26 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                                 </select>
                             </div>
 
-                            <label
-                                className={cn(
-                                    "bg-j-red text-white font-bold px-6 py-2.5 rounded-sm transition-colors uppercase text-sm tracking-wide cursor-pointer inline-block",
-                                    isUploading ? "opacity-50 cursor-wait" : "hover:bg-red-700"
-                                )}
-                            >
-                                {isUploading ? "Uploading..." : "Select Files"}
-                                <input
-                                    type="file"
-                                    accept="video/*"
-                                    className="absolute opacity-0 w-1 h-1 overflow-hidden" // Mobile fix: hidden sometimes blocks events
-                                    onChange={handleFileChange}
-                                    disabled={isUploading}
-                                    aria-label="Upload video file"
-                                />
-                            </label>
-
-                            {isUploading && (
-                                <div className="mt-4 text-center">
-                                    <p className="text-j-gold animate-pulse text-sm font-semibold mb-1">
-                                        Uploading to Cloud...
-                                    </p>
-                                    <p className="text-xs text-gray-400 max-w-[200px] mx-auto">
-                                        Please keep this tab open.<br />Large videos may take several minutes.
-                                    </p>
-                                </div>
+                            {!isUploading ? (
+                                <label
+                                    className="bg-j-red text-white font-bold px-6 py-2.5 rounded-sm transition-colors uppercase text-sm tracking-wide cursor-pointer inline-block hover:bg-red-700"
+                                >
+                                    Select Files
+                                    <input
+                                        type="file"
+                                        accept="video/*"
+                                        className="absolute opacity-0 w-1 h-1 overflow-hidden" // Mobile fix: hidden sometimes blocks events
+                                        onChange={handleFileChange}
+                                        aria-label="Upload video file"
+                                    />
+                                </label>
+                            ) : (
+                                <button
+                                    onClick={cancelUpload}
+                                    className="flex items-center gap-2 px-6 py-2.5 border border-red-500/50 text-red-500 rounded-lg hover:bg-red-500/10 transition-colors font-medium text-sm"
+                                >
+                                    <X className="w-4 h-4" /> Cancel Upload
+                                </button>
                             )}
                         </div>
 
