@@ -1,0 +1,154 @@
+
+> juneteenthtube@0.1.0 lint
+> eslint
+
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\scripts\apply_cors.ts
+  49:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\scripts\check_cors.ts
+   8:11  warning  'publicUrl' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  40:19  error    Unexpected any. Specify a different type        @typescript-eslint/no-explicit-any
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\scripts\debug_delete.ts
+  42:33  warning  'count' is assigned a value but never used       @typescript-eslint/no-unused-vars
+  53:41  warning  'checkError' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\scripts\find_specific.ts
+  20:19  warning  'error' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\scripts\placeholder.ts
+   9:7   warning  'supabase' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  14:16  warning  'migrate' is defined but never used            @typescript-eslint/no-unused-vars
+  15:11  warning  'sql' is assigned a value but never used       @typescript-eslint/no-unused-vars
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\scripts\upload_headless.ts
+  112:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\scripts\upload_manual_robust.ts
+   90:31  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  129:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\scripts\verify_upload.ts
+  52:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\app\api\comments\route.ts
+  65:14  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\app\api\likes\route.ts
+  86:14  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\app\api\subscribe\route.ts
+  41:14  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\app\api\upload-multipart\route.ts
+   74:48  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   74:56  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  103:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\app\api\upload\route.ts
+  61:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\app\api\videos\route.ts
+  27:14  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\app\api\videos\update\route.ts
+  20:24  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\app\debug-upload\page.tsx
+    8:12  warning  'status' is assigned a value but never used  @typescript-eslint/no-unused-vars
+   99:21  warning  'data' is assigned a value but never used    @typescript-eslint/no-unused-vars
+  118:23  error    Unexpected any. Specify a different type     @typescript-eslint/no-explicit-any
+  150:72  error    Unexpected any. Specify a different type     @typescript-eslint/no-explicit-any
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\app\settings\page.tsx
+  4:22  warning  'Shield' is defined but never used             @typescript-eslint/no-unused-vars
+  4:30  warning  'Moon' is defined but never used               @typescript-eslint/no-unused-vars
+  5:8   warning  'Link' is defined but never used               @typescript-eslint/no-unused-vars
+  8:12  warning  'theme' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  8:19  warning  'setTheme' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\app\watch\[id]\page.tsx
+   27:13  error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\app\watch\[id]\page.tsx:27:13
+  25 |     useEffect(() => {
+  26 |         if (resolvedParams.id && videos.length > 0) {
+> 27 |             setVideo(getVideoById(resolvedParams.id));
+     |             ^^^^^^^^ Avoid calling setState() directly within an effect
+  28 |         }
+  29 |     }, [resolvedParams.id, videos, getVideoById]);
+  30 |  react-hooks/set-state-in-effect
+   38:46  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+   60:8   warning  React Hook useEffect has missing dependencies: 'getLikes', 'getSubscription', and 'getVideoComments'. Either include them or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 react-hooks/exhaustive-deps
+  102:18  warning  'e' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            @typescript-eslint/no-unused-vars
+  119:18  warning  'e' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            @typescript-eslint/no-unused-vars
+  171:41  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  @next/next/no-img-element
+  355:29  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  @next/next/no-img-element
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\components\layout\Navbar.tsx
+    4:59   warning  'AlertCircle' is defined but never used                          @typescript-eslint/no-unused-vars
+    6:10   warning  'cn' is defined but never used                                   @typescript-eslint/no-unused-vars
+   34:25   error    Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+  239:127  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\components\layout\SectionPage.tsx
+  8:22  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\components\layout\Sidebar.tsx
+  3:16  warning  'Compass' is defined but never used     @typescript-eslint/no-unused-vars
+  3:43  warning  'Box' is defined but never used         @typescript-eslint/no-unused-vars
+  3:74  warning  'PlayCircle' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\components\video\CustomPlayer.tsx
+  147:43  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        @typescript-eslint/no-explicit-any
+  158:29  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        @typescript-eslint/no-explicit-any
+  170:31  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        @typescript-eslint/no-explicit-any
+  189:62  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        @typescript-eslint/no-explicit-any
+  190:42  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        @typescript-eslint/no-explicit-any
+  227:9   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\components\video\CustomPlayer.tsx:227:9
+  225 |
+  226 |     useEffect(() => {
+> 227 |         resetControlsTimeout();
+      |         ^^^^^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  228 |         return () => {
+  229 |             if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
+  230 |         };  react-hooks/set-state-in-effect
+  231:8   warning  React Hook useEffect has a missing dependency: 'resetControlsTimeout'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         react-hooks/exhaustive-deps
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\components\video\InlinePlayer.tsx
+  29:17  error    Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free                                                                                                                                                                      @typescript-eslint/ban-ts-comment
+  46:25  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\components\video\ShortsShelf.tsx
+   3:24  warning  'Play' is defined but never used                                                                                                                                                                                                                                                         @typescript-eslint/no-unused-vars
+   4:8   warning  'Link' is defined but never used                                                                                                                                                                                                                                                         @typescript-eslint/no-unused-vars
+  36:29  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\components\video\VideoCard.tsx
+  118:14  warning  'e' is defined but never used                                                                                                                                                                                                                                                            @typescript-eslint/no-unused-vars
+  156:17  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  226:25  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\context\VideoContext.tsx
+   35:52  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   36:79  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   38:72  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  326:48  warning  '_category' is defined but never used     @typescript-eslint/no-unused-vars
+
+Ô£û 65 problems (28 errors, 37 warnings)
+
