@@ -371,6 +371,7 @@ export function VideoProvider({ children }: { children: ReactNode }) {
                         }
                         const xhr = new XMLHttpRequest();
                         xhr.open("PUT", signedUrl);
+                        xhr.timeout = 300000; // 5 minute timeout per chunk
 
                         if (signal) {
                             signal.onabort = () => {
@@ -384,13 +385,20 @@ export function VideoProvider({ children }: { children: ReactNode }) {
                                 if (etag) resolve(etag);
                                 else reject(new Error("No ETag in response"));
                             } else {
+                                console.error(`Part ${partNumber} failed with status ${xhr.status}: ${xhr.responseText}`);
                                 if (retries > 1 && !signal?.aborted) setTimeout(() => resolve(uploadPartWithRetry(retries - 1)), 2000);
-                                else reject(new Error(`Part Upload Failed: ${xhr.status}`));
+                                else reject(new Error(`Part Upload Failed: ${xhr.status} - ${xhr.responseText?.substring(0, 200)}`));
                             }
                         };
-                        xhr.onerror = () => {
+                        xhr.onerror = (e) => {
+                            console.error(`Part ${partNumber} network error:`, e);
                             if (retries > 1 && !signal?.aborted) setTimeout(() => resolve(uploadPartWithRetry(retries - 1)), 2000);
                             else reject(new Error("Network Error"));
+                        };
+                        xhr.ontimeout = () => {
+                            console.error(`Part ${partNumber} timed out`);
+                            if (retries > 1 && !signal?.aborted) setTimeout(() => resolve(uploadPartWithRetry(retries - 1)), 2000);
+                            else reject(new Error("Upload timed out"));
                         };
                         xhr.send(chunk);
                     });
