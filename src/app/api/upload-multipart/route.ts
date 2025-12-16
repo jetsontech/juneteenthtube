@@ -16,9 +16,14 @@ const regionEnv = sanitizeEnv(process.env.S3_REGION);
 const isValidRegion = (r: string | undefined) => r && /^[a-z0-9-]+$/.test(r);
 const region = (isValidRegion(regionEnv) && regionEnv !== "auto") ? regionEnv : "us-east-1";
 
+// Brute Force Endpoint Cleanup - Extract ONLY valid URL using regex
+const rawEndpoint = process.env.S3_ENDPOINT || "";
+const urlMatch = rawEndpoint.match(/https?:\/\/[a-zA-Z0-9.-]+\.cloudflarestorage\.com/);
+const cleanEndpoint = urlMatch ? urlMatch[0] : undefined;
+
 const S3 = new S3Client({
     region: region,
-    endpoint: sanitizeEnv(process.env.S3_ENDPOINT),
+    endpoint: cleanEndpoint,
     credentials: {
         accessKeyId: sanitizeEnv(process.env.S3_ACCESS_KEY_ID) || "",
         secretAccessKey: sanitizeEnv(process.env.S3_SECRET_ACCESS_KEY) || "",
