@@ -10,9 +10,18 @@ const regionEnv = sanitizeEnv(process.env.S3_REGION);
 const isValidRegion = (r: string | undefined) => r && /^[a-z0-9-]+$/.test(r);
 const region = (isValidRegion(regionEnv) && regionEnv !== "auto") ? regionEnv : "us-east-1";
 
+// Brute Force Endpoint Cleanup
+let cleanEndpoint = sanitizeEnv(process.env.S3_ENDPOINT);
+if (cleanEndpoint) {
+    // Remove ANY non-url safe chars at start/end including smart quotes
+    cleanEndpoint = cleanEndpoint.replace(/^[^h]+/, 'https://').replace(/['";>]+$/g, '');
+    // Ensure no trailing quote leftovers
+    if (cleanEndpoint.endsWith('"')) cleanEndpoint = cleanEndpoint.slice(0, -1);
+}
+
 const S3 = new S3Client({
     region: region,
-    endpoint: sanitizeEnv(process.env.S3_ENDPOINT), // e.g., https://<account_id>.r2.cloudflarestorage.com
+    endpoint: cleanEndpoint, // e.g., https://<account_id>.r2.cloudflarestorage.com
     credentials: {
         accessKeyId: sanitizeEnv(process.env.S3_ACCESS_KEY_ID) || "",
         secretAccessKey: sanitizeEnv(process.env.S3_SECRET_ACCESS_KEY) || "",
@@ -71,8 +80,12 @@ export async function POST(req: NextRequest) {
 
     } catch (error: any) {
         console.error("S3 Presign Error:", error);
+
+        // DEBUG: Return endpoint details in error
+        const debugInfo = cleanEndpoint ? `Endpoint: [${cleanEndpoint}] (Code: ${cleanEndpoint.charCodeAt(cleanEndpoint.length - 1)})` : "No Endpoint";
+
         return NextResponse.json(
-            { error: error.message || "Failed to generate upload URL" },
+            { error: `${error.message || "Failed to generate upload URL"} | DEBUG: ${debugInfo}` },
             { status: 500 }
         );
     }
