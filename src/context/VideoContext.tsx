@@ -337,7 +337,11 @@ export function VideoProvider({ children }: { children: ReactNode }) {
             body: JSON.stringify({ action: "create", filename: file.name, contentType: file.type || "video/mp4" }),
             signal
         });
-        if (!initRes.ok) throw new Error("Failed to init multipart upload");
+        if (!initRes.ok) {
+            const errData = await initRes.json().catch(() => ({}));
+            console.error("Multipart Init Failed:", errData);
+            throw new Error(errData.error || `Failed to init multipart upload: ${initRes.status}`);
+        }
         const { uploadId, key } = await initRes.json();
 
         let completedChunks = 0;

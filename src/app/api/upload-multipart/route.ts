@@ -8,14 +8,17 @@ import {
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
-// 1. Configure S3 Client
+// Generic S3 Client (Works for AWS, Cloudflare R2, Wasabi, DigitalOcean)
+const sanitizeEnv = (val: string | undefined) => val ? val.replace(/^['"]|['"]$/g, '') : undefined;
+
 const S3 = new S3Client({
-    region: process.env.S3_REGION || "auto",
-    endpoint: process.env.S3_ENDPOINT,
+    region: sanitizeEnv(process.env.S3_REGION) || "us-east-1",
+    endpoint: sanitizeEnv(process.env.S3_ENDPOINT),
     credentials: {
-        accessKeyId: process.env.S3_ACCESS_KEY_ID || "",
-        secretAccessKey: process.env.S3_SECRET_ACCESS_KEY || "",
+        accessKeyId: sanitizeEnv(process.env.S3_ACCESS_KEY_ID) || "",
+        secretAccessKey: sanitizeEnv(process.env.S3_SECRET_ACCESS_KEY) || "",
     },
+    // Prevent checksum issues with R2
     requestChecksumCalculation: "WHEN_REQUIRED",
     responseChecksumValidation: "WHEN_REQUIRED",
 });
@@ -26,6 +29,10 @@ export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
         const { action } = body;
+
+        if (!process.env.S3_ENDPOINT) {
+            console.warn("Warning: S3_ENDPOINT is not defined. Multipart uploads may fail if not using standard AWS.");
+        }
 
         if (!BUCKET_NAME) {
             return NextResponse.json({ error: "Server Configuration Error: Missing Bucket" }, { status: 500 });

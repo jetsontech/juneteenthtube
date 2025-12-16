@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Menu, Search, Video, Bell, User, X, UploadCloud, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -13,25 +13,39 @@ interface NavbarProps {
 const CATEGORIES = ["All", "Parade", "Music", "Food", "History", "Speeches", "Live", "2024"] as const;
 
 export function Navbar({ onMenuClick }: NavbarProps) {
+    const fileInputRef = useRef<HTMLInputElement>(null);
     const [isUploadOpen, setIsUploadOpen] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState<string>("All");
     const { uploadVideo, isUploading, uploadProgress, cancelUpload } = useVideo();
 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        try {
-            const file = e.target.files?.[0];
-            if (!file) return;
+        // Clear input value to allow re-selection, but keep reference to file
+        const input = e.target;
+        const file = input.files?.[0];
+        // Reset immediately so the user can select the same file again if they want
+        // (Wait a tick might be safer, but this usually works if we grabbed the file ref)
+        // input.value = ""; // Doing this at the end or validation might be better
 
+        if (!file) {
+            alert("Caught input change, but NO file found in target.files"); // Debug
+            return;
+        }
+
+        alert(`Selected: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)\nStarting Upload...`);
+
+        try {
             // CRITICAL: Await the upload so errors are caught here!
             await uploadVideo(file, selectedCategory);
 
             setIsUploadOpen(false);
             setSelectedCategory("All"); // Reset category after upload
+            input.value = "";
             if (confirm("Upload Successful! Press OK to refresh and see your video.")) {
                 window.location.reload();
             }
 
         } catch (error: any) {
+            input.value = "";
             console.error("Upload error:", error);
             // Don't alert if it was just cancelled
             if (error?.message === "Upload cancelled") return;
@@ -127,7 +141,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                 {/* Right Section */}
                 <div className="flex items-center gap-2 sm:gap-4">
                     <button
-                        className="p-2 hover:bg-white/10 rounded-full transition-colors text-white hidden sm:block"
+                        className="p-2 hover:bg-white/10 rounded-full transition-colors text-white"
                         aria-label="Upload video"
                         onClick={() => setIsUploadOpen(true)}
                     >
@@ -213,18 +227,22 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                             </div>
 
                             {!isUploading ? (
-                                <label
-                                    className="bg-j-red text-white font-bold px-6 py-2.5 rounded-sm transition-colors uppercase text-sm tracking-wide cursor-pointer inline-block hover:bg-red-700"
-                                >
-                                    Select Files
+                                <>
+                                    <button
+                                        onClick={() => fileInputRef.current?.click()}
+                                        className="bg-j-red text-white font-bold px-6 py-2.5 rounded-sm transition-colors uppercase text-sm tracking-wide cursor-pointer hover:bg-red-700"
+                                    >
+                                        Select Files
+                                    </button>
                                     <input
+                                        ref={fileInputRef}
                                         type="file"
                                         accept="video/*"
-                                        className="absolute opacity-0 w-1 h-1 overflow-hidden" // Mobile fix: hidden sometimes blocks events
+                                        className="absolute w-0 h-0 opacity-0 overflow-hidden"
                                         onChange={handleFileChange}
                                         aria-label="Upload video file"
                                     />
-                                </label>
+                                </>
                             ) : (
                                 <button
                                     onClick={cancelUpload}

@@ -3,12 +3,14 @@ import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 // Generic S3 Client (Works for AWS, Cloudflare R2, Wasabi, DigitalOcean)
+const sanitizeEnv = (val: string | undefined) => val ? val.replace(/^['"]|['"]$/g, '') : undefined;
+
 const S3 = new S3Client({
-    region: process.env.S3_REGION || "auto",
-    endpoint: process.env.S3_ENDPOINT, // e.g., https://<account_id>.r2.cloudflarestorage.com
+    region: sanitizeEnv(process.env.S3_REGION) || "us-east-1",
+    endpoint: sanitizeEnv(process.env.S3_ENDPOINT), // e.g., https://<account_id>.r2.cloudflarestorage.com
     credentials: {
-        accessKeyId: process.env.S3_ACCESS_KEY_ID || "",
-        secretAccessKey: process.env.S3_SECRET_ACCESS_KEY || "",
+        accessKeyId: sanitizeEnv(process.env.S3_ACCESS_KEY_ID) || "",
+        secretAccessKey: sanitizeEnv(process.env.S3_SECRET_ACCESS_KEY) || "",
     },
     // Prevent the SDK from adding checksum headers that R2 might not support in this context
     requestChecksumCalculation: "WHEN_REQUIRED",
@@ -18,6 +20,10 @@ const S3 = new S3Client({
 export async function POST(req: NextRequest) {
     try {
         const { filename, contentType } = await req.json();
+
+        if (!process.env.S3_ENDPOINT) {
+            console.warn("Warning: S3_ENDPOINT is not defined. Uploads may fail if not using standard AWS.");
+        }
 
         if (!filename || !contentType) {
             return NextResponse.json(

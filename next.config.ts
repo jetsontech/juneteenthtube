@@ -1,8 +1,9 @@
 const nextConfig = {
   /* config options here */
-  eslint: {
-    ignoreDuringBuilds: true,
+  turbopack: {
+    root: __dirname,
   },
+
   typescript: {
     ignoreBuildErrors: true,
   },
