@@ -6,7 +6,9 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 const sanitizeEnv = (val: string | undefined) => val ? val.replace(/^['"]|['"]$/g, '') : undefined;
 
 const regionEnv = sanitizeEnv(process.env.S3_REGION);
-const region = (regionEnv === "auto" || !regionEnv) ? "us-east-1" : regionEnv;
+// Strict validation: must be alphanumeric (plus hyphens) to avoid garbage like 'region+"auto"'
+const isValidRegion = (r: string | undefined) => r && /^[a-z0-9-]+$/.test(r);
+const region = (isValidRegion(regionEnv) && regionEnv !== "auto") ? regionEnv : "us-east-1";
 
 const S3 = new S3Client({
     region: region,
