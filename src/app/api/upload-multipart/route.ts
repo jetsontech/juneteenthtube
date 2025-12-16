@@ -11,8 +11,11 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 // Generic S3 Client (Works for AWS, Cloudflare R2, Wasabi, DigitalOcean)
 const sanitizeEnv = (val: string | undefined) => val ? val.replace(/^['"]|['"]$/g, '') : undefined;
 
+const regionEnv = sanitizeEnv(process.env.S3_REGION);
+const region = (regionEnv === "auto" || !regionEnv) ? "us-east-1" : regionEnv;
+
 const S3 = new S3Client({
-    region: sanitizeEnv(process.env.S3_REGION) || "us-east-1",
+    region: region,
     endpoint: sanitizeEnv(process.env.S3_ENDPOINT),
     credentials: {
         accessKeyId: sanitizeEnv(process.env.S3_ACCESS_KEY_ID) || "",
