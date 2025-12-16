@@ -9,7 +9,7 @@ import {
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 // Generic S3 Client (Works for AWS, Cloudflare R2, Wasabi, DigitalOcean)
-const sanitizeEnv = (val: string | undefined) => val ? val.replace(/^['"]|['"]$/g, '') : undefined;
+const sanitizeEnv = (val: string | undefined) => val ? val.replace(/^['"]|['"]$/g, '').trim().replace(/[\n\r]/g, '') : undefined;
 
 const regionEnv = sanitizeEnv(process.env.S3_REGION);
 // Strict validation: must be alphanumeric (plus hyphens) to avoid garbage like 'region+"auto"'
