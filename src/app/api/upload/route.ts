@@ -15,12 +15,17 @@ const rawEndpoint = process.env.S3_ENDPOINT || "";
 const urlMatch = rawEndpoint.match(/https?:\/\/[a-zA-Z0-9.-]+\.cloudflarestorage\.com/);
 const cleanEndpoint = urlMatch ? urlMatch[0] : undefined;
 
+// Strict Credential Cleanup - Extract ONLY alphanumeric characters
+const cleanCredential = (val: string | undefined) => val ? val.replace(/[^a-zA-Z0-9]/g, '') : "";
+const accessKeyId = cleanCredential(process.env.S3_ACCESS_KEY_ID);
+const secretAccessKey = cleanCredential(process.env.S3_SECRET_ACCESS_KEY);
+
 const S3 = new S3Client({
     region: region,
     endpoint: cleanEndpoint, // e.g., https://<account_id>.r2.cloudflarestorage.com
     credentials: {
-        accessKeyId: sanitizeEnv(process.env.S3_ACCESS_KEY_ID) || "",
-        secretAccessKey: sanitizeEnv(process.env.S3_SECRET_ACCESS_KEY) || "",
+        accessKeyId: accessKeyId,
+        secretAccessKey: secretAccessKey,
     },
     // Prevent the SDK from adding checksum headers that R2 might not support in this context
     requestChecksumCalculation: "WHEN_REQUIRED",
