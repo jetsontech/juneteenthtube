@@ -128,7 +128,7 @@ export function VideoCard({ video }: { video: VideoProps }) {
 
     return (
         <div
-            className="group block relative p-2 -m-2 rounded-2xl transition-all duration-300"
+            className="group block relative sm:p-2 sm:-m-2 sm:rounded-2xl transition-all duration-300"
             style={{ backgroundColor: isCardHovered ? dominantColor : 'transparent' }}
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
@@ -143,7 +143,7 @@ export function VideoCard({ video }: { video: VideoProps }) {
                 title="Upload thumbnail"
             />
 
-            <Link href={`/watch/${video.id}`} className="block relative aspect-video rounded-lg sm:rounded-xl overflow-hidden bg-gray-900">
+            <Link href={`/watch/${video.id}`} className="block relative aspect-video rounded-none sm:rounded-xl overflow-hidden bg-gray-900">
                 {/* Video Preview on Hover */}
                 {isHovered && video.videoUrl ? (
                     <video
