@@ -1,6 +1,6 @@
 "use client";
 
-import { MoreVertical, Play, Trash2, Image as ImageIcon, Film } from "lucide-react";
+import { MoreVertical, Play, Trash2, Image as ImageIcon, Film, Edit2, X, Check } from "lucide-react";
 import Link from "next/link";
 import { useVideo } from "@/context/VideoContext";
 import { useSidebar } from "@/context/SidebarContext";
@@ -26,14 +26,17 @@ const PLACEHOLDER_SHORTS: ShortVideo[] = [
     { id: "p6", title: "Upload Your First Short", views: "0", thumbnail: "https://placehold.co/180x320/272727/666666?text=+", isPlaceholder: true },
 ];
 
-function ShortCard({ short, onDelete, onChangeThumbnail, onChangeVideo }: {
+function ShortCard({ short, onDelete, onChangeThumbnail, onChangeVideo, onRename }: {
     short: ShortVideo;
     onDelete?: (id: string) => void;
     onChangeThumbnail?: (id: string, file: File) => void;
     onChangeVideo?: (id: string, file: File) => void;
+    onRename?: (id: string, newTitle: string) => void;
 }) {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [isEditing, setIsEditing] = useState(false);
+    const [editTitle, setEditTitle] = useState(short.title);
     const [isUploadingThumb, setIsUploadingThumb] = useState(false);
     const [isUploadingVideo, setIsUploadingVideo] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
@@ -94,6 +97,29 @@ function ShortCard({ short, onDelete, onChangeThumbnail, onChangeVideo }: {
         e.stopPropagation();
         videoFileInputRef.current?.click();
         setIsMenuOpen(false);
+    };
+
+    const handleRenameClick = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsEditing(true);
+        setIsMenuOpen(false);
+    };
+
+    const handleSaveTitle = async (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (editTitle.trim() !== short.title && onRename) {
+            await onRename(short.id, editTitle.trim());
+        }
+        setIsEditing(false);
+    };
+
+    const handleCancelEdit = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setEditTitle(short.title);
+        setIsEditing(false);
     };
 
     const handleVideoFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -169,7 +195,34 @@ function ShortCard({ short, onDelete, onChangeThumbnail, onChangeVideo }: {
                 </div>
             </Link>
 
-            <h3 className="mt-2 text-sm font-medium text-white line-clamp-2 group-hover:text-gray-300">{short.title}</h3>
+            {isEditing ? (
+                <div className="mt-2 flex items-center gap-1" onClick={(e) => e.preventDefault()}>
+                    <input
+                        type="text"
+                        value={editTitle}
+                        onChange={(e) => setEditTitle(e.target.value)}
+                        className="flex-1 bg-[#272727] text-white text-sm px-2 py-1 rounded border border-white/20 focus:outline-none focus:border-white/50"
+                        onClick={(e) => e.stopPropagation()}
+                        autoFocus
+                    />
+                    <button
+                        onClick={handleSaveTitle}
+                        className="p-1 hover:bg-white/10 rounded"
+                        title="Save"
+                    >
+                        <Check className="w-4 h-4 text-green-500" />
+                    </button>
+                    <button
+                        onClick={handleCancelEdit}
+                        className="p-1 hover:bg-white/10 rounded"
+                        title="Cancel"
+                    >
+                        <X className="w-4 h-4 text-red-500" />
+                    </button>
+                </div>
+            ) : (
+                <h3 className="mt-2 text-sm font-medium text-white line-clamp-2 group-hover:text-gray-300">{short.title}</h3>
+            )}
 
             <div className="absolute top-2 right-2 z-20" ref={menuRef}>
                 <button
@@ -201,6 +254,13 @@ function ShortCard({ short, onDelete, onChangeThumbnail, onChangeVideo }: {
                             Change Video
                         </button>
                         <button
+                            onClick={handleRenameClick}
+                            className="w-full text-left px-3 py-2 text-xs text-gray-200 hover:bg-white/10 flex items-center gap-2"
+                        >
+                            <Edit2 size={14} />
+                            Rename
+                        </button>
+                        <button
                             onClick={handleDelete}
                             className={cn(
                                 "w-full text-left px-3 py-2 text-xs flex items-center gap-2 transition-colors",
@@ -218,7 +278,7 @@ function ShortCard({ short, onDelete, onChangeThumbnail, onChangeVideo }: {
 }
 
 export function ShortsShelf() {
-    const { videos, deleteVideo, updateVideoThumbnail, updateVideoFile } = useVideo();
+    const { videos, deleteVideo, updateVideoThumbnail, updateVideoFile, updateVideoTitle } = useVideo();
     const { isOpen: isSidebarOpen } = useSidebar();
 
     // YouTube-style: 5 shorts with sidebar open, 6 shorts with sidebar closed
@@ -274,6 +334,10 @@ export function ShortsShelf() {
         await updateVideoFile(id, file);
     };
 
+    const handleRename = async (id: string, newTitle: string) => {
+        await updateVideoTitle(id, newTitle);
+    };
+
     // YouTube-style: 5 cols with sidebar open, 6 cols with sidebar closed on large screens
     const gridClass = cn(
         "grid gap-3",
@@ -299,6 +363,7 @@ export function ShortsShelf() {
                         onDelete={!short.isPlaceholder ? handleDelete : undefined}
                         onChangeThumbnail={!short.isPlaceholder ? handleChangeThumbnail : undefined}
                         onChangeVideo={!short.isPlaceholder ? handleChangeVideo : undefined}
+                        onRename={!short.isPlaceholder ? handleRename : undefined}
                     />
                 ))}
             </div>
