@@ -78,9 +78,6 @@ function HomeContent() {
           ))}
         </div>
 
-        {/* Another Shorts Section */}
-        {selectedCategory === "All" && <ShortsShelf />}
-
         {/* Remaining Videos */}
         {filteredVideos.length > (isSidebarOpen ? 6 : 8) && (
           <div className="mt-3 sm:mt-6">
