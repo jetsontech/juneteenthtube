@@ -45,66 +45,53 @@ function HomeContent() {
   const row2 = [dji25Video, fireworksVideo, null];
 
   return (
-    <div className="space-y-6 p-4 sm:p-6 pt-20">
+    <div className="p-4 sm:p-6 pt-4">
       {/* Categories - YouTube style sticky tabs */}
-      <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none -mx-1 px-1">
-        {CATEGORIES.map((tag) => (
-          <button
-            key={tag}
-            onClick={() => setSelectedCategory(tag)}
-            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${selectedCategory === tag
-              ? "bg-white text-black"
-              : "bg-[#272727] text-white hover:bg-[#3f3f3f]"
-              }`}
-          >
-            {tag}
-          </button>
-        ))}
+      <div className="sticky top-16 z-30 bg-[#0f0f0f] pb-3 pt-2 -mx-4 px-4 sm:-mx-6 sm:px-6">
+        <div className="flex gap-3 overflow-x-auto scrollbar-none">
+          {CATEGORIES.map((tag) => (
+            <button
+              key={tag}
+              onClick={() => setSelectedCategory(tag)}
+              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${selectedCategory === tag
+                ? "bg-white text-black"
+                : "bg-[#272727] text-white hover:bg-[#3f3f3f]"
+                }`}
+            >
+              {tag}
+            </button>
+          ))}
+        </div>
       </div>
 
-      <section>
-        <h2 className="text-lg font-semibold mb-4 text-white">
+      <section className="mt-4 space-y-6">
+        <h2 className="text-lg font-semibold text-white">
           {selectedCategory === "All" ? "Recommended" : selectedCategory}
         </h2>
 
-        {/* ROW 1: [Blank, Stage, DJI_24] */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-6 mb-6">
-          {/* Ad Slot Placeholder - YouTube style empty rectangle */}
-          <div className="hidden lg:block aspect-video rounded-xl bg-[#1a1a1a] border border-white/5 flex items-center justify-center">
-            <div className="text-gray-600 text-xs text-center p-4">
-              <div className="w-8 h-8 mx-auto mb-2 rounded bg-gray-700/50"></div>
-              <span className="opacity-50">Ad</span>
-            </div>
-          </div>
+        {/* ROW 1 - Video Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-8">
           {hasSpecial ? (
-            row1.slice(1).map((video, idx) => (
-              video ? <VideoCard key={video.id} video={video} /> : <div key={`blank-r1-${idx}`} className="invisible" />
+            row1.filter(Boolean).map((video) => (
+              <VideoCard key={video!.id} video={video!} />
             ))
           ) : (
-            // Fallback if specific videos missing (e.g. searching)
-            remainingVideos.slice(0, 3).map(v => <VideoCard key={v.id} video={v} />)
+            remainingVideos.slice(0, 4).map(v => <VideoCard key={v.id} video={v} />)
           )}
         </div>
 
         {/* SHORTS 1 */}
         {selectedCategory === "All" && <ShortsShelf />}
 
-        {/* ROW 2: [DJI_25, Fireworks, Blank, Ad] */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-6 my-6">
+        {/* ROW 2 - Video Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-8">
           {hasSpecial ? (
-            row2.map((video, idx) => (
-              video ? <VideoCard key={video.id} video={video} /> : <div key={`blank-r2-${idx}`} className="invisible" />
+            row2.filter(Boolean).map((video) => (
+              <VideoCard key={video!.id} video={video!} />
             ))
           ) : (
-            remainingVideos.slice(3, 6).map(v => <VideoCard key={v.id} video={v} />)
+            remainingVideos.slice(4, 8).map(v => <VideoCard key={v.id} video={v} />)
           )}
-          {/* Ad Slot Placeholder */}
-          <div className="hidden xl:flex aspect-video rounded-xl bg-[#1a1a1a] border border-white/5 items-center justify-center">
-            <div className="text-gray-600 text-xs text-center p-4">
-              <div className="w-8 h-8 mx-auto mb-2 rounded bg-gray-700/50"></div>
-              <span className="opacity-50">Ad</span>
-            </div>
-          </div>
         </div>
 
         {/* SHORTS 2 */}
@@ -112,12 +99,7 @@ function HomeContent() {
 
         {/* ROW 3+: Remaining Videos */}
         {remainingVideos.length > 0 && (
-          <div className="mt-8">
-            {/* If we used standard slicing fallback, we need to adjust slice index, but simpler to just show 'remaining' if 'hasSpecial' is true. 
-                    If !hasSpecial, we already showed 0-6. So slice 6.
-                */}
-            <VideoGrid videos={hasSpecial ? remainingVideos : remainingVideos.slice(6)} />
-          </div>
+          <VideoGrid videos={hasSpecial ? remainingVideos : remainingVideos.slice(8)} />
         )}
       </section>
     </div>
