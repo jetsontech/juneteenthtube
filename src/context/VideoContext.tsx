@@ -388,10 +388,10 @@ export function VideoProvider({ children }: { children: ReactNode }) {
 
     // --- UPLOAD LOGIC ---
     const uploadMultipart = async (file: File, _category: string): Promise<string> => {
-        const CHUNK_SIZE = 20 * 1024 * 1024; // 20MB chunks
+        const CHUNK_SIZE = 10 * 1024 * 1024; // 10MB chunks (reduced from 20MB for better reliability)
         const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
         const signal = abortControllerRef.current?.signal;
-        const limit = pLimit(3);
+        const limit = pLimit(2); // Reduced from 3 to 2 concurrent uploads for stability
 
         console.log(`Starting Multipart Upload: ${file.name} (${totalChunks} chunks)`);
         if (signal?.aborted) throw new Error("Upload cancelled");
@@ -427,7 +427,8 @@ export function VideoProvider({ children }: { children: ReactNode }) {
                 });
                 const { signedUrl } = await signRes.json();
 
-                const uploadPartWithRetry = async (retries = 3): Promise<string> => {
+                // Increased retries from 3 to 5 with exponential backoff
+                const uploadPartWithRetry = async (retries = 5, delay = 2000): Promise<string> => {
                     return new Promise((resolve, reject) => {
                         if (signal?.aborted) {
                             reject(new Error("Upload cancelled"));
@@ -435,7 +436,7 @@ export function VideoProvider({ children }: { children: ReactNode }) {
                         }
                         const xhr = new XMLHttpRequest();
                         xhr.open("PUT", signedUrl);
-                        xhr.timeout = 300000; // 5 minute timeout per chunk
+                        xhr.timeout = 600000; // Increased to 10 minute timeout per chunk
 
                         if (signal) {
                             signal.onabort = () => {
@@ -450,19 +451,25 @@ export function VideoProvider({ children }: { children: ReactNode }) {
                                 else reject(new Error("No ETag in response"));
                             } else {
                                 console.error(`Part ${partNumber} failed with status ${xhr.status}: ${xhr.responseText}`);
-                                if (retries > 1 && !signal?.aborted) setTimeout(() => resolve(uploadPartWithRetry(retries - 1)), 2000);
-                                else reject(new Error(`Part Upload Failed: ${xhr.status} - ${xhr.responseText?.substring(0, 200)}`));
+                                if (retries > 1 && !signal?.aborted) {
+                                    const nextDelay = Math.min(delay * 1.5, 10000); // Exponential backoff, max 10s
+                                    setTimeout(() => resolve(uploadPartWithRetry(retries - 1, nextDelay)), delay);
+                                } else reject(new Error(`Part Upload Failed: ${xhr.status} - ${xhr.responseText?.substring(0, 200)}`));
                             }
                         };
                         xhr.onerror = (e) => {
                             console.error(`Part ${partNumber} network error:`, e);
-                            if (retries > 1 && !signal?.aborted) setTimeout(() => resolve(uploadPartWithRetry(retries - 1)), 2000);
-                            else reject(new Error("Network Error"));
+                            if (retries > 1 && !signal?.aborted) {
+                                const nextDelay = Math.min(delay * 1.5, 10000);
+                                setTimeout(() => resolve(uploadPartWithRetry(retries - 1, nextDelay)), delay);
+                            } else reject(new Error("Network Error"));
                         };
                         xhr.ontimeout = () => {
                             console.error(`Part ${partNumber} timed out`);
-                            if (retries > 1 && !signal?.aborted) setTimeout(() => resolve(uploadPartWithRetry(retries - 1)), 2000);
-                            else reject(new Error("Upload timed out"));
+                            if (retries > 1 && !signal?.aborted) {
+                                const nextDelay = Math.min(delay * 1.5, 10000);
+                                setTimeout(() => resolve(uploadPartWithRetry(retries - 1, nextDelay)), delay);
+                            } else reject(new Error("Upload timed out"));
                         };
                         xhr.send(chunk);
                     });
