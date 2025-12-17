@@ -121,7 +121,7 @@ export function VideoCard({ video }: { video: VideoProps }) {
 
     return (
         <div
-            className="group block relative"
+            className="group block relative p-2 -m-2 rounded-2xl transition-all duration-200 hover:bg-white/[0.03]"
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
         >

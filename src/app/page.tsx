@@ -38,7 +38,7 @@ function HomeContent() {
   return (
     <>
       {/* YouTube-style sticky category tabs */}
-      <div className="sticky top-14 z-40 bg-[#0f0f0f] border-b border-white/5">
+      <div className="sticky top-14 z-40 bg-transparent backdrop-blur-sm border-b border-white/5">
         <div className="px-4 sm:px-6 lg:px-8 py-3">
           <div className="flex gap-3 overflow-x-auto scrollbar-none">
             {CATEGORIES.map((tag) => (
@@ -46,8 +46,8 @@ function HomeContent() {
                 key={tag}
                 onClick={() => setSelectedCategory(tag)}
                 className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${selectedCategory === tag
-                    ? "bg-white text-black"
-                    : "bg-[#272727] text-white hover:bg-[#3f3f3f]"
+                  ? "bg-white text-black"
+                  : "bg-[#272727] text-white hover:bg-[#3f3f3f]"
                   }`}
               >
                 {tag}
