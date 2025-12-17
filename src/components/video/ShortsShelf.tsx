@@ -299,9 +299,18 @@ function ShortCard({ short, onDelete, onChangeThumbnail, onChangeVideo, onRename
 export function ShortsShelf({ offset = 0 }: { offset?: number } = {}) {
     const { videos, deleteVideo, updateVideoThumbnail, updateVideoFile, updateVideoTitle } = useVideo();
     const { isOpen: isSidebarOpen } = useSidebar();
+    const [isMobile, setIsMobile] = useState(false);
 
-    // YouTube-style: 5 shorts with sidebar open, 6 shorts with sidebar closed
-    const shortsCount = isSidebarOpen ? 5 : 6;
+    // Detect mobile on client side
+    useEffect(() => {
+        const checkMobile = () => setIsMobile(window.innerWidth < 640);
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
+
+    // Mobile: 4 shorts, Desktop with sidebar: 5 shorts, Desktop without sidebar: 6 shorts
+    const shortsCount = isMobile ? 4 : (isSidebarOpen ? 5 : 6);
 
     // Parse duration string (e.g., "1:30", "0:45", "12:30") to seconds
     const parseDurationToSeconds = (duration: string | undefined): number => {
