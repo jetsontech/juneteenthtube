@@ -143,7 +143,7 @@ export function VideoCard({ video }: { video: VideoProps }) {
                 title="Upload thumbnail"
             />
 
-            <Link href={`/watch/${video.id}`} className="block relative aspect-video rounded-xl overflow-hidden bg-gray-900 group-hover:ring-0 ring-offset-0">
+            <Link href={`/watch/${video.id}`} className="block relative aspect-video rounded-lg sm:rounded-xl overflow-hidden bg-gray-900">
                 {/* Video Preview on Hover */}
                 {isHovered && video.videoUrl ? (
                     <video

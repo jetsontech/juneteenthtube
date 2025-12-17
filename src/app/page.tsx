@@ -28,8 +28,10 @@ function HomeContent() {
   });
 
   // YouTube-style: 3 cols sidebar open, 4 cols sidebar closed on large screens
+  // Mobile: single column with tight vertical spacing
   const videoGridClass = cn(
-    "grid gap-x-4 gap-y-10",
+    "grid gap-x-4",
+    "gap-y-4 sm:gap-y-6 lg:gap-y-8", // Tighter vertical gap on mobile
     isSidebarOpen
       ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
       : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
@@ -39,8 +41,8 @@ function HomeContent() {
     <>
       {/* YouTube-style sticky category tabs */}
       <div className="sticky top-14 z-40 bg-transparent backdrop-blur-sm border-b border-white/5">
-        <div className="px-4 sm:px-6 lg:px-8 py-3">
-          <div className="flex gap-3 overflow-x-auto scrollbar-none">
+        <div className="px-3 sm:px-6 lg:px-8 py-2 sm:py-3">
+          <div className="flex gap-2 sm:gap-3 overflow-x-auto scrollbar-none">
             {CATEGORIES.map((tag) => (
               <button
                 key={tag}
@@ -57,8 +59,8 @@ function HomeContent() {
         </div>
       </div>
 
-      {/* Main content area */}
-      <main className="px-4 sm:px-6 lg:px-8 py-6">
+      {/* Main content area - YouTube mobile: minimal horizontal padding */}
+      <main className="px-3 sm:px-6 lg:px-8 py-3 sm:py-6">
         {/* First row of videos */}
         <div className={videoGridClass}>
           {filteredVideos.slice(0, isSidebarOpen ? 3 : 4).map(video => (
@@ -70,7 +72,7 @@ function HomeContent() {
         {selectedCategory === "All" && <ShortsShelf />}
 
         {/* Second row of videos */}
-        <div className={cn(videoGridClass, "mt-6")}>
+        <div className={cn(videoGridClass, "mt-3 sm:mt-6")}>
           {filteredVideos.slice(isSidebarOpen ? 3 : 4, isSidebarOpen ? 6 : 8).map(video => (
             <VideoCard key={video.id} video={video} />
           ))}
@@ -81,7 +83,7 @@ function HomeContent() {
 
         {/* Remaining Videos */}
         {filteredVideos.length > (isSidebarOpen ? 6 : 8) && (
-          <div className="mt-6">
+          <div className="mt-3 sm:mt-6">
             <VideoGrid videos={filteredVideos.slice(isSidebarOpen ? 6 : 8)} />
           </div>
         )}
