@@ -45,16 +45,16 @@ function HomeContent() {
   const row2 = [dji25Video, fireworksVideo, null];
 
   return (
-    <div className="space-y-8 p-4 sm:p-6 pt-32">
-      {/* Categories */}
-      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
+    <div className="space-y-6 p-4 sm:p-6 pt-20">
+      {/* Categories - YouTube style sticky tabs */}
+      <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none -mx-1 px-1">
         {CATEGORIES.map((tag) => (
           <button
             key={tag}
             onClick={() => setSelectedCategory(tag)}
-            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${selectedCategory === tag
+            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${selectedCategory === tag
               ? "bg-white text-black"
-              : "bg-white/10 text-white hover:bg-white/20"
+              : "bg-[#272727] text-white hover:bg-[#3f3f3f]"
               }`}
           >
             {tag}
@@ -63,14 +63,21 @@ function HomeContent() {
       </div>
 
       <section>
-        <h2 className="text-xl font-bold mb-4 text-white">
+        <h2 className="text-lg font-semibold mb-4 text-white">
           {selectedCategory === "All" ? "Recommended" : selectedCategory}
         </h2>
 
         {/* ROW 1: [Blank, Stage, DJI_24] */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-8 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-6 mb-6">
+          {/* Ad Slot Placeholder - YouTube style empty rectangle */}
+          <div className="hidden lg:block aspect-video rounded-xl bg-[#1a1a1a] border border-white/5 flex items-center justify-center">
+            <div className="text-gray-600 text-xs text-center p-4">
+              <div className="w-8 h-8 mx-auto mb-2 rounded bg-gray-700/50"></div>
+              <span className="opacity-50">Ad</span>
+            </div>
+          </div>
           {hasSpecial ? (
-            row1.map((video, idx) => (
+            row1.slice(1).map((video, idx) => (
               video ? <VideoCard key={video.id} video={video} /> : <div key={`blank-r1-${idx}`} className="invisible" />
             ))
           ) : (
@@ -82,8 +89,8 @@ function HomeContent() {
         {/* SHORTS 1 */}
         {selectedCategory === "All" && <ShortsShelf />}
 
-        {/* ROW 2: [DJI_25, Fireworks, Blank] */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-8 my-8">
+        {/* ROW 2: [DJI_25, Fireworks, Blank, Ad] */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-6 my-6">
           {hasSpecial ? (
             row2.map((video, idx) => (
               video ? <VideoCard key={video.id} video={video} /> : <div key={`blank-r2-${idx}`} className="invisible" />
@@ -91,6 +98,13 @@ function HomeContent() {
           ) : (
             remainingVideos.slice(3, 6).map(v => <VideoCard key={v.id} video={v} />)
           )}
+          {/* Ad Slot Placeholder */}
+          <div className="hidden xl:flex aspect-video rounded-xl bg-[#1a1a1a] border border-white/5 items-center justify-center">
+            <div className="text-gray-600 text-xs text-center p-4">
+              <div className="w-8 h-8 mx-auto mb-2 rounded bg-gray-700/50"></div>
+              <span className="opacity-50">Ad</span>
+            </div>
+          </div>
         </div>
 
         {/* SHORTS 2 */}
