@@ -78,6 +78,9 @@ function HomeContent() {
           ))}
         </div>
 
+        {/* Second Shorts Section - shows next set of videos */}
+        {selectedCategory === "All" && <ShortsShelf offset={isSidebarOpen ? 5 : 6} />}
+
         {/* Remaining Videos */}
         {filteredVideos.length > (isSidebarOpen ? 6 : 8) && (
           <div className="mt-3 sm:mt-6">

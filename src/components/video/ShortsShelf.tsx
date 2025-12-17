@@ -296,7 +296,7 @@ function ShortCard({ short, onDelete, onChangeThumbnail, onChangeVideo, onRename
     );
 }
 
-export function ShortsShelf() {
+export function ShortsShelf({ offset = 0 }: { offset?: number } = {}) {
     const { videos, deleteVideo, updateVideoThumbnail, updateVideoFile, updateVideoTitle } = useVideo();
     const { isOpen: isSidebarOpen } = useSidebar();
 
@@ -322,7 +322,8 @@ export function ShortsShelf() {
     const shortsVideos = videos;
 
     // Use real shorts if available, fill remaining with placeholders
-    const realShorts: ShortVideo[] = shortsVideos.slice(0, shortsCount).map(v => ({
+    // offset allows second ShortsShelf to show different videos
+    const realShorts: ShortVideo[] = shortsVideos.slice(offset, offset + shortsCount).map(v => ({
         id: v.id,
         title: v.title,
         views: `${v.views || 0}`,
