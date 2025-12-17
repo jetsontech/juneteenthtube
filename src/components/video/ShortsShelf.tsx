@@ -239,11 +239,15 @@ export function ShortsShelf() {
     };
 
     // Filter videos to only include shorts (max 60 seconds / 1 minute)
-    const MAX_SHORT_DURATION = 60; // 1 minute in seconds
+    // TEMP: Show all videos as shorts for testing - uncomment filter to restore
+    // const MAX_SHORT_DURATION = 60; // 1 minute in seconds
+    const shortsVideos = videos; // Show all videos as shorts for now
+    /* Original filter - uncomment when you have short videos:
     const shortsVideos = videos.filter(v => {
         const durationInSeconds = parseDurationToSeconds(v.duration);
         return durationInSeconds > 0 && durationInSeconds <= MAX_SHORT_DURATION;
     });
+    */
 
     // Use real shorts if available, fill remaining with placeholders
     const realShorts: ShortVideo[] = shortsVideos.slice(0, shortsCount).map(v => ({
