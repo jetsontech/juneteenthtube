@@ -152,7 +152,7 @@ function ShortCard({ short, onDelete, onChangeThumbnail, onChangeVideo }: {
                 aria-label="Upload video"
             />
 
-            <Link href={short.videoUrl ? `/watch/${short.id}` : "#"} className="block">
+            <Link href={short.videoUrl ? `/shorts/${short.id}` : "#"} className="block">
                 <div className={cn(
                     "relative aspect-[9/16] rounded-xl overflow-hidden bg-[#1a1a1a]",
                     isUploadingThumb && "opacity-50"
