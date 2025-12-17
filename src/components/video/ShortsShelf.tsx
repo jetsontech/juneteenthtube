@@ -124,12 +124,20 @@ function ShortCard({ short, onDelete, onChangeThumbnail, onChangeVideo, onRename
 
     const handleVideoFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
-        if (!file || !onChangeVideo) return;
+        console.log('Video file selected:', file?.name, file?.size);
+        if (!file || !onChangeVideo) {
+            console.log('No file or onChangeVideo not provided');
+            return;
+        }
         try {
+            console.log('Starting video upload for short:', short.id);
             setIsUploadingVideo(true);
             await onChangeVideo(short.id, file);
+            console.log('Video upload complete!');
+            alert('Video updated successfully!');
         } catch (error) {
             console.error("Video update failed", error);
+            alert('Video update failed: ' + (error as Error).message);
         } finally {
             setIsUploadingVideo(false);
         }
@@ -181,7 +189,7 @@ function ShortCard({ short, onDelete, onChangeThumbnail, onChangeVideo, onRename
             <Link href={short.videoUrl ? `/shorts/${short.id}` : "#"} className="block">
                 <div className={cn(
                     "relative aspect-[9/16] rounded-xl overflow-hidden bg-[#1a1a1a]",
-                    isUploadingThumb && "opacity-50"
+                    (isUploadingThumb || isUploadingVideo) && "opacity-50"
                 )}>
                     <img
                         src={short.thumbnail}
@@ -192,6 +200,13 @@ function ShortCard({ short, onDelete, onChangeThumbnail, onChangeVideo, onRename
                     <div className="absolute bottom-2 left-2 flex items-center gap-1 text-white text-xs font-medium">
                         <span>{formatViews(short.views)} views</span>
                     </div>
+                    {/* Upload progress overlay */}
+                    {isUploadingVideo && (
+                        <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center z-30">
+                            <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin mb-2"></div>
+                            <span className="text-white text-sm font-medium">Uploading...</span>
+                        </div>
+                    )}
                 </div>
             </Link>
 
