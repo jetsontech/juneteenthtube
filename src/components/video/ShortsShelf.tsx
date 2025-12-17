@@ -170,6 +170,8 @@ function ShortCard({ short, onDelete, onChangeThumbnail, onChangeVideo, onRename
             <input
                 type="file"
                 ref={fileInputRef}
+                id={`thumb-input-${short.id}`}
+                name={`thumb-input-${short.id}`}
                 className="hidden"
                 accept="image/*"
                 onChange={handleFileChange}
@@ -179,6 +181,8 @@ function ShortCard({ short, onDelete, onChangeThumbnail, onChangeVideo, onRename
             <input
                 type="file"
                 ref={videoFileInputRef}
+                id={`video-input-${short.id}`}
+                name={`video-input-${short.id}`}
                 className="hidden"
                 accept="video/*"
                 onChange={handleVideoFileChange}
@@ -313,12 +317,9 @@ export function ShortsShelf() {
         return 0;
     };
 
-    // Filter videos to only include shorts (max 60 seconds / 1 minute)
-    const MAX_SHORT_DURATION = 60; // 1 minute in seconds
-    const shortsVideos = videos.filter(v => {
-        const durationInSeconds = parseDurationToSeconds(v.duration);
-        return durationInSeconds > 0 && durationInSeconds <= MAX_SHORT_DURATION;
-    });
+    // Show all videos as shorts (removed duration filter since no videos under 60s exist)
+    // The Shorts section is for the vertical player experience, not strictly short videos
+    const shortsVideos = videos;
 
     // Use real shorts if available, fill remaining with placeholders
     const realShorts: ShortVideo[] = shortsVideos.slice(0, shortsCount).map(v => ({
