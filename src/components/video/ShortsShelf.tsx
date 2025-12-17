@@ -1,6 +1,6 @@
 "use client";
 
-import { MoreVertical, Play, Trash2, Image as ImageIcon } from "lucide-react";
+import { MoreVertical, Play, Trash2, Image as ImageIcon, Film } from "lucide-react";
 import Link from "next/link";
 import { useVideo } from "@/context/VideoContext";
 import { useSidebar } from "@/context/SidebarContext";
@@ -26,16 +26,19 @@ const PLACEHOLDER_SHORTS: ShortVideo[] = [
     { id: "p6", title: "Upload Your First Short", views: "0", thumbnail: "https://placehold.co/180x320/272727/666666?text=+", isPlaceholder: true },
 ];
 
-function ShortCard({ short, onDelete, onChangeThumbnail }: {
+function ShortCard({ short, onDelete, onChangeThumbnail, onChangeVideo }: {
     short: ShortVideo;
     onDelete?: (id: string) => void;
     onChangeThumbnail?: (id: string, file: File) => void;
+    onChangeVideo?: (id: string, file: File) => void;
 }) {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const [isUploadingThumb, setIsUploadingThumb] = useState(false);
+    const [isUploadingVideo, setIsUploadingVideo] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const videoFileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -86,6 +89,26 @@ function ShortCard({ short, onDelete, onChangeThumbnail }: {
         setIsDeleting(false);
     };
 
+    const handleVideoClick = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        videoFileInputRef.current?.click();
+        setIsMenuOpen(false);
+    };
+
+    const handleVideoFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file || !onChangeVideo) return;
+        try {
+            setIsUploadingVideo(true);
+            await onChangeVideo(short.id, file);
+        } catch (error) {
+            console.error("Video update failed", error);
+        } finally {
+            setIsUploadingVideo(false);
+        }
+    };
+
     const formatViews = (views: string | number) => {
         const num = typeof views === 'string' ? parseInt(views) : views;
         if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
@@ -118,6 +141,15 @@ function ShortCard({ short, onDelete, onChangeThumbnail }: {
                 onChange={handleFileChange}
                 title="Upload thumbnail"
                 aria-label="Upload thumbnail"
+            />
+            <input
+                type="file"
+                ref={videoFileInputRef}
+                className="hidden"
+                accept="video/*"
+                onChange={handleVideoFileChange}
+                title="Upload video"
+                aria-label="Upload video"
             />
 
             <Link href={short.videoUrl ? `/watch/${short.id}` : "#"} className="block">
@@ -162,6 +194,13 @@ function ShortCard({ short, onDelete, onChangeThumbnail }: {
                             Change Thumbnail
                         </button>
                         <button
+                            onClick={handleVideoClick}
+                            className="w-full text-left px-3 py-2 text-xs text-gray-200 hover:bg-white/10 flex items-center gap-2"
+                        >
+                            <Film size={14} />
+                            Change Video
+                        </button>
+                        <button
                             onClick={handleDelete}
                             className={cn(
                                 "w-full text-left px-3 py-2 text-xs flex items-center gap-2 transition-colors",
@@ -179,7 +218,7 @@ function ShortCard({ short, onDelete, onChangeThumbnail }: {
 }
 
 export function ShortsShelf() {
-    const { videos, deleteVideo, updateVideoThumbnail } = useVideo();
+    const { videos, deleteVideo, updateVideoThumbnail, updateVideoFile } = useVideo();
     const { isOpen: isSidebarOpen } = useSidebar();
 
     // YouTube-style: 5 shorts with sidebar open, 6 shorts with sidebar closed
@@ -227,6 +266,10 @@ export function ShortsShelf() {
         await updateVideoThumbnail(id, file);
     };
 
+    const handleChangeVideo = async (id: string, file: File) => {
+        await updateVideoFile(id, file);
+    };
+
     // YouTube-style: 5 cols with sidebar open, 6 cols with sidebar closed on large screens
     const gridClass = cn(
         "grid gap-3",
@@ -251,6 +294,7 @@ export function ShortsShelf() {
                         short={short}
                         onDelete={!short.isPlaceholder ? handleDelete : undefined}
                         onChangeThumbnail={!short.isPlaceholder ? handleChangeThumbnail : undefined}
+                        onChangeVideo={!short.isPlaceholder ? handleChangeVideo : undefined}
                     />
                 ))}
             </div>
