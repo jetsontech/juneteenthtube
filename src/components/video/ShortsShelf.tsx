@@ -116,8 +116,6 @@ function ShortCard({ short, onDelete, onChangeThumbnail }: {
                 className="hidden"
                 accept="image/*"
                 onChange={handleFileChange}
-                title="Upload thumbnail image"
-                aria-label="Upload thumbnail image"
             />
 
             <Link
@@ -164,8 +162,6 @@ function ShortCard({ short, onDelete, onChangeThumbnail }: {
                         isMenuOpen ? "opacity-100" : "opacity-0 group-hover:opacity-100"
                     )}
                     onClick={toggleMenu}
-                    title="More options"
-                    aria-label="More options"
                 >
                     <MoreVertical className="w-4 h-4 text-white" />
                 </button>

@@ -45,52 +45,51 @@ function HomeContent() {
   const row2 = [dji25Video, fireworksVideo, null];
 
   return (
-    <div className="p-4 sm:p-6 pt-4">
-      {/* Categories - YouTube style sticky tabs */}
-      <div className="sticky top-16 z-30 bg-[#0f0f0f] pb-3 pt-2 -mx-4 px-4 sm:-mx-6 sm:px-6">
-        <div className="flex gap-3 overflow-x-auto scrollbar-none">
-          {CATEGORIES.map((tag) => (
-            <button
-              key={tag}
-              onClick={() => setSelectedCategory(tag)}
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${selectedCategory === tag
-                ? "bg-white text-black"
-                : "bg-[#272727] text-white hover:bg-[#3f3f3f]"
-                }`}
-            >
-              {tag}
-            </button>
-          ))}
-        </div>
+    <div className="space-y-8 p-4 sm:p-6 pt-32">
+      {/* Categories */}
+      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
+        {CATEGORIES.map((tag) => (
+          <button
+            key={tag}
+            onClick={() => setSelectedCategory(tag)}
+            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${selectedCategory === tag
+              ? "bg-white text-black"
+              : "bg-white/10 text-white hover:bg-white/20"
+              }`}
+          >
+            {tag}
+          </button>
+        ))}
       </div>
 
-      <section className="mt-4 space-y-6">
-        <h2 className="text-lg font-semibold text-white">
+      <section>
+        <h2 className="text-xl font-bold mb-4 text-white">
           {selectedCategory === "All" ? "Recommended" : selectedCategory}
         </h2>
 
-        {/* ROW 1 - Video Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-8">
+        {/* ROW 1: [Blank, Stage, DJI_24] */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-8 mb-8">
           {hasSpecial ? (
-            row1.filter(Boolean).map((video) => (
-              <VideoCard key={video!.id} video={video!} />
+            row1.map((video, idx) => (
+              video ? <VideoCard key={video.id} video={video} /> : <div key={`blank-r1-${idx}`} className="invisible" />
             ))
           ) : (
-            remainingVideos.slice(0, 4).map(v => <VideoCard key={v.id} video={v} />)
+            // Fallback if specific videos missing (e.g. searching)
+            remainingVideos.slice(0, 3).map(v => <VideoCard key={v.id} video={v} />)
           )}
         </div>
 
         {/* SHORTS 1 */}
         {selectedCategory === "All" && <ShortsShelf />}
 
-        {/* ROW 2 - Video Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-8">
+        {/* ROW 2: [DJI_25, Fireworks, Blank] */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-8 my-8">
           {hasSpecial ? (
-            row2.filter(Boolean).map((video) => (
-              <VideoCard key={video!.id} video={video!} />
+            row2.map((video, idx) => (
+              video ? <VideoCard key={video.id} video={video} /> : <div key={`blank-r2-${idx}`} className="invisible" />
             ))
           ) : (
-            remainingVideos.slice(4, 8).map(v => <VideoCard key={v.id} video={v} />)
+            remainingVideos.slice(3, 6).map(v => <VideoCard key={v.id} video={v} />)
           )}
         </div>
 
@@ -99,7 +98,12 @@ function HomeContent() {
 
         {/* ROW 3+: Remaining Videos */}
         {remainingVideos.length > 0 && (
-          <VideoGrid videos={hasSpecial ? remainingVideos : remainingVideos.slice(8)} />
+          <div className="mt-8">
+            {/* If we used standard slicing fallback, we need to adjust slice index, but simpler to just show 'remaining' if 'hasSpecial' is true. 
+                    If !hasSpecial, we already showed 0-6. So slice 6.
+                */}
+            <VideoGrid videos={hasSpecial ? remainingVideos : remainingVideos.slice(6)} />
+          </div>
         )}
       </section>
     </div>
