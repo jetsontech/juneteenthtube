@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { useState, useRef, useEffect } from "react";
 import { useVideo } from "@/context/VideoContext";
 import { formatDistanceToNow } from "date-fns";
+import { useDominantColor } from "@/hooks/useDominantColor";
 
 export interface VideoProps {
     id: string;
@@ -31,19 +32,25 @@ export function VideoCard({ video }: { video: VideoProps }) {
     const [isUploadingThumb, setIsUploadingThumb] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
     const [isMuted, setIsMuted] = useState(true);
+    const [isCardHovered, setIsCardHovered] = useState(false);
     const hoverTimeout = useRef<NodeJS.Timeout | null>(null);
+
+    // Extract dominant color from thumbnail for unique hover effect
+    const dominantColor = useDominantColor(video.thumbnail);
 
     // ... existing refs
     const menuRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const handleMouseEnter = () => {
+        setIsCardHovered(true);
         hoverTimeout.current = setTimeout(() => {
             setIsHovered(true);
         }, 600); // 600ms delay like YouTube
     };
 
     const handleMouseLeave = () => {
+        setIsCardHovered(false);
         if (hoverTimeout.current) clearTimeout(hoverTimeout.current);
         setIsHovered(false);
     };
@@ -121,7 +128,8 @@ export function VideoCard({ video }: { video: VideoProps }) {
 
     return (
         <div
-            className="group block relative p-2 -m-2 rounded-2xl transition-all duration-200 hover:bg-white/[0.03]"
+            className="group block relative p-2 -m-2 rounded-2xl transition-all duration-300"
+            style={{ backgroundColor: isCardHovered ? dominantColor : 'transparent' }}
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
         >
