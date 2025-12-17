@@ -185,8 +185,29 @@ export function ShortsShelf() {
     // YouTube-style: 5 shorts with sidebar open, 6 shorts with sidebar closed
     const shortsCount = isSidebarOpen ? 5 : 6;
 
-    // Use real videos if available, fill remaining with placeholders
-    const realShorts: ShortVideo[] = videos.slice(0, shortsCount).map(v => ({
+    // Parse duration string (e.g., "1:30", "0:45", "12:30") to seconds
+    const parseDurationToSeconds = (duration: string | undefined): number => {
+        if (!duration) return 0;
+        const parts = duration.split(':').map(Number);
+        if (parts.length === 2) {
+            // MM:SS format
+            return parts[0] * 60 + parts[1];
+        } else if (parts.length === 3) {
+            // HH:MM:SS format
+            return parts[0] * 3600 + parts[1] * 60 + parts[2];
+        }
+        return 0;
+    };
+
+    // Filter videos to only include shorts (max 60 seconds / 1 minute)
+    const MAX_SHORT_DURATION = 60; // 1 minute in seconds
+    const shortsVideos = videos.filter(v => {
+        const durationInSeconds = parseDurationToSeconds(v.duration);
+        return durationInSeconds > 0 && durationInSeconds <= MAX_SHORT_DURATION;
+    });
+
+    // Use real shorts if available, fill remaining with placeholders
+    const realShorts: ShortVideo[] = shortsVideos.slice(0, shortsCount).map(v => ({
         id: v.id,
         title: v.title,
         views: `${v.views || 0}`,
