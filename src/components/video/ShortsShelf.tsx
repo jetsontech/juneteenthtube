@@ -3,6 +3,7 @@
 import { MoreVertical, Play, Trash2, Image as ImageIcon } from "lucide-react";
 import Link from "next/link";
 import { useVideo } from "@/context/VideoContext";
+import { useSidebar } from "@/context/SidebarContext";
 import { useState, useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
 
@@ -15,7 +16,7 @@ interface ShortVideo {
     isPlaceholder?: boolean;
 }
 
-// 6 placeholder shorts to match YouTube layout
+// Placeholder shorts (we'll use 5 or 6 based on sidebar state)
 const PLACEHOLDER_SHORTS: ShortVideo[] = [
     { id: "p1", title: "Upload Your First Short", views: "0", thumbnail: "https://placehold.co/180x320/272727/666666?text=+", isPlaceholder: true },
     { id: "p2", title: "Upload Your First Short", views: "0", thumbnail: "https://placehold.co/180x320/272727/666666?text=+", isPlaceholder: true },
@@ -129,21 +130,15 @@ function ShortCard({ short, onDelete, onChangeThumbnail }: {
                         alt={short.title}
                         className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                     />
-
-                    {/* Bottom gradient */}
                     <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/80 to-transparent" />
-
-                    {/* Views count - YouTube style at bottom left */}
                     <div className="absolute bottom-2 left-2 flex items-center gap-1 text-white text-xs font-medium">
                         <span>{formatViews(short.views)} views</span>
                     </div>
                 </div>
             </Link>
 
-            {/* Title below */}
             <h3 className="mt-2 text-sm font-medium text-white line-clamp-2 group-hover:text-gray-300">{short.title}</h3>
 
-            {/* Menu Button */}
             <div className="absolute top-2 right-2 z-20" ref={menuRef}>
                 <button
                     className={cn(
@@ -185,9 +180,13 @@ function ShortCard({ short, onDelete, onChangeThumbnail }: {
 
 export function ShortsShelf() {
     const { videos, deleteVideo, updateVideoThumbnail } = useVideo();
+    const { isOpen: isSidebarOpen } = useSidebar();
 
-    // Use real videos if available, fill remaining with placeholders to always show 6
-    const realShorts: ShortVideo[] = videos.slice(0, 6).map(v => ({
+    // YouTube-style: 5 shorts with sidebar open, 6 shorts with sidebar closed
+    const shortsCount = isSidebarOpen ? 5 : 6;
+
+    // Use real videos if available, fill remaining with placeholders
+    const realShorts: ShortVideo[] = videos.slice(0, shortsCount).map(v => ({
         id: v.id,
         title: v.title,
         views: `${v.views || 0}`,
@@ -196,7 +195,7 @@ export function ShortsShelf() {
         isPlaceholder: false
     }));
 
-    const placeholdersNeeded = Math.max(0, 6 - realShorts.length);
+    const placeholdersNeeded = Math.max(0, shortsCount - realShorts.length);
     const shorts = [...realShorts, ...PLACEHOLDER_SHORTS.slice(0, placeholdersNeeded)];
 
     const handleDelete = async (id: string) => {
@@ -207,9 +206,16 @@ export function ShortsShelf() {
         await updateVideoThumbnail(id, file);
     };
 
+    // YouTube-style: 5 cols with sidebar open, 6 cols with sidebar closed on large screens
+    const gridClass = cn(
+        "grid gap-3",
+        isSidebarOpen
+            ? "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
+            : "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
+    );
+
     return (
         <div className="py-6 border-y border-white/5 my-6">
-            {/* Header - YouTube Shorts icon + text */}
             <div className="flex items-center gap-2 mb-4">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" className="text-red-500">
                     <path d="M10 14.65v-5.3L15 12l-5 2.65zm7.77-4.33c-.77-.32-1.2-.5-1.2-.5L18 9.06c1.84-.96 2.53-3.23 1.56-5.06s-3.24-2.53-5.07-1.56L6 6.94c-1.29.68-2.07 2.04-2 3.49.07 1.42.93 2.67 2.22 3.25.03.01 1.2.5 1.2.5L6 14.93c-1.83.97-2.53 3.24-1.56 5.07.97 1.83 3.24 2.53 5.07 1.56l8.5-4.5c1.29-.68 2.07-2.04 2-3.49-.07-1.42-.93-2.67-2.22-3.25zM10 14.65v-5.3L15 12l-5 2.65z" />
@@ -217,8 +223,7 @@ export function ShortsShelf() {
                 <h2 className="text-lg font-semibold text-white">Shorts</h2>
             </div>
 
-            {/* 6 columns on xl, 5 on lg, 4 on md, 3 on sm, 2 on mobile - matches YouTube */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+            <div className={gridClass}>
                 {shorts.map((short) => (
                     <ShortCard
                         key={short.id}

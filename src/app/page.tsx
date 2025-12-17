@@ -5,12 +5,15 @@ import { VideoGrid } from "@/components/video/VideoGrid";
 import { VideoCard } from "@/components/video/VideoCard";
 import { ShortsShelf } from "@/components/video/ShortsShelf";
 import { useVideo } from "@/context/VideoContext";
+import { useSidebar } from "@/context/SidebarContext";
 import { useSearchParams } from "next/navigation";
+import { cn } from "@/lib/utils";
 
 const CATEGORIES = ["All", "Parade", "Music", "Food", "History", "Speeches", "Live", "2024"] as const;
 
 function HomeContent() {
   const { videos } = useVideo();
+  const { isOpen: isSidebarOpen } = useSidebar();
   const searchParams = useSearchParams();
   const searchQuery = searchParams.get('q')?.toLowerCase() || "";
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
@@ -21,9 +24,16 @@ function HomeContent() {
     const matchesSearch = !searchQuery ||
       video.title.toLowerCase().includes(searchQuery) ||
       video.channelName.toLowerCase().includes(searchQuery);
-
     return matchesCategory && matchesSearch;
   });
+
+  // YouTube-style: 3 cols sidebar open, 4 cols sidebar closed on large screens
+  const videoGridClass = cn(
+    "grid gap-x-4 gap-y-10",
+    isSidebarOpen
+      ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+      : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+  );
 
   return (
     <>
@@ -47,11 +57,11 @@ function HomeContent() {
         </div>
       </div>
 
-      {/* Main content area - YouTube-style layout */}
+      {/* Main content area */}
       <main className="px-4 sm:px-6 lg:px-8 py-6">
-        {/* Video Grid - 4 columns on xl, 3 on lg, 2 on sm, 1 on mobile */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-10">
-          {filteredVideos.slice(0, 4).map(video => (
+        {/* First row of videos */}
+        <div className={videoGridClass}>
+          {filteredVideos.slice(0, isSidebarOpen ? 3 : 4).map(video => (
             <VideoCard key={video.id} video={video} />
           ))}
         </div>
@@ -59,9 +69,9 @@ function HomeContent() {
         {/* Shorts Section */}
         {selectedCategory === "All" && <ShortsShelf />}
 
-        {/* More Videos */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-10 mt-6">
-          {filteredVideos.slice(4, 8).map(video => (
+        {/* Second row of videos */}
+        <div className={cn(videoGridClass, "mt-6")}>
+          {filteredVideos.slice(isSidebarOpen ? 3 : 4, isSidebarOpen ? 6 : 8).map(video => (
             <VideoCard key={video.id} video={video} />
           ))}
         </div>
@@ -70,9 +80,9 @@ function HomeContent() {
         {selectedCategory === "All" && <ShortsShelf />}
 
         {/* Remaining Videos */}
-        {filteredVideos.length > 8 && (
+        {filteredVideos.length > (isSidebarOpen ? 6 : 8) && (
           <div className="mt-6">
-            <VideoGrid videos={filteredVideos.slice(8)} />
+            <VideoGrid videos={filteredVideos.slice(isSidebarOpen ? 6 : 8)} />
           </div>
         )}
       </main>
