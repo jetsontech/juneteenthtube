@@ -1,6 +1,6 @@
 "use client";
 
-import { MoreVertical, Trash2, Edit2, X, Check, Image as ImageIcon, UploadCloud } from "lucide-react";
+import { MoreVertical, Trash2, Edit2, X, Check, Image as ImageIcon, UploadCloud, Film } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { useState, useRef, useEffect } from "react";
@@ -24,12 +24,13 @@ export interface VideoProps {
 }
 
 export function VideoCard({ video }: { video: VideoProps }) {
-    const { deleteVideo, updateVideoTitle, updateVideoThumbnail } = useVideo();
+    const { deleteVideo, updateVideoTitle, updateVideoThumbnail, updateVideoFile, isUploading, uploadProgress } = useVideo();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [editTitle, setEditTitle] = useState(video.title);
     const [isDeleting, setIsDeleting] = useState(false);
     const [isUploadingThumb, setIsUploadingThumb] = useState(false);
+    const [isUploadingVideo, setIsUploadingVideo] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
     const [isMuted, setIsMuted] = useState(true);
     const [isCardHovered, setIsCardHovered] = useState(false);
@@ -41,6 +42,7 @@ export function VideoCard({ video }: { video: VideoProps }) {
     // ... existing refs
     const menuRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const videoFileInputRef = useRef<HTMLInputElement>(null);
 
     const handleMouseEnter = () => {
         setIsCardHovered(true);
@@ -116,6 +118,28 @@ export function VideoCard({ video }: { video: VideoProps }) {
         setIsDeleting(false);
     };
 
+    const handleVideoClick = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        videoFileInputRef.current?.click();
+        setIsMenuOpen(false);
+    };
+
+    const handleVideoFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        try {
+            setIsUploadingVideo(true);
+            await updateVideoFile(video.id, file);
+        } catch (error) {
+            console.error("Video update failed", error);
+            alert("Failed to update video");
+        } finally {
+            setIsUploadingVideo(false);
+        }
+    };
+
     // Format Date
     let timeAgo = video.postedAt;
     try {
@@ -141,6 +165,15 @@ export function VideoCard({ video }: { video: VideoProps }) {
                 onChange={handleFileChange}
                 aria-label="Upload thumbnail"
                 title="Upload thumbnail"
+            />
+            <input
+                type="file"
+                ref={videoFileInputRef}
+                className="hidden"
+                accept="video/*"
+                onChange={handleVideoFileChange}
+                aria-label="Upload video"
+                title="Upload video"
             />
 
             <Link href={`/watch/${video.id}`} className="block relative aspect-video rounded-none sm:rounded-xl overflow-hidden bg-gray-900">
@@ -305,6 +338,13 @@ export function VideoCard({ video }: { video: VideoProps }) {
                             >
                                 <ImageIcon size={14} />
                                 Change Thumb
+                            </button>
+                            <button
+                                onClick={handleVideoClick}
+                                className="w-full text-left px-3 py-2 text-sm text-gray-200 hover:bg-white/10 flex items-center gap-2"
+                            >
+                                <Film size={14} />
+                                Change Video
                             </button>
                             <button
                                 onClick={(e) => {

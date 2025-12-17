@@ -30,6 +30,7 @@ interface VideoContextType {
     deleteVideo: (id: string) => Promise<void>;
     updateVideoTitle: (id: string, newTitle: string) => Promise<void>;
     updateVideoThumbnail: (id: string, file: File) => Promise<void>;
+    updateVideoFile: (id: string, file: File) => Promise<void>;
     incrementView: (id: string) => Promise<void>;
     // Engagement
     getVideoComments: (videoId: string) => Promise<any[]>;
@@ -296,6 +297,69 @@ export function VideoProvider({ children }: { children: ReactNode }) {
         }
     };
 
+    // Update video file (replace with new video)
+    const updateVideoFile = async (id: string, file: File) => {
+        try {
+            setIsUploading(true);
+            setUploadProgress(0);
+
+            let publicUrl = "";
+
+            // Use multipart for large files, simple for smaller
+            if (file.size > 50 * 1024 * 1024) {
+                publicUrl = await uploadMultipart(file, "");
+            } else {
+                // Simple upload
+                const response = await fetch("/api/upload", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        filename: `video_${id}_${Date.now()}_${file.name}`,
+                        contentType: file.type || "video/mp4",
+                    }),
+                });
+
+                if (!response.ok) throw new Error("Failed to sign video upload");
+                const { signedUrl, publicUrl: url } = await response.json();
+                publicUrl = url;
+
+                await new Promise<void>((resolve, reject) => {
+                    const xhr = new XMLHttpRequest();
+                    xhr.open("PUT", signedUrl);
+                    xhr.setRequestHeader("Content-Type", file.type || "video/mp4");
+                    xhr.upload.onprogress = (event) => {
+                        if (event.lengthComputable) {
+                            setUploadProgress(Math.round((event.loaded / event.total) * 100));
+                        }
+                    };
+                    xhr.onload = () => (xhr.status >= 200 && xhr.status < 300) ? resolve() : reject(new Error("Video upload failed"));
+                    xhr.onerror = () => reject(new Error("Network Error during upload"));
+                    xhr.send(file);
+                });
+            }
+
+            // Update DB via Secure API
+            const updateRes = await fetch('/api/videos/update', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id, video_url: publicUrl })
+            });
+
+            if (!updateRes.ok) throw new Error('Failed to update video record');
+
+            // Update Local State
+            setVideos(prev => prev.map(v => v.id === id ? { ...v, videoUrl: publicUrl } : v));
+            console.log(`Video ${id} file updated`);
+
+        } catch (error) {
+            console.error("Error updating video file:", error);
+            throw error;
+        } finally {
+            setIsUploading(false);
+            setUploadProgress(0);
+        }
+    };
+
     const incrementView = async (id: string) => {
         try {
             // Optimistic UI update
@@ -525,7 +589,7 @@ export function VideoProvider({ children }: { children: ReactNode }) {
     return (
         <VideoContext.Provider value={{
             videos, uploadVideo, getVideoById, isUploading, uploadProgress, cancelUpload,
-            deleteVideo, updateVideoTitle, updateVideoThumbnail, incrementView,
+            deleteVideo, updateVideoTitle, updateVideoThumbnail, updateVideoFile, incrementView,
             getVideoComments, postComment, getLikes, toggleLike, getSubscription, toggleSubscription
         }}>
             {children}
