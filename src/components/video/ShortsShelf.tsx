@@ -317,14 +317,9 @@ export function ShortsShelf() {
         return 0;
     };
 
-    // Filter videos to only include shorts (max 60 seconds)
-    // Videos > 60s should only appear in main grid, not here
-    const MAX_SHORT_DURATION = 60; // 1 minute in seconds
-    const shortsVideos = videos.filter(v => {
-        const durationInSeconds = parseDurationToSeconds(v.duration);
-        // Include videos with duration > 0 AND <= 60 seconds
-        return durationInSeconds > 0 && durationInSeconds <= MAX_SHORT_DURATION;
-    });
+    // Show all videos as shorts until duration tracking is properly implemented
+    // This ensures users can always see and manage their videos with menu controls
+    const shortsVideos = videos;
 
     // Use real shorts if available, fill remaining with placeholders
     const realShorts: ShortVideo[] = shortsVideos.slice(0, shortsCount).map(v => ({

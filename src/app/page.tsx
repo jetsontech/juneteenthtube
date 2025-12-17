@@ -18,27 +18,13 @@ function HomeContent() {
   const searchQuery = searchParams.get('q')?.toLowerCase() || "";
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
 
-  // Parse duration string to seconds
-  const parseDurationToSeconds = (duration: string | undefined): number => {
-    if (!duration) return 0;
-    const parts = duration.split(':').map(Number);
-    if (parts.length === 2) return parts[0] * 60 + parts[1];
-    if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
-    return 0;
-  };
-
-  // Filter videos by category AND search query, EXCLUDING shorts (≤60s)
-  // Shorts are displayed in the ShortsShelf component separately
-  const MAX_SHORT_DURATION = 60;
+  // Filter videos by category AND search query
   const filteredVideos = videos.filter(video => {
     const matchesCategory = selectedCategory === "All" || video.category === selectedCategory;
     const matchesSearch = !searchQuery ||
       video.title.toLowerCase().includes(searchQuery) ||
       video.channelName.toLowerCase().includes(searchQuery);
-    // Exclude shorts (videos ≤ 60s) from main grid - they appear in ShortsShelf
-    const durationInSeconds = parseDurationToSeconds(video.duration);
-    const isNotShort = durationInSeconds === 0 || durationInSeconds > MAX_SHORT_DURATION;
-    return matchesCategory && matchesSearch && isNotShort;
+    return matchesCategory && matchesSearch;
   });
 
   // YouTube-style: 3 cols sidebar open, 4 cols sidebar closed on large screens
