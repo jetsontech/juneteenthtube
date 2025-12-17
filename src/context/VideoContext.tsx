@@ -388,7 +388,7 @@ export function VideoProvider({ children }: { children: ReactNode }) {
 
     // --- UPLOAD LOGIC ---
     const uploadMultipart = async (file: File, _category: string): Promise<string> => {
-        const CHUNK_SIZE = 10 * 1024 * 1024; // 10MB chunks (reduced from 20MB for better reliability)
+        const CHUNK_SIZE = 5 * 1024 * 1024; // 5MB chunks (reduced for better reliability on slow/unstable connections)
         const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
         const signal = abortControllerRef.current?.signal;
         const limit = pLimit(2); // Reduced from 3 to 2 concurrent uploads for stability
