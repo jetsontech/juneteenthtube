@@ -15,13 +15,14 @@ interface ShortVideo {
     isPlaceholder?: boolean;
 }
 
-// Placeholder shorts - 5 items to match YouTube layout
+// 6 placeholder shorts to match YouTube layout
 const PLACEHOLDER_SHORTS: ShortVideo[] = [
-    { id: "p1", title: "Upload Your First Short", views: "0", thumbnail: "https://placehold.co/400x700/1a1a1a/666666?text=+", isPlaceholder: true },
-    { id: "p2", title: "Upload Your First Short", views: "0", thumbnail: "https://placehold.co/400x700/1a1a1a/666666?text=+", isPlaceholder: true },
-    { id: "p3", title: "Upload Your First Short", views: "0", thumbnail: "https://placehold.co/400x700/1a1a1a/666666?text=+", isPlaceholder: true },
-    { id: "p4", title: "Upload Your First Short", views: "0", thumbnail: "https://placehold.co/400x700/1a1a1a/666666?text=+", isPlaceholder: true },
-    { id: "p5", title: "Upload Your First Short", views: "0", thumbnail: "https://placehold.co/400x700/1a1a1a/666666?text=+", isPlaceholder: true },
+    { id: "p1", title: "Upload Your First Short", views: "0", thumbnail: "https://placehold.co/180x320/272727/666666?text=+", isPlaceholder: true },
+    { id: "p2", title: "Upload Your First Short", views: "0", thumbnail: "https://placehold.co/180x320/272727/666666?text=+", isPlaceholder: true },
+    { id: "p3", title: "Upload Your First Short", views: "0", thumbnail: "https://placehold.co/180x320/272727/666666?text=+", isPlaceholder: true },
+    { id: "p4", title: "Upload Your First Short", views: "0", thumbnail: "https://placehold.co/180x320/272727/666666?text=+", isPlaceholder: true },
+    { id: "p5", title: "Upload Your First Short", views: "0", thumbnail: "https://placehold.co/180x320/272727/666666?text=+", isPlaceholder: true },
+    { id: "p6", title: "Upload Your First Short", views: "0", thumbnail: "https://placehold.co/180x320/272727/666666?text=+", isPlaceholder: true },
 ];
 
 function ShortCard({ short, onDelete, onChangeThumbnail }: {
@@ -35,7 +36,6 @@ function ShortCard({ short, onDelete, onChangeThumbnail }: {
     const menuRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    // Close menu when clicking outside
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -85,7 +85,6 @@ function ShortCard({ short, onDelete, onChangeThumbnail }: {
         setIsDeleting(false);
     };
 
-    // Format views
     const formatViews = (views: string | number) => {
         const num = typeof views === 'string' ? parseInt(views) : views;
         if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
@@ -95,15 +94,15 @@ function ShortCard({ short, onDelete, onChangeThumbnail }: {
 
     if (short.isPlaceholder) {
         return (
-            <div className="group relative cursor-default">
-                <div className="relative aspect-[9/16] rounded-xl overflow-hidden bg-gray-800/50 border-2 border-dashed border-gray-600 flex items-center justify-center">
-                    <div className="text-center p-4">
-                        <div className="w-12 h-12 mx-auto mb-2 rounded-full bg-gray-700 flex items-center justify-center">
-                            <Play className="w-6 h-6 text-gray-500" />
+            <div className="group relative">
+                <div className="relative aspect-[9/16] rounded-xl overflow-hidden bg-[#272727] flex items-center justify-center">
+                    <div className="text-center p-2">
+                        <div className="w-10 h-10 mx-auto mb-2 rounded-full bg-[#3f3f3f] flex items-center justify-center">
+                            <Play className="w-5 h-5 text-gray-500" />
                         </div>
-                        <p className="text-gray-500 text-xs">Upload a Short</p>
                     </div>
                 </div>
+                <h3 className="mt-2 text-sm font-medium text-gray-500 line-clamp-2">{short.title}</h3>
             </div>
         );
     }
@@ -116,14 +115,13 @@ function ShortCard({ short, onDelete, onChangeThumbnail }: {
                 className="hidden"
                 accept="image/*"
                 onChange={handleFileChange}
+                title="Upload thumbnail"
+                aria-label="Upload thumbnail"
             />
 
-            <Link
-                href={short.videoUrl ? `/watch/${short.id}` : "#"}
-                className="block"
-            >
+            <Link href={short.videoUrl ? `/watch/${short.id}` : "#"} className="block">
                 <div className={cn(
-                    "relative aspect-[9/16] rounded-xl overflow-hidden bg-gray-900",
+                    "relative aspect-[9/16] rounded-xl overflow-hidden bg-[#1a1a1a]",
                     isUploadingThumb && "opacity-50"
                 )}>
                     <img
@@ -132,58 +130,50 @@ function ShortCard({ short, onDelete, onChangeThumbnail }: {
                         className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                     />
 
-                    {/* Gradient overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+                    {/* Bottom gradient */}
+                    <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/80 to-transparent" />
 
-                    {/* Play button on hover */}
-                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                        <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                            <Play className="w-6 h-6 text-white fill-white" />
-                        </div>
-                    </div>
-
-                    {/* Views badge */}
-                    <div className="absolute bottom-2 left-2 bg-black/70 rounded px-1.5 py-0.5">
-                        <p className="text-white text-[10px] font-medium">{formatViews(short.views)} views</p>
-                    </div>
-
-                    {/* Title at bottom */}
-                    <div className="absolute bottom-8 left-2 right-8">
-                        <h3 className="text-white text-sm font-semibold line-clamp-2 drop-shadow-lg">{short.title}</h3>
+                    {/* Views count - YouTube style at bottom left */}
+                    <div className="absolute bottom-2 left-2 flex items-center gap-1 text-white text-xs font-medium">
+                        <span>{formatViews(short.views)} views</span>
                     </div>
                 </div>
             </Link>
+
+            {/* Title below */}
+            <h3 className="mt-2 text-sm font-medium text-white line-clamp-2 group-hover:text-gray-300">{short.title}</h3>
 
             {/* Menu Button */}
             <div className="absolute top-2 right-2 z-20" ref={menuRef}>
                 <button
                     className={cn(
-                        "p-1.5 rounded-full bg-black/50 hover:bg-black/70 transition-all",
+                        "p-1 rounded-full bg-black/60 hover:bg-black/80 transition-all",
                         isMenuOpen ? "opacity-100" : "opacity-0 group-hover:opacity-100"
                     )}
                     onClick={toggleMenu}
+                    title="More options"
+                    aria-label="More options"
                 >
                     <MoreVertical className="w-4 h-4 text-white" />
                 </button>
 
-                {/* Dropdown Menu */}
                 {isMenuOpen && (
-                    <div className="absolute right-0 top-full mt-1 w-36 bg-[#1a1a1a] border border-white/10 rounded-lg shadow-xl z-50 overflow-hidden py-1">
+                    <div className="absolute right-0 top-full mt-1 w-36 bg-[#282828] border border-white/10 rounded-lg shadow-xl z-50 overflow-hidden py-1">
                         <button
                             onClick={handleThumbnailClick}
                             className="w-full text-left px-3 py-2 text-xs text-gray-200 hover:bg-white/10 flex items-center gap-2"
                         >
-                            <ImageIcon size={12} />
+                            <ImageIcon size={14} />
                             Change Thumbnail
                         </button>
                         <button
                             onClick={handleDelete}
                             className={cn(
                                 "w-full text-left px-3 py-2 text-xs flex items-center gap-2 transition-colors",
-                                isDeleting ? "bg-red-500/20 text-red-500" : "text-red-400 hover:bg-white/10"
+                                isDeleting ? "bg-red-500/20 text-red-400" : "text-red-400 hover:bg-white/10"
                             )}
                         >
-                            <Trash2 size={12} />
+                            <Trash2 size={14} />
                             {isDeleting ? "Confirm?" : "Delete"}
                         </button>
                     </div>
@@ -196,8 +186,8 @@ function ShortCard({ short, onDelete, onChangeThumbnail }: {
 export function ShortsShelf() {
     const { videos, deleteVideo, updateVideoThumbnail } = useVideo();
 
-    // Use real videos if available, fill remaining slots with placeholders
-    const realShorts: ShortVideo[] = videos.slice(0, 5).map(v => ({
+    // Use real videos if available, fill remaining with placeholders to always show 6
+    const realShorts: ShortVideo[] = videos.slice(0, 6).map(v => ({
         id: v.id,
         title: v.title,
         views: `${v.views || 0}`,
@@ -206,8 +196,7 @@ export function ShortsShelf() {
         isPlaceholder: false
     }));
 
-    // Fill remaining slots with placeholders to always show 5
-    const placeholdersNeeded = Math.max(0, 5 - realShorts.length);
+    const placeholdersNeeded = Math.max(0, 6 - realShorts.length);
     const shorts = [...realShorts, ...PLACEHOLDER_SHORTS.slice(0, placeholdersNeeded)];
 
     const handleDelete = async (id: string) => {
@@ -219,19 +208,17 @@ export function ShortsShelf() {
     };
 
     return (
-        <div className="py-6 border-y border-white/10 my-6">
-            {/* Header - YouTube Style */}
-            <div className="flex items-center gap-2 mb-4 px-1">
-                <div className="w-6 h-6 flex items-center justify-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" className="text-red-500">
-                        <path d="M10 14.65v-5.3L15 12l-5 2.65zm7.77-4.33c-.77-.32-1.2-.5-1.2-.5L18 9.06c1.84-.96 2.53-3.23 1.56-5.06s-3.24-2.53-5.07-1.56L6 6.94c-1.29.68-2.07 2.04-2 3.49.07 1.42.93 2.67 2.22 3.25.03.01 1.2.5 1.2.5L6 14.93c-1.83.97-2.53 3.24-1.56 5.07.97 1.83 3.24 2.53 5.07 1.56l8.5-4.5c1.29-.68 2.07-2.04 2-3.49-.07-1.42-.93-2.67-2.22-3.25zM10 14.65v-5.3L15 12l-5 2.65z" />
-                    </svg>
-                </div>
+        <div className="py-6 border-y border-white/5 my-6">
+            {/* Header - YouTube Shorts icon + text */}
+            <div className="flex items-center gap-2 mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" className="text-red-500">
+                    <path d="M10 14.65v-5.3L15 12l-5 2.65zm7.77-4.33c-.77-.32-1.2-.5-1.2-.5L18 9.06c1.84-.96 2.53-3.23 1.56-5.06s-3.24-2.53-5.07-1.56L6 6.94c-1.29.68-2.07 2.04-2 3.49.07 1.42.93 2.67 2.22 3.25.03.01 1.2.5 1.2.5L6 14.93c-1.83.97-2.53 3.24-1.56 5.07.97 1.83 3.24 2.53 5.07 1.56l8.5-4.5c1.29-.68 2.07-2.04 2-3.49-.07-1.42-.93-2.67-2.22-3.25zM10 14.65v-5.3L15 12l-5 2.65z" />
+                </svg>
                 <h2 className="text-lg font-semibold text-white">Shorts</h2>
             </div>
 
-            {/* 5 Column Grid - YouTube Style */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+            {/* 6 columns on xl, 5 on lg, 4 on md, 3 on sm, 2 on mobile - matches YouTube */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
                 {shorts.map((short) => (
                     <ShortCard
                         key={short.id}
