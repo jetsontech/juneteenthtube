@@ -29,7 +29,7 @@ export function InlinePlayer({ src, poster }: InlinePlayerProps) {
                 // @ts-ignore
                 webkit-playsinline=""
                 poster={poster}
-                className="w-full h-full object-contain"
+                className="w-full h-full object-cover"
             >
                 <source src={src} type="video/mp4" />
                 Your browser does not support the video tag.

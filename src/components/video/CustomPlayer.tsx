@@ -10,7 +10,9 @@ import {
     Minimize,
     RotateCcw,
     PictureInPicture,
-    Cast
+    Cast,
+    Maximize2,
+    Crop
 } from "lucide-react";
 
 interface CustomPlayerProps {
@@ -31,6 +33,7 @@ export function CustomPlayer({ src, poster }: CustomPlayerProps) {
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [hasEnded, setHasEnded] = useState(false);
     const [showControls, setShowControls] = useState(true);
+    const [isZoomed, setIsZoomed] = useState(true); // Default to zoomed/fill to remove black bars
 
     // User Interaction State
     const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -242,7 +245,10 @@ export function CustomPlayer({ src, poster }: CustomPlayerProps) {
                 ref={videoRef}
                 src={src}
                 poster={poster}
-                className="w-full h-full object-contain flex-grow pointer-events-none"
+                className={cn(
+                    "w-full h-full flex-grow pointer-events-none transition-all duration-300",
+                    isZoomed ? "object-cover" : "object-contain"
+                )}
                 onTimeUpdate={onTimeUpdate}
                 onLoadedMetadata={onLoadedMetadata}
                 onEnded={onEnded}
@@ -363,6 +369,19 @@ export function CustomPlayer({ src, poster }: CustomPlayerProps) {
 
                     {/* Right Side */}
                     <div className="flex items-center gap-4">
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setIsZoomed(!isZoomed);
+                            }}
+                            className={cn(
+                                "text-white hover:text-j-gold transition-colors focus:outline-none",
+                                isZoomed && "text-j-gold"
+                            )}
+                            title={isZoomed ? "Original Aspect" : "Zoom to Fill"}
+                        >
+                            <Maximize2 className="w-5 h-5" />
+                        </button>
                         <button
                             onClick={handleCast}
                             className="text-white hover:text-white/80 transition-colors focus:outline-none z-50 relative pointer-events-auto"
