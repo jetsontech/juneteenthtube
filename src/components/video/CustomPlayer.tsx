@@ -137,42 +137,38 @@ export function CustomPlayer({ src, poster }: CustomPlayerProps) {
         }
     };
 
-    // Handle Casting (Experimental Remote Playback API)
+    // Handle Casting (Chrome / Safari support)
     const handleCast = async (e?: React.MouseEvent) => {
         e?.stopPropagation();
 
         if (!videoRef.current) return;
 
-        // TS Workaround for experimental API
         const video = videoRef.current as any;
 
-        if (video.remote) {
+        // 1. Try Safari/iOS AirPlay (webkitShowPlaybackTargetPicker)
+        if (video.webkitShowPlaybackTargetPicker) {
             try {
-                if (video.remote.state === 'disconnected') {
-                    // Start casting
-                    await video.remote.prompt();
-                } else {
-                    // Stop casting
-                    await video.remote.prompt();
-                }
+                video.webkitShowPlaybackTargetPicker();
+                return;
+            } catch (error) {
+                console.error("AirPlay failed:", error);
+            }
+        }
+
+        // 2. Try Chrome/Standard Remote Playback API
+        if (video.remote && video.remote.state !== 'disabled') {
+            try {
+                await video.remote.prompt();
             } catch (error: any) {
-                // Provide friendly feedback for common errors
                 if (error.name === 'AbortError' || error.name === 'NotAllowedError' || error.message?.includes('dismissed')) {
-                    // No console.error for expected user cancellations
-                    alert("Casting cancelled or no device selected.");
-                } else if (error.message?.includes('No remote playback devices found')) {
-                    alert("No Cast devices found. Ensure your device is on the same Wi-Fi as your TV.");
+                    // User cancelled
                 } else {
                     console.error("Cast error:", error);
                     alert(`Casting failed: ${error.message || "Unknown error"}`);
                 }
             }
-        } else if ((window as any).Chrome) {
-            // Fallback for older Chrome cast sender API? 
-            // Simplest is just alerting user if the API is entirely missing.
-            alert("Native Casting not supported. Try using your browser's Cast menu.");
         } else {
-            alert("Casting not supported on this browser.");
+            alert("Casting or AirPlay is not supported on this browser/device.");
         }
     };
 
@@ -263,10 +259,10 @@ export function CustomPlayer({ src, poster }: CustomPlayerProps) {
                 onClick={togglePlay}
             />
 
-            {/* Big Play/Replay Overlay */}
+            {/* Big Play/Replay Overlay - HIDDEN ON MOBILE */}
             {(!isPlaying || hasEnded) && (
                 <div
-                    className="absolute inset-0 flex items-center justify-center bg-black/30 cursor-pointer z-10"
+                    className="absolute inset-0 hidden sm:flex items-center justify-center bg-black/30 cursor-pointer z-10"
                     onClick={togglePlay}
                 >
                     <div className="p-6 bg-j-red/90 rounded-full shadow-2xl hover:scale-110 transition-transform backdrop-blur-sm group/btn">
@@ -369,7 +365,7 @@ export function CustomPlayer({ src, poster }: CustomPlayerProps) {
                     <div className="flex items-center gap-4">
                         <button
                             onClick={handleCast}
-                            className="text-white hover:text-white/80 transition-colors focus:outline-none hidden sm:block z-50 relative pointer-events-auto"
+                            className="text-white hover:text-white/80 transition-colors focus:outline-none z-50 relative pointer-events-auto"
                             title="Cast to Device"
                         >
                             <Cast className="w-5 h-5" />

@@ -35,10 +35,10 @@ export function InlinePlayer({ src, poster }: InlinePlayerProps) {
                 Your browser does not support the video tag.
             </video>
 
-            {/* Initial Play Overlay with thumbnail */}
+            {/* Initial Play Overlay with thumbnail - HIDDEN ON MOBILE */}
             {!hasStarted && (
                 <div
-                    className="absolute inset-0 flex items-center justify-center cursor-pointer"
+                    className="absolute inset-0 hidden sm:flex items-center justify-center cursor-pointer"
                     onClick={startVideo}
                 >
                     {/* Show poster/thumbnail as background */}
