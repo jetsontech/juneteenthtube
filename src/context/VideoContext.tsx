@@ -338,17 +338,43 @@ export function VideoProvider({ children }: { children: ReactNode }) {
                 });
             }
 
+            // Capture duration if possible
+            const getDurationString = (secondCount: number): string => {
+                const minutes = Math.floor(secondCount / 60);
+                const seconds = Math.floor(secondCount % 60);
+                return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            };
+
+            let duration = "0:00";
+            try {
+                const durationSeconds = await new Promise<number>((resolve) => {
+                    const video = document.createElement('video');
+                    video.preload = 'metadata';
+                    video.onloadedmetadata = () => {
+                        window.URL.revokeObjectURL(video.src);
+                        resolve(video.duration);
+                    };
+                    video.onerror = () => resolve(0);
+                    video.src = URL.createObjectURL(file);
+                });
+                if (durationSeconds > 0) {
+                    duration = getDurationString(durationSeconds);
+                }
+            } catch (e) {
+                console.warn("Could not capture duration", e);
+            }
+
             // Update DB via Secure API
             const updateRes = await fetch('/api/videos/update', {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id, video_url: publicUrl })
+                body: JSON.stringify({ id, video_url: publicUrl, duration })
             });
 
             if (!updateRes.ok) throw new Error('Failed to update video record');
 
             // Update Local State
-            setVideos(prev => prev.map(v => v.id === id ? { ...v, videoUrl: publicUrl } : v));
+            setVideos(prev => prev.map(v => v.id === id ? { ...v, videoUrl: publicUrl, duration } : v));
             console.log(`Video ${id} file updated`);
 
         } catch (error) {
@@ -557,6 +583,34 @@ export function VideoProvider({ children }: { children: ReactNode }) {
             if (signal.aborted) throw new Error("Upload cancelled");
 
             console.log("Saving to DB...");
+
+            // Get duration string (MM:SS)
+            const getDurationString = (secondCount: number): string => {
+                const minutes = Math.floor(secondCount / 60);
+                const seconds = Math.floor(secondCount % 60);
+                return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            };
+
+            // Capture duration if possible
+            let duration = "0:00";
+            try {
+                const durationSeconds = await new Promise<number>((resolve) => {
+                    const video = document.createElement('video');
+                    video.preload = 'metadata';
+                    video.onloadedmetadata = () => {
+                        window.URL.revokeObjectURL(video.src);
+                        resolve(video.duration);
+                    };
+                    video.onerror = () => resolve(0);
+                    video.src = URL.createObjectURL(file);
+                });
+                if (durationSeconds > 0) {
+                    duration = getDurationString(durationSeconds);
+                }
+            } catch (e) {
+                console.warn("Could not capture duration", e);
+            }
+
             const { error: dbError } = await supabase
                 .from('videos')
                 .insert([
@@ -565,6 +619,7 @@ export function VideoProvider({ children }: { children: ReactNode }) {
                         video_url: publicUrl,
                         thumbnail_url: "https://images.unsplash.com/photo-1610483145520-412708686f94?q=80&w=600&auto=format&fit=crop",
                         category: category,
+                        duration: duration
                     }
                 ])
                 .select()

@@ -260,7 +260,7 @@ export function VideoCard({ video }: { video: VideoProps }) {
             </Link>
 
             {/* Info */}
-            <div className="flex gap-3 mt-3 pr-2">
+            <div className="flex gap-3 mt-3 px-1 sm:px-0 pr-2">
                 {/* Avatar */}
                 <div className="flex-shrink-0">
                     <Link href={`/channel/${video.channelName}`} className="w-9 h-9 rounded-full bg-j-green overflow-hidden block">
