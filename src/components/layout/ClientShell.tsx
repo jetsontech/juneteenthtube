@@ -5,6 +5,7 @@ import { Sidebar } from "./Sidebar";
 import { cn } from "@/lib/utils";
 import { VideoProvider } from "@/context/VideoContext";
 import { SidebarProvider, useSidebar } from "@/context/SidebarContext";
+import { AuthProvider } from "@/context/AuthContext";
 
 function ShellContent({ children }: { children: React.ReactNode }) {
     const { isOpen, toggle } = useSidebar();
@@ -30,10 +31,12 @@ function ShellContent({ children }: { children: React.ReactNode }) {
 
 export default function ClientShell({ children }: { children: React.ReactNode }) {
     return (
-        <SidebarProvider>
-            <VideoProvider>
-                <ShellContent>{children}</ShellContent>
-            </VideoProvider>
-        </SidebarProvider>
+        <AuthProvider>
+            <SidebarProvider>
+                <VideoProvider>
+                    <ShellContent>{children}</ShellContent>
+                </VideoProvider>
+            </SidebarProvider>
+        </AuthProvider>
     );
 }

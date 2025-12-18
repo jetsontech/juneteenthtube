@@ -1,10 +1,12 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Menu, Search, Video, Bell, User, X, UploadCloud, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { useVideo } from "@/context/VideoContext";
+import { useAuth } from "@/context/AuthContext";
+import { AuthModal } from "../auth/AuthModal";
 
 interface NavbarProps {
     onMenuClick: () => void;
@@ -17,6 +19,26 @@ export function Navbar({ onMenuClick }: NavbarProps) {
     const [isUploadOpen, setIsUploadOpen] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState<string>("All");
     const { uploadVideo, isUploading, uploadProgress, cancelUpload } = useVideo();
+    const { user, signOut } = useAuth();
+    const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+    const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
+    const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+    const userMenuRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+                setIsUserMenuOpen(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
+    const handleOpenAuth = (mode: 'login' | 'signup') => {
+        setAuthMode(mode);
+        setIsAuthModalOpen(true);
+    };
 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         // Clear input value to allow re-selection, but keep reference to file
@@ -143,25 +165,85 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                     <button
                         className="p-2 hover:bg-white/10 rounded-full transition-colors text-white"
                         aria-label="Upload video"
-                        onClick={() => setIsUploadOpen(true)}
+                        onClick={() => {
+                            if (!user) {
+                                handleOpenAuth('login');
+                            } else {
+                                setIsUploadOpen(true);
+                            }
+                        }}
                     >
                         <Video className="w-6 h-6" />
                     </button>
-                    <button
-                        className="p-2 hover:bg-white/10 rounded-full transition-colors text-white"
-                        aria-label="Notifications"
-                    >
-                        <Bell className="w-6 h-6" />
-                    </button>
-                    <Link
-                        href="/settings"
-                        className="w-8 h-8 bg-j-green rounded-full flex items-center justify-center text-white font-bold overflow-hidden border border-white/20 hover:scale-105 transition-transform"
-                        aria-label="User settings"
-                    >
-                        <User className="w-5 h-5" />
-                    </Link>
+                    {!user ? (
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={() => handleOpenAuth('login')}
+                                className="px-4 py-1.5 text-sm font-medium text-j-gold hover:bg-j-gold/10 rounded-full border border-j-gold/50 transition-colors"
+                            >
+                                Sign In
+                            </button>
+                        </div>
+                    ) : (
+                        <>
+                            <button
+                                className="p-2 hover:bg-white/10 rounded-full transition-colors text-white"
+                                aria-label="Notifications"
+                            >
+                                <Bell className="w-6 h-6" />
+                            </button>
+                            <div className="relative" ref={userMenuRef}>
+                                <button
+                                    onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                                    className="w-8 h-8 bg-j-green rounded-full flex items-center justify-center text-white font-bold overflow-hidden border border-white/20 hover:scale-105 transition-transform"
+                                    aria-label="User menu"
+                                >
+                                    {user.email?.charAt(0).toUpperCase()}
+                                </button>
+
+                                {isUserMenuOpen && (
+                                    <div className="absolute right-0 top-full mt-2 w-64 bg-[#282828] border border-white/10 rounded-xl shadow-2xl py-2 z-[70] animate-in fade-in slide-in-from-top-2 duration-200">
+                                        <div className="px-4 py-3 border-b border-white/10 flex items-center gap-3">
+                                            <div className="w-10 h-10 bg-j-green rounded-full flex items-center justify-center text-white font-bold">
+                                                {user.email?.charAt(0).toUpperCase()}
+                                            </div>
+                                            <div className="min-w-0">
+                                                <p className="text-sm font-medium text-white truncate">{user.user_metadata?.full_name || 'User'}</p>
+                                                <p className="text-xs text-gray-400 truncate">{user.email}</p>
+                                            </div>
+                                        </div>
+                                        <div className="py-2">
+                                            <Link href="/studio" className="flex items-center gap-3 px-4 py-2 hover:bg-white/10 transition-colors text-sm text-gray-200">
+                                                <Video className="w-4 h-4" /> Juneteenth Studio
+                                            </Link>
+                                            <Link href="/settings" className="flex items-center gap-3 px-4 py-2 hover:bg-white/10 transition-colors text-sm text-gray-200">
+                                                <User className="w-4 h-4" /> Settings
+                                            </Link>
+                                        </div>
+                                        <div className="border-t border-white/10 pt-2">
+                                            <button
+                                                onClick={() => {
+                                                    signOut();
+                                                    setIsUserMenuOpen(false);
+                                                }}
+                                                className="w-full text-left flex items-center gap-3 px-4 py-2 hover:bg-white/10 transition-colors text-sm text-red-400"
+                                            >
+                                                Sign Out
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </>
+                    )}
                 </div>
             </nav>
+
+            <AuthModal
+                isOpen={isAuthModalOpen}
+                onClose={() => setIsAuthModalOpen(false)}
+                initialMode={authMode}
+            />
 
             {/* Upload Modal */}
             {isUploadOpen && (

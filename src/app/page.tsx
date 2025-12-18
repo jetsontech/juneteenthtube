@@ -2,7 +2,7 @@
 
 import { useState, Suspense } from "react";
 import { VideoGrid } from "@/components/video/VideoGrid";
-import { VideoCard } from "@/components/video/VideoCard";
+import { VideoCard, type VideoProps } from "@/components/video/VideoCard";
 import { ShortsShelf } from "@/components/video/ShortsShelf";
 import { useVideo } from "@/context/VideoContext";
 import { useSidebar } from "@/context/SidebarContext";
