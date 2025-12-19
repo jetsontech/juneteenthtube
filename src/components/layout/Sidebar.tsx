@@ -73,7 +73,7 @@ export function Sidebar({ isOpen }: SidebarProps) {
 
                 {isOpen && (
                     <div className="mt-4 px-4 text-xs text-gray-500">
-                        <p>© 2025 Juneteenth Atlanta</p>
+                        <p>© 2026 Net Post Media, llc</p>
                     </div>
                 )}
             </div>

@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Juneteenth Tube",
-  description: "The official video platform for Juneteenth Atlanta Parade and Music Festival",
+  description: "The official video platform for Net Post Media, llc",
 };
 
 export default function RootLayout({

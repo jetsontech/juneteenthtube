@@ -128,7 +128,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                             <Search className="w-5 h-5 text-gray-400" />
                             <input
                                 type="text"
-                                placeholder="Search Juneteenth Atlanta..."
+                                placeholder="Search JuneteenthTube..."
                                 className="w-full bg-transparent border-none outline-none px-4 py-2 text-white placeholder-gray-400"
                                 aria-label="Search"
                                 onChange={(e) => {
@@ -278,8 +278,8 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                                     </div>
                                     <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
                                         <div
-                                            className="h-full bg-j-red transition-all duration-300 ease-out"
-                                            style={{ width: `${uploadProgress}%` }}
+                                            className={cn("h-full bg-j-red transition-all duration-300 ease-out w-[var(--progress)]")}
+                                            style={{ "--progress": `${uploadProgress}%` } as React.CSSProperties}
                                         />
                                     </div>
                                     <p className="text-xs text-gray-400">
@@ -336,7 +336,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                         </div>
 
                         <div className="p-4 border-t border-white/10 bg-black/20 text-center text-xs text-gray-500 rounded-b-2xl">
-                            By submitting your videos to Juneteenth Tube, you acknowledge that you agree to Juneteenth Atlanta's Terms of Service.
+                            By submitting your videos to Juneteenth Tube, you acknowledge that you agree to Net Post Media, llc's Terms of Service.
                         </div>
                     </div>
                 </div>
