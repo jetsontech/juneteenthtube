@@ -49,8 +49,8 @@ export const LoginSplash: React.FC<LoginSplashProps> = ({ onUnlock }) => {
             {/* Animated Background Elements */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute -top-[20%] -left-[10%] w-[60%] h-[60%] bg-red-600/10 rounded-full blur-[120px] animate-pulse" />
-                <div className="absolute -bottom-[20%] -right-[10%] w-[60%] h-[60%] bg-yellow-500/10 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '1s' }} />
-                <div className="absolute top-[30%] left-[40%] w-[30%] h-[30%] bg-green-500/5 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: '2s' }} />
+                <div className="absolute -bottom-[20%] -right-[10%] w-[60%] h-[60%] bg-yellow-500/10 rounded-full blur-[120px] animate-pulse delay-1s" />
+                <div className="absolute top-[30%] left-[40%] w-[30%] h-[30%] bg-green-500/5 rounded-full blur-[100px] animate-pulse delay-2s" />
             </div>
 
             {/* Subtle Grid Overlay */}
@@ -174,6 +174,8 @@ export const LoginSplash: React.FC<LoginSplashProps> = ({ onUnlock }) => {
                 .marquee-content {
                     animation: marquee 20s linear infinite;
                 }
+                .delay-1s { animation-delay: 1s; }
+                .delay-2s { animation-delay: 2s; }
             `}</style>
         </div>
     );

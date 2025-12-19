@@ -119,6 +119,7 @@ export default function ShortsPlayerPage({
                     onClick={goToPrevious}
                     disabled={currentIndex <= 0}
                     className="p-3 bg-white/10 hover:bg-white/20 rounded-full disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                    title="Previous Short"
                 >
                     <ChevronUp className="w-6 h-6 text-white" />
                 </button>
@@ -126,6 +127,7 @@ export default function ShortsPlayerPage({
                     onClick={goToNext}
                     disabled={currentIndex >= shorts.length - 1}
                     className="p-3 bg-white/10 hover:bg-white/20 rounded-full disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                    title="Next Short"
                 >
                     <ChevronDown className="w-6 h-6 text-white" />
                 </button>
@@ -144,7 +146,7 @@ export default function ShortsPlayerPage({
                             loop
                             playsInline
                             // @ts-ignore
-                            webkitPlaysInline={true}
+                            webkit-playsinline=""
                             controls={false}
                             onClick={(e) => {
                                 const vid = e.currentTarget;
@@ -218,7 +220,7 @@ export default function ShortsPlayerPage({
                         <span className="text-white text-xs font-medium">Share</span>
                     </button>
 
-                    <button className="flex flex-col items-center gap-1">
+                    <button className="flex flex-col items-center gap-1" title="More options">
                         <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors">
                             <MoreVertical className="w-6 h-6 text-white" />
                         </div>

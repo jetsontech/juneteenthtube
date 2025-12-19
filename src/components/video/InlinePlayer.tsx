@@ -27,7 +27,7 @@ export function InlinePlayer({ src, poster }: InlinePlayerProps) {
                 controls
                 playsInline
                 // @ts-ignore
-                webkit-playsinline="true"
+                webkit-playsinline=""
                 poster={poster}
                 className="w-full h-full object-cover"
             >
@@ -36,25 +36,27 @@ export function InlinePlayer({ src, poster }: InlinePlayerProps) {
             </video>
 
             {/* Initial Play Overlay with thumbnail - HIDDEN ON MOBILE */}
-            {!hasStarted && (
-                <div
-                    className="absolute inset-0 hidden sm:flex items-center justify-center cursor-pointer"
-                    onClick={startVideo}
-                >
-                    {/* Show poster/thumbnail as background */}
-                    {poster && (
-                        <img
-                            src={poster}
-                            alt="Video thumbnail"
-                            className="absolute inset-0 w-full h-full object-cover"
-                        />
-                    )}
-                    {/* Play button on top */}
-                    <div className="relative z-10 p-5 bg-j-red/90 rounded-full shadow-2xl hover:scale-110 transition-transform">
-                        <Play className="w-14 h-14 text-white ml-1" />
+            {
+                !hasStarted && (
+                    <div
+                        className="absolute inset-0 hidden sm:flex items-center justify-center cursor-pointer"
+                        onClick={startVideo}
+                    >
+                        {/* Show poster/thumbnail as background */}
+                        {poster && (
+                            <img
+                                src={poster}
+                                alt="Video thumbnail"
+                                className="absolute inset-0 w-full h-full object-cover"
+                            />
+                        )}
+                        {/* Play button on top */}
+                        <div className="relative z-10 p-5 bg-j-red/90 rounded-full shadow-2xl hover:scale-110 transition-transform">
+                            <Play className="w-14 h-14 text-white ml-1" />
+                        </div>
                     </div>
-                </div>
-            )}
-        </div>
+                )
+            }
+        </div >
     );
 }

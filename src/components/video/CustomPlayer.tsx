@@ -42,8 +42,8 @@ export function CustomPlayer({ src, poster }: CustomPlayerProps) {
     // Force playsinline for iOS (React sometimes is tricky with this)
     useEffect(() => {
         if (videoRef.current) {
-            videoRef.current.setAttribute("playsinline", "true");
-            videoRef.current.setAttribute("webkit-playsinline", "true");
+            videoRef.current.setAttribute("playsinline", "");
+            videoRef.current.setAttribute("webkit-playsinline", "");
         }
     }, []);
 
