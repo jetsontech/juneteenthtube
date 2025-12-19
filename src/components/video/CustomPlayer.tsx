@@ -14,6 +14,7 @@ import {
     Maximize2,
     Crop
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface CustomPlayerProps {
     src: string;

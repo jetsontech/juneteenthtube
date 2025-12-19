@@ -6,12 +6,28 @@ import { cn } from "@/lib/utils";
 import { VideoProvider } from "@/context/VideoContext";
 import { SidebarProvider, useSidebar } from "@/context/SidebarContext";
 import { AuthProvider } from "@/context/AuthContext";
+import { LoginSplash } from "./LoginSplash";
+import { useState, useEffect } from "react";
 
 function ShellContent({ children }: { children: React.ReactNode }) {
     const { isOpen, toggle } = useSidebar();
+    const [isLocked, setIsLocked] = useState(true);
+    const [isChecking, setIsChecking] = useState(true);
+
+    useEffect(() => {
+        const hasAccess = localStorage.getItem('guest_access_granted');
+        if (hasAccess === 'true') {
+            setIsLocked(false);
+        }
+        setIsChecking(false);
+    }, []);
+
+    if (isChecking) return null;
 
     return (
         <div className="min-h-screen bg-transparent text-foreground">
+            {isLocked && <LoginSplash onUnlock={() => setIsLocked(false)} />}
+
             <Navbar onMenuClick={toggle} />
             <Sidebar isOpen={isOpen} />
 
