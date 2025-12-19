@@ -94,7 +94,7 @@ export const LoginSplash: React.FC<LoginSplashProps> = ({ onUnlock }) => {
                                     placeholder="ENTER ACCESS CODE"
                                     className={cn(
                                         "w-full bg-white/[0.03] border border-white/10 rounded-2xl px-6 py-4 text-center text-lg tracking-[0.3em] font-bold text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-white/20 transition-all backdrop-blur-md",
-                                        error && "border-red-500/50 shake ring-2 ring-red-500/20"
+                                        error && "border-red-500/50 animate-[shake_0.2s_ease-in-out_infinite] ring-2 ring-red-500/20"
                                     )}
                                     autoFocus
                                 />
@@ -117,7 +117,7 @@ export const LoginSplash: React.FC<LoginSplashProps> = ({ onUnlock }) => {
                             {/* Green Digital Marquee */}
                             <div className="relative w-full overflow-hidden bg-black/80 border border-green-500/30 rounded-xl py-4 shadow-[0_0_20px_rgba(34,197,94,0.1)]">
                                 <div className="marquee-container flex whitespace-nowrap">
-                                    <div className="marquee-content flex gap-8 items-center">
+                                    <div className="flex gap-8 items-center animate-[marquee_20s_linear_infinite]">
                                         {[...Array(4)].map((_, i) => (
                                             <span key={i} className="text-green-500 font-mono text-xl font-bold tracking-[0.3em] uppercase">
                                                 WELCOME TO JUNETEENTHTUBE • ACCESS GRANTED • 2026 MEDIA GATEWAY •
@@ -151,32 +151,12 @@ export const LoginSplash: React.FC<LoginSplashProps> = ({ onUnlock }) => {
                     )}
 
                     <div className="pt-4 border-t border-white/5 w-full">
-                        <p className="text-white/20 text-[10px] tracking-widest uppercase font-bold">
+                        <p className="text-white/20 text-[10px] tracking-widest uppercase font-bold text-center">
                             © 2026 Net Post Media, llc • Restricted Access
                         </p>
                     </div>
                 </div>
             </div>
-
-            <style jsx>{`
-                @keyframes shake {
-                    0%, 100% { transform: translateX(0); }
-                    25% { transform: translateX(-8px); }
-                    75% { transform: translateX(8px); }
-                }
-                .shake {
-                    animation: shake 0.2s ease-in-out infinite;
-                }
-                @keyframes marquee {
-                    0% { transform: translateX(0); }
-                    100% { transform: translateX(-50%); }
-                }
-                .marquee-content {
-                    animation: marquee 20s linear infinite;
-                }
-                .delay-1s { animation-delay: 1s; }
-                .delay-2s { animation-delay: 2s; }
-            `}</style>
         </div>
     );
 };
