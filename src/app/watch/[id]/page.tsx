@@ -135,11 +135,11 @@ export default function WatchPage({
     }
 
     return (
-        <div className="flex flex-col lg:flex-row gap-6 mx-auto md:px-6 pt-6 max-w-[1700px]">
+        <div className="flex flex-col lg:flex-row gap-0 md:gap-6 mx-auto md:px-6 md:pt-6 max-w-[1700px]">
             {/* Primary Column - Player & Info */}
             <div className="flex-1 min-w-0">
                 {/* Player Container */}
-                <div className="relative aspect-video bg-black shadow-lg rounded-xl overflow-hidden ring-1 ring-white/10">
+                <div className="relative aspect-video bg-black shadow-lg sm:rounded-xl overflow-hidden sm:ring-1 sm:ring-white/10">
                     {video.videoUrl ? (
                         <CustomPlayer src={video.videoUrl} poster={video.thumbnail} />
                     ) : (
