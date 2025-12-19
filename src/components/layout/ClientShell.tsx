@@ -15,7 +15,7 @@ function ShellContent({ children }: { children: React.ReactNode }) {
     const [isChecking, setIsChecking] = useState(true);
 
     useEffect(() => {
-        const hasAccess = localStorage.getItem('guest_access_granted');
+        const hasAccess = sessionStorage.getItem('guest_access_granted');
         if (hasAccess === 'true') {
             setIsLocked(false);
         }
