@@ -38,7 +38,7 @@ export const LoginSplash: React.FC<LoginSplashProps> = ({ onUnlock }) => {
     };
 
     const handleSubscribe = () => {
-        window.open('https://www.youtube.com/@JuneteenthAtlanta', '_blank');
+        window.open('https://juneteenthtube.vercel.app', '_blank');
     };
 
     return (
