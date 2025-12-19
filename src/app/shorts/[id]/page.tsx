@@ -1,9 +1,9 @@
 "use client";
 
-import { use, useEffect, useState } from "react";
+import { use, useEffect, useRef, useState } from "react";
 import { useVideo } from "@/context/VideoContext";
 import { VideoProps } from "@/components/video/VideoCard";
-import { ThumbsUp, ThumbsDown, MessageCircle, Share2, MoreVertical, X, ChevronUp, ChevronDown } from "lucide-react";
+import { ThumbsUp, ThumbsDown, MessageCircle, Share2, MoreVertical, X, ChevronUp, ChevronDown, Volume2, VolumeX } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -19,6 +19,22 @@ export default function ShortsPlayerPage({
     const [liked, setLiked] = useState(false);
     const [disliked, setDisliked] = useState(false);
     const [likesCount, setLikesCount] = useState(0);
+    const [isMuted, setIsMuted] = useState(true);
+    const videoRef = useRef<HTMLVideoElement>(null);
+
+    // Sync isMuted state with video property
+    useEffect(() => {
+        if (videoRef.current) {
+            videoRef.current.muted = isMuted;
+            if (!isMuted) {
+                videoRef.current.volume = 1;
+                // Attempt to play if it was paused by browser due to unmuting (some browsers do this)
+                videoRef.current.play().catch(() => {
+                    // Ignore autoplay/interaction errors here
+                });
+            }
+        }
+    }, [isMuted]);
 
     // Parse duration to seconds for filtering shorts
     const parseDurationToSeconds = (duration: string | undefined): number => {
@@ -139,10 +155,11 @@ export default function ShortsPlayerPage({
                 <div className="relative flex-1 bg-black rounded-xl overflow-hidden">
                     {video.videoUrl ? (
                         <video
+                            ref={videoRef}
                             src={video.videoUrl}
                             className="w-full h-full object-contain"
                             autoPlay
-                            muted
+                            muted={isMuted}
                             loop
                             playsInline
                             // @ts-ignore
@@ -218,6 +235,21 @@ export default function ShortsPlayerPage({
                             <Share2 className="w-6 h-6 text-white" />
                         </div>
                         <span className="text-white text-xs font-medium">Share</span>
+                    </button>
+
+                    <button
+                        onClick={() => setIsMuted(!isMuted)}
+                        className="flex flex-col items-center gap-1"
+                        title={isMuted ? "Unmute" : "Mute"}
+                    >
+                        <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors">
+                            {isMuted ? (
+                                <VolumeX className="w-6 h-6 text-white" />
+                            ) : (
+                                <Volume2 className="w-6 h-6 text-white" />
+                            )}
+                        </div>
+                        <span className="text-white text-xs font-medium">{isMuted ? 'Muted' : 'Sound'}</span>
                     </button>
 
                     <button className="flex flex-col items-center gap-1" title="More options">
