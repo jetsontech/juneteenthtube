@@ -186,6 +186,8 @@ export function VideoCard({ video }: { video: VideoProps }) {
                         muted={isMuted}
                         loop
                         playsInline
+                        // @ts-ignore
+                        webkit-playsinline="true"
                         onLoadedData={(e) => {
                             // Ensure it plays even if low power mode tries to stop it
                             e.currentTarget.play().catch(() => { });

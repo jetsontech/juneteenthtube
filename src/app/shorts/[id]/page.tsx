@@ -140,8 +140,11 @@ export default function ShortsPlayerPage({
                             src={video.videoUrl}
                             className="w-full h-full object-contain"
                             autoPlay
+                            muted
                             loop
                             playsInline
+                            // @ts-ignore
+                            webkitPlaysInline={true}
                             controls={false}
                             onClick={(e) => {
                                 const vid = e.currentTarget;

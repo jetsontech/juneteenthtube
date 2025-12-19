@@ -30,6 +30,7 @@ export function PlyrPlayer({ src, poster }: PlyrPlayerProps) {
                 "airplay",
                 "fullscreen",
             ],
+            playsinline: true,
             fullscreen: {
                 enabled: true,
                 fallback: true,

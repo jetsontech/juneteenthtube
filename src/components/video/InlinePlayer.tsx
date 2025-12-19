@@ -27,7 +27,7 @@ export function InlinePlayer({ src, poster }: InlinePlayerProps) {
                 controls
                 playsInline
                 // @ts-ignore
-                webkit-playsinline=""
+                webkit-playsinline="true"
                 poster={poster}
                 className="w-full h-full object-cover"
             >

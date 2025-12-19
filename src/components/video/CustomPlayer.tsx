@@ -42,8 +42,8 @@ export function CustomPlayer({ src, poster }: CustomPlayerProps) {
     // Force playsinline for iOS (React sometimes is tricky with this)
     useEffect(() => {
         if (videoRef.current) {
-            videoRef.current.setAttribute("playsinline", "");
-            videoRef.current.setAttribute("webkit-playsinline", "");
+            videoRef.current.setAttribute("playsinline", "true");
+            videoRef.current.setAttribute("webkit-playsinline", "true");
         }
     }, []);
 
@@ -255,6 +255,7 @@ export function CustomPlayer({ src, poster }: CustomPlayerProps) {
                 onEnded={onEnded}
                 playsInline
                 webkit-playsinline="true"
+                // @ts-ignore
                 x5-playsinline="true"
                 disablePictureInPicture={false}
                 disableRemotePlayback={false} // Explicitly allow casting
