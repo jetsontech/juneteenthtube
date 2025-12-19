@@ -157,8 +157,8 @@ export default function WatchPage({
                 </div>
 
                 {/* Video Info */}
-                <div className="mt-4">
-                    <h1 className="text-xl font-bold text-white mb-2 line-clamp-2">
+                <div className="mt-3 px-3 sm:px-0">
+                    <h1 className="text-lg font-bold text-white mb-2 line-clamp-2 leading-tight">
                         {video.title}
                     </h1>
 
@@ -166,7 +166,7 @@ export default function WatchPage({
                         {/* Channel & Description Group */}
                         <div className="flex-1">
                             <div className="flex items-center gap-3 mb-4">
-                                <div className="w-10 h-10 rounded-full bg-j-green flex-shrink-0 overflow-hidden cursor-pointer hover:opacity-90">
+                                <div className="w-[34px] h-[34px] rounded-full bg-j-green flex-shrink-0 overflow-hidden cursor-pointer hover:opacity-90">
                                     {video.channelAvatar ? (
                                         <img src={video.channelAvatar} alt={video.channelName} className="object-cover w-full h-full" />
                                     ) : (
@@ -174,12 +174,12 @@ export default function WatchPage({
                                     )}
                                 </div>
                                 <div className="flex flex-col">
-                                    <h3 className="font-bold text-white text-base hover:text-gray-200 cursor-pointer">{video.channelName}</h3>
-                                    <p className="text-xs text-gray-400">1.2K subscribers</p>
+                                    <h3 className="font-bold text-white text-[15px] hover:text-gray-200 cursor-pointer">{video.channelName}</h3>
+                                    <p className="text-[12px] text-gray-400">1.2K subscribers</p>
                                 </div>
                                 <button
                                     onClick={handleSubscribe}
-                                    className={`ml-6 px-4 py-2 rounded-full text-sm font-medium transition-all ${isSubscribed
+                                    className={`ml-auto sm:ml-6 px-4 py-1.5 rounded-full text-sm font-bold transition-all ${isSubscribed
                                         ? "bg-[#272727] text-white hover:bg-[#3f3f3f]"
                                         : "bg-white text-black hover:bg-gray-200"
                                         }`}
@@ -213,20 +213,21 @@ export default function WatchPage({
                              [Channel/Sub] [Spacer] [Actions]
                              [Description Box]
                          */}
-                        <div className="flex items-center gap-2 flex-shrink-0 self-start md:mt-1">
-                            <div className="flex items-center bg-[#272727] rounded-full">
+                        {/* Actions Row - Horizontally Scrollable on Mobile */}
+                        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 mb-2 scroll-smooth">
+                            <div className="flex items-center bg-[#272727] rounded-full flex-shrink-0">
                                 <button
                                     onClick={handleLike}
-                                    className={`flex items-center gap-2 px-4 py-2 rounded-l-full hover:bg-[#3f3f3f] transition-colors relative ${liked ? "text-white" : "text-white"}`}
+                                    className="flex items-center gap-2 px-4 py-2 rounded-l-full hover:bg-[#3f3f3f] transition-colors relative"
                                     aria-label="Like video"
                                 >
                                     <ThumbsUp className={`w-5 h-5 ${liked ? "fill-white" : ""}`} />
-                                    <span className="text-xs font-medium">{likesCount}</span>
+                                    <span className="text-xs font-bold">{likesCount}</span>
                                 </button>
-                                <div className="w-px h-6 bg-white/20"></div>
+                                <div className="w-px h-6 bg-white/10"></div>
                                 <button
                                     onClick={handleDislike}
-                                    className={`px-4 py-2 rounded-r-full hover:bg-[#3f3f3f] transition-colors relative ${disliked ? "text-white" : "text-white"}`}
+                                    className="px-4 py-2 rounded-r-full hover:bg-[#3f3f3f] transition-colors relative"
                                     aria-label="Dislike video"
                                 >
                                     <ThumbsDown className={`w-5 h-5 ${disliked ? "fill-white" : ""}`} />
@@ -235,10 +236,10 @@ export default function WatchPage({
 
                             <button
                                 onClick={handleShare}
-                                className="flex items-center gap-2 px-4 py-2 bg-[#272727] hover:bg-[#3f3f3f] rounded-full transition-colors text-white font-medium text-sm"
+                                className="flex items-center gap-2 px-4 py-2 bg-[#272727] hover:bg-[#3f3f3f] rounded-full transition-colors text-white font-bold text-sm flex-shrink-0"
                             >
                                 <Share2 className="w-5 h-5" />
-                                <span className="hidden sm:inline">Share</span>
+                                <span>Share</span>
                             </button>
 
                             <a
@@ -246,10 +247,10 @@ export default function WatchPage({
                                 download
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="flex items-center gap-2 px-3 py-2 bg-[#272727] text-white hover:bg-[#3f3f3f] rounded-full transition-colors font-medium text-sm"
-                                title="Download"
+                                className="flex items-center gap-2 px-4 py-2 bg-[#272727] text-white hover:bg-[#3f3f3f] rounded-full transition-colors font-bold text-sm flex-shrink-0"
                             >
                                 <MoreHorizontal className="w-5 h-5" />
+                                <span>More</span>
                             </a>
                         </div>
                     </div>

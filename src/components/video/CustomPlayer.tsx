@@ -80,6 +80,14 @@ export function CustomPlayer({ src, poster }: CustomPlayerProps) {
     const togglePlay = (e?: React.MouseEvent) => {
         e?.stopPropagation();
         if (videoRef.current) {
+            // For mobile/touch, we prioritize showing controls on first tap
+            // But if we are in environment where touches are simulated/detected or just generic
+            // Let's make it smarter: if controls are hidden, show them. If shown, toggle play.
+            if (!showControls && !hasEnded) {
+                setShowControls(true);
+                return;
+            }
+
             if (videoRef.current.paused || hasEnded) {
                 videoRef.current.play();
                 setIsPlaying(true);
@@ -286,124 +294,132 @@ export function CustomPlayer({ src, poster }: CustomPlayerProps) {
             {/* Controls Bar */}
             <div
                 className={`
-                    absolute bottom-0 left-0 right-0 z-20
-                    bg-gradient-to-t from-black/90 via-black/60 to-transparent
-                    px-4 pb-4 pt-12
-                    transition-opacity duration-300
+                    absolute inset-0 z-20
+                    bg-black/20 backdrop-blur-[2px]
+                    transition-opacity duration-300 flex flex-col justify-end
                     ${showControls ? 'opacity-100 visible' : 'opacity-0 invisible'}
                 `}
+                onClick={(e) => {
+                    // Tapping the overlay itself should shield the video play/pause toggle 
+                    // unless we tap the center again or something specific?
+                    // Actually, tapping the overlay background should hide controls.
+                    e.stopPropagation();
+                    setShowControls(false);
+                }}
             >
-                {/* Progress Bar */}
-                <div className="relative group/progress h-2 mb-4 cursor-pointer w-full">
-                    {/* Background Track */}
-                    <div className="absolute top-0 left-0 right-0 bottom-0 bg-white/30 rounded-full overflow-hidden">
-                        {/* Buffered/Progress fill would go here */}
-                    </div>
+                <div className="px-4 pb-4 pt-12 bg-gradient-to-t from-black/90 via-black/40 to-transparent" onClick={(e) => e.stopPropagation()}>
+                    {/* Progress Bar */}
+                    <div className="relative group/progress h-2 mb-4 cursor-pointer w-full">
+                        {/* Background Track */}
+                        <div className="absolute top-0 left-0 right-0 bottom-0 bg-white/30 rounded-full overflow-hidden">
+                            {/* Buffered/Progress fill would go here */}
+                        </div>
 
-                    {/* Native Range Input for Interaction */}
-                    <input
-                        type="range"
-                        aria-label="Seek video"
-                        min="0"
-                        max={duration || 100}
-                        value={currentTime}
-                        onChange={handleSeek}
-                        className="
+                        {/* Native Range Input for Interaction */}
+                        <input
+                            type="range"
+                            aria-label="Seek video"
+                            min="0"
+                            max={duration || 100}
+                            value={currentTime}
+                            onChange={handleSeek}
+                            className="
                             absolute top-[-6px] left-0 w-full h-4 opacity-0 z-20 cursor-pointer
                         "
-                    />
+                        />
 
-                    {/* Visual Progress Fill */}
-                    <div
-                        className="absolute top-0 left-0 h-full bg-j-red rounded-full z-10 pointer-events-none"
-                        style={{ width: `${(currentTime / duration) * 100}%` }}
-                    />
+                        {/* Visual Progress Fill */}
+                        <div
+                            className="absolute top-0 left-0 h-full bg-j-red rounded-full z-10 pointer-events-none"
+                            style={{ width: `${(currentTime / duration) * 100}%` }}
+                        />
 
-                    {/* Scrubber Knob (Visual only) */}
-                    <div
-                        className="
+                        {/* Scrubber Knob (Visual only) */}
+                        <div
+                            className="
                             absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full shadow-md z-10 pointer-events-none
                             scale-0 group-hover/progress:scale-100 transition-transform
                         "
-                        style={{ left: `${(currentTime / duration) * 100}%` }}
-                    />
-                </div>
+                            style={{ left: `${(currentTime / duration) * 100}%` }}
+                        />
+                    </div>
 
-                {/* Buttons Row */}
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                        {/* Play/Pause */}
-                        <button
-                            onClick={togglePlay}
-                            className="text-white hover:text-j-red transition-colors focus:outline-none"
-                            aria-label={isPlaying ? "Pause" : "Play"}
-                        >
-                            {isPlaying ? <Pause className="w-7 h-7" /> : <Play className="w-7 h-7" />}
-                        </button>
-
-                        {/* Volume Group */}
-                        <div className="flex items-center gap-2 group/volume">
+                    {/* Buttons Row */}
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                            {/* Play/Pause */}
                             <button
-                                onClick={toggleMute}
-                                className="text-white hover:text-white/80 transition-colors focus:outline-none"
+                                onClick={togglePlay}
+                                className="text-white hover:text-j-red transition-colors focus:outline-none"
+                                aria-label={isPlaying ? "Pause" : "Play"}
                             >
-                                {isMuted || volume === 0 ? <VolumeX className="w-6 h-6" /> : <Volume2 className="w-6 h-6" />}
+                                {isPlaying ? <Pause className="w-7 h-7" /> : <Play className="w-7 h-7" />}
                             </button>
-                            <div className="w-0 overflow-hidden group-hover/volume:w-24 transition-all duration-300 flex items-center">
-                                <input
-                                    type="range"
-                                    aria-label="Volume"
-                                    min="0"
-                                    max="1"
-                                    step="0.05"
-                                    value={isMuted ? 0 : volume}
-                                    onChange={handleVolumeChange}
-                                    className="w-20 h-1 bg-white/30 rounded-lg appearance-none cursor-pointer accent-white"
-                                />
+
+                            {/* Volume Group */}
+                            <div className="flex items-center gap-2 group/volume">
+                                <button
+                                    onClick={toggleMute}
+                                    className="text-white hover:text-white/80 transition-colors focus:outline-none"
+                                >
+                                    {isMuted || volume === 0 ? <VolumeX className="w-6 h-6" /> : <Volume2 className="w-6 h-6" />}
+                                </button>
+                                <div className="w-0 overflow-hidden group-hover/volume:w-24 transition-all duration-300 flex items-center">
+                                    <input
+                                        type="range"
+                                        aria-label="Volume"
+                                        min="0"
+                                        max="1"
+                                        step="0.05"
+                                        value={isMuted ? 0 : volume}
+                                        onChange={handleVolumeChange}
+                                        className="w-20 h-1 bg-white/30 rounded-lg appearance-none cursor-pointer accent-white"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Time Info */}
+                            <div className="text-white/80 text-sm font-medium font-mono">
+                                {formatTime(currentTime)} / {formatTime(duration)}
                             </div>
                         </div>
 
-                        {/* Time Info */}
-                        <div className="text-white/80 text-sm font-medium font-mono">
-                            {formatTime(currentTime)} / {formatTime(duration)}
+                        {/* Right Side */}
+                        <div className="flex items-center gap-4">
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setIsZoomed(!isZoomed);
+                                }}
+                                className={cn(
+                                    "text-white hover:text-j-gold transition-colors focus:outline-none",
+                                    isZoomed && "text-j-gold"
+                                )}
+                                title={isZoomed ? "Original Aspect" : "Zoom to Fill"}
+                            >
+                                <Maximize2 className="w-5 h-5" />
+                            </button>
+                            <button
+                                onClick={handleCast}
+                                className="text-white hover:text-white/80 transition-colors focus:outline-none z-50 relative pointer-events-auto"
+                                title="Cast to Device"
+                            >
+                                <Cast className="w-5 h-5" />
+                            </button>
+                            <button
+                                onClick={togglePip}
+                                className="text-white hover:text-white/80 transition-colors focus:outline-none"
+                                title="Picture-in-Picture"
+                            >
+                                <PictureInPicture className="w-5 h-5" />
+                            </button>
+                            <button
+                                onClick={toggleFullscreen}
+                                className="text-white hover:text-white/80 transition-colors focus:outline-none"
+                            >
+                                {isFullscreen ? <Minimize className="w-6 h-6" /> : <Maximize className="w-6 h-6" />}
+                            </button>
                         </div>
-                    </div>
-
-                    {/* Right Side */}
-                    <div className="flex items-center gap-4">
-                        <button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                setIsZoomed(!isZoomed);
-                            }}
-                            className={cn(
-                                "text-white hover:text-j-gold transition-colors focus:outline-none",
-                                isZoomed && "text-j-gold"
-                            )}
-                            title={isZoomed ? "Original Aspect" : "Zoom to Fill"}
-                        >
-                            <Maximize2 className="w-5 h-5" />
-                        </button>
-                        <button
-                            onClick={handleCast}
-                            className="text-white hover:text-white/80 transition-colors focus:outline-none z-50 relative pointer-events-auto"
-                            title="Cast to Device"
-                        >
-                            <Cast className="w-5 h-5" />
-                        </button>
-                        <button
-                            onClick={togglePip}
-                            className="text-white hover:text-white/80 transition-colors focus:outline-none"
-                            title="Picture-in-Picture"
-                        >
-                            <PictureInPicture className="w-5 h-5" />
-                        </button>
-                        <button
-                            onClick={toggleFullscreen}
-                            className="text-white hover:text-white/80 transition-colors focus:outline-none"
-                        >
-                            {isFullscreen ? <Minimize className="w-6 h-6" /> : <Maximize className="w-6 h-6" />}
-                        </button>
                     </div>
                 </div>
             </div>

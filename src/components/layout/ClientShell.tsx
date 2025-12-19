@@ -33,7 +33,7 @@ function ShellContent({ children }: { children: React.ReactNode }) {
 
             <main
                 className={cn(
-                    "pt-16 transition-all duration-300 min-h-screen",
+                    "pt-14 transition-all duration-300 min-h-screen",
                     isOpen ? "sm:pl-64" : "sm:pl-[72px]"
                 )}
             >
