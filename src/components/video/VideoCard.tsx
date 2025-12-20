@@ -166,7 +166,7 @@ export function VideoCard({ video }: { video: VideoProps }) {
 
     return (
         <div
-            className="group block relative p-2 -m-2 rounded-2xl transition-all duration-300 bg-[var(--card-hover-bg,transparent)]"
+            className="group block relative p-2 -m-2 rounded-2xl transition-all duration-300 bg-[var(--card-hover-bg,transparent)] ring-1 ring-white/5 hover:ring-white/10 shadow-lg shadow-black/20"
             style={{ "--card-hover-bg": showGlow ? dominantColor : 'transparent' } as React.CSSProperties}
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
@@ -190,7 +190,7 @@ export function VideoCard({ video }: { video: VideoProps }) {
                 title="Upload video"
             />
 
-            <Link href={`/watch/${video.id}`} className="block relative aspect-video rounded-none sm:rounded-xl overflow-hidden bg-gray-900">
+            <Link href={`/watch/${video.id}`} className="block relative aspect-video rounded-xl overflow-hidden bg-gray-900">
                 {/* Video Preview on Hover */}
                 {isHovered && video.videoUrl ? (
                     <video

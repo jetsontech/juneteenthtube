@@ -238,7 +238,19 @@ export default function ShortsPlayerPage({
                     </button>
 
                     <button
-                        onClick={() => setIsMuted(!isMuted)}
+                        onClick={() => {
+                            // Direct user gesture for iOS Safari compatibility
+                            if (videoRef.current) {
+                                const newMuted = !isMuted;
+                                videoRef.current.muted = newMuted;
+                                if (!newMuted) {
+                                    videoRef.current.volume = 1;
+                                    // Force play after unmute for browsers that pause on unmute
+                                    videoRef.current.play().catch(() => { });
+                                }
+                                setIsMuted(newMuted);
+                            }
+                        }}
                         className="flex flex-col items-center gap-1"
                         title={isMuted ? "Unmute" : "Mute"}
                     >
@@ -251,6 +263,7 @@ export default function ShortsPlayerPage({
                         </div>
                         <span className="text-white text-xs font-medium">{isMuted ? 'Muted' : 'Sound'}</span>
                     </button>
+
 
                     <button className="flex flex-col items-center gap-1" title="More options">
                         <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors">
