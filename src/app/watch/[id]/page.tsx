@@ -138,13 +138,12 @@ export default function WatchPage({
         <div className="flex flex-col lg:flex-row gap-0 md:gap-6 mx-auto md:px-6 md:pt-6 max-w-[1700px]">
             {/* Primary Column - Player & Info */}
             <div className="flex-1 min-w-0">
-                {/* Player Container */}
-                <div className="relative aspect-video bg-black shadow-lg sm:rounded-xl overflow-hidden sm:ring-1 sm:ring-white/10">
+                {/* Player Container - Full width on mobile, no gap */}
+                <div className="relative aspect-video bg-black sm:rounded-xl overflow-hidden sm:shadow-lg sm:ring-1 sm:ring-white/10">
                     {video.videoUrl ? (
                         <CustomPlayer src={video.videoUrl} poster={video.thumbnail} />
                     ) : (
                         <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
-                            {/* ... Mock Player content ... */}
                             <div className="text-center">
                                 <p className="text-white/50 mb-2">Mock Video ID: {video.id}</p>
                                 <p className="text-sm text-gray-500">(No actual video file associated with this mock data)</p>
@@ -156,108 +155,105 @@ export default function WatchPage({
                     )}
                 </div>
 
-                {/* Video Info */}
-                <div className="mt-3 px-3 sm:px-0">
-                    <h1 className="text-lg font-bold text-white mb-2 line-clamp-2 leading-tight">
+                {/* Video Info - YouTube Mobile Layout */}
+                <div className="px-3 sm:px-0">
+                    {/* Title - 12px padding on mobile, mt-3 */}
+                    <h1 className="mt-3 text-[18px] font-bold text-white line-clamp-2 leading-snug">
                         {video.title}
                     </h1>
 
-                    <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
-                        {/* Channel & Description Group */}
-                        <div className="flex-1">
-                            <div className="flex items-center gap-3 mb-4">
-                                <div className="w-[34px] h-[34px] rounded-full bg-j-green flex-shrink-0 overflow-hidden cursor-pointer hover:opacity-90">
-                                    {video.channelAvatar ? (
-                                        <img src={video.channelAvatar} alt={video.channelName} className="object-cover w-full h-full" />
-                                    ) : (
-                                        <div className="w-full h-full bg-j-green" />
-                                    )}
-                                </div>
-                                <div className="flex flex-col">
-                                    <h3 className="font-bold text-white text-[15px] hover:text-gray-200 cursor-pointer">{video.channelName}</h3>
-                                    <p className="text-[12px] text-gray-400">1.2K subscribers</p>
-                                </div>
-                                <button
-                                    onClick={handleSubscribe}
-                                    className={`ml-auto sm:ml-6 px-4 py-1.5 rounded-full text-sm font-bold transition-all ${isSubscribed
-                                        ? "bg-[#272727] text-white hover:bg-[#3f3f3f]"
-                                        : "bg-white text-black hover:bg-gray-200"
-                                        }`}
-                                >
-                                    {isSubscribed ? "Subscribed" : "Subscribe"}
-                                </button>
-                            </div>
+                    {/* Views & Date - Compact Row */}
+                    <p className="mt-1 text-[12px] text-gray-400">
+                        {parseInt(video.views).toLocaleString()} views • {video.postedAt}
+                    </p>
 
-                            {/* Description Box - YouTube Style */}
-                            <div className="bg-[#2a2a2a] rounded-xl p-3 text-sm hover:bg-[#3f3f3f] transition-colors cursor-pointer group">
-                                <div className="flex gap-2 font-bold mb-1 text-white text-sm">
-                                    <span>{parseInt(video.views).toLocaleString()} views</span>
-                                    <span>{video.postedAt}</span>
-                                    {/* Optional tags */}
-                                    <span className="text-gray-400 font-normal">#Juneteenth #Atlanta</span>
-                                </div>
-                                <p className="text-white whitespace-pre-line leading-relaxed">
-                                    {video.videoUrl ?
-                                        "Uploaded from your device. Watch and enjoy the highlights from this year's parade!" :
-                                        "Experience the vibrant energy of the 2024 Juneteenth Atlanta Parade! Featuring marching bands, dance troupes, and community floats."}
-                                </p>
-                                <button className="mt-2 text-white font-bold text-sm hidden group-hover:block">more</button>
-                            </div>
-                        </div>
-
-                        {/* Actions (Like/Share/Download) - Top Right aligned usually, or separated row */}
-                        {/* YouTube has Actions on the same row as Channel slightly to the right or below title. 
-                             Let's keep them in the row below title or to the right of channel? 
-                             Actually YouTube Layout:
-                             [Title]
-                             [Channel/Sub] [Spacer] [Actions]
-                             [Description Box]
-                         */}
-                        {/* Actions Row - Horizontally Scrollable on Mobile */}
-                        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 mb-2 scroll-smooth">
-                            <div className="flex items-center bg-[#272727] rounded-full flex-shrink-0">
-                                <button
-                                    onClick={handleLike}
-                                    className="flex items-center gap-2 px-4 py-2 rounded-l-full hover:bg-[#3f3f3f] transition-colors relative"
-                                    aria-label="Like video"
-                                >
-                                    <ThumbsUp className={`w-5 h-5 ${liked ? "fill-white" : ""}`} />
-                                    <span className="text-xs font-bold">{likesCount}</span>
-                                </button>
-                                <div className="w-px h-6 bg-white/10"></div>
-                                <button
-                                    onClick={handleDislike}
-                                    className="px-4 py-2 rounded-r-full hover:bg-[#3f3f3f] transition-colors relative"
-                                    aria-label="Dislike video"
-                                >
-                                    <ThumbsDown className={`w-5 h-5 ${disliked ? "fill-white" : ""}`} />
-                                </button>
-                            </div>
-
+                    {/* Actions Row - YouTube style horizontal scroll */}
+                    <div className="flex items-center gap-2 mt-3 -mx-3 px-3 overflow-x-auto no-scrollbar pb-2">
+                        {/* Like/Dislike Segmented Pill */}
+                        <div className="flex items-center bg-[#272727] rounded-full flex-shrink-0">
                             <button
-                                onClick={handleShare}
-                                className="flex items-center gap-2 px-4 py-2 bg-[#272727] hover:bg-[#3f3f3f] rounded-full transition-colors text-white font-bold text-sm flex-shrink-0"
+                                onClick={handleLike}
+                                className="flex items-center gap-1.5 pl-4 pr-3 py-2 rounded-l-full hover:bg-[#3f3f3f] transition-colors"
+                                aria-label="Like video"
                             >
-                                <Share2 className="w-5 h-5" />
-                                <span>Share</span>
+                                <ThumbsUp className={`w-5 h-5 ${liked ? "fill-white" : ""}`} />
+                                <span className="text-[13px] font-medium">{likesCount}</span>
                             </button>
-
-                            <a
-                                href={video.videoUrl}
-                                download
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center gap-2 px-4 py-2 bg-[#272727] text-white hover:bg-[#3f3f3f] rounded-full transition-colors font-bold text-sm flex-shrink-0"
+                            <div className="w-px h-6 bg-white/20"></div>
+                            <button
+                                onClick={handleDislike}
+                                className="pl-3 pr-4 py-2 rounded-r-full hover:bg-[#3f3f3f] transition-colors"
+                                aria-label="Dislike video"
                             >
-                                <MoreHorizontal className="w-5 h-5" />
-                                <span>More</span>
-                            </a>
+                                <ThumbsDown className={`w-5 h-5 ${disliked ? "fill-white" : ""}`} />
+                            </button>
                         </div>
+
+                        {/* Share Button */}
+                        <button
+                            onClick={handleShare}
+                            className="flex items-center gap-2 px-4 py-2 bg-[#272727] hover:bg-[#3f3f3f] rounded-full transition-colors text-white text-[13px] font-medium flex-shrink-0"
+                        >
+                            <Share2 className="w-5 h-5" />
+                            <span>Share</span>
+                        </button>
+
+                        {/* More Button */}
+                        <a
+                            href={video.videoUrl}
+                            download
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2 px-4 py-2 bg-[#272727] text-white hover:bg-[#3f3f3f] rounded-full transition-colors text-[13px] font-medium flex-shrink-0"
+                        >
+                            <MoreHorizontal className="w-5 h-5" />
+                            <span>More</span>
+                        </a>
+                    </div>
+
+                    {/* Channel Row - Avatar, Name, Subs, Subscribe Button */}
+                    <div className="flex items-center gap-3 mt-3 py-3 border-t border-white/5">
+                        <div className="w-10 h-10 rounded-full bg-j-green flex-shrink-0 overflow-hidden cursor-pointer hover:opacity-90">
+                            {video.channelAvatar ? (
+                                <img src={video.channelAvatar} alt={video.channelName} className="object-cover w-full h-full" />
+                            ) : (
+                                <div className="w-full h-full bg-j-green" />
+                            )}
+                        </div>
+                        <div className="flex flex-col min-w-0 flex-1">
+                            <h3 className="font-semibold text-white text-[14px] truncate hover:text-gray-200 cursor-pointer">{video.channelName}</h3>
+                            <p className="text-[12px] text-gray-400">1.2K subscribers</p>
+                        </div>
+                        <button
+                            onClick={handleSubscribe}
+                            className={`px-4 py-2 rounded-full text-[14px] font-semibold transition-all flex-shrink-0 ${isSubscribed
+                                ? "bg-[#272727] text-white hover:bg-[#3f3f3f]"
+                                : "bg-white text-black hover:bg-gray-200"
+                                }`}
+                        >
+                            {isSubscribed ? "Subscribed" : "Subscribe"}
+                        </button>
+                    </div>
+
+                    {/* Description Box - YouTube Style */}
+                    <div className="bg-[#272727] rounded-xl p-3 mt-1 text-sm hover:bg-[#3a3a3a] transition-colors cursor-pointer group">
+                        <div className="flex flex-wrap gap-x-2 gap-y-1 text-[13px] text-white mb-1">
+                            <span className="font-semibold">{parseInt(video.views).toLocaleString()} views</span>
+                            <span className="font-semibold">{video.postedAt}</span>
+                            <span className="text-gray-400">#Juneteenth #Atlanta</span>
+                        </div>
+                        <p className="text-[14px] text-white/90 whitespace-pre-line leading-relaxed line-clamp-2 group-hover:line-clamp-none">
+                            {video.videoUrl ?
+                                "Uploaded from your device. Watch and enjoy the highlights from this year's parade!" :
+                                "Experience the vibrant energy of the 2024 Juneteenth Atlanta Parade! Featuring marching bands, dance troupes, and community floats."}
+                        </p>
+                        <button className="mt-2 text-white/60 text-[12px] group-hover:hidden">...more</button>
                     </div>
                 </div>
 
+
                 {/* Comments Section */}
-                <div className="mt-6 max-w-4xl">
+                <div className="mt-6 px-3 sm:px-0 max-w-4xl">
                     <div className="flex items-center gap-8 mb-6">
                         <h3 className="text-xl font-bold text-white">{comments.length} Comments</h3>
                         {/* Sort button could go here */}
