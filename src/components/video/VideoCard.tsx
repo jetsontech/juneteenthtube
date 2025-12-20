@@ -152,7 +152,7 @@ export function VideoCard({ video }: { video: VideoProps }) {
 
     return (
         <div
-            className="group block relative sm:p-2 sm:-m-2 sm:rounded-2xl transition-all duration-300 bg-[var(--card-hover-bg,transparent)]"
+            className="group block relative p-2 -m-2 rounded-2xl transition-all duration-300 bg-[var(--card-hover-bg,transparent)]"
             style={{ "--card-hover-bg": isCardHovered ? dominantColor : 'transparent' } as React.CSSProperties}
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
