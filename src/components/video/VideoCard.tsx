@@ -1,6 +1,6 @@
 "use client";
 
-import { MoreVertical, Trash2, Edit2, X, Check, Image as ImageIcon, UploadCloud, Film } from "lucide-react";
+import { MoreVertical, Trash2, Edit2, X, Check, Image as ImageIcon, UploadCloud, Film, Volume2, VolumeX } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { useState, useRef, useEffect } from "react";
@@ -233,21 +233,42 @@ export function VideoCard({ video }: { video: VideoProps }) {
             <Link href={`/watch/${video.id}`} className="block relative aspect-video rounded-xl overflow-hidden bg-gray-900">
                 {/* Video Preview - shows on hover (desktop) or when visible in viewport (mobile) */}
                 {shouldShowVideoPreview ? (
-                    <video
-                        ref={videoPreviewRef}
-                        src={video.videoUrl}
-                        className="w-full h-full object-cover absolute inset-0 z-10"
-                        autoPlay
-                        muted={isMuted}
-                        loop
-                        playsInline
-                        // @ts-ignore
-                        webkit-playsinline="true"
-                        onLoadedData={(e) => {
-                            // Ensure it plays even if low power mode tries to stop it
-                            e.currentTarget.play().catch(() => { });
-                        }}
-                    />
+                    <>
+                        <video
+                            ref={videoPreviewRef}
+                            src={video.videoUrl}
+                            className="w-full h-full object-cover absolute inset-0 z-10"
+                            autoPlay
+                            muted={isMuted}
+                            loop
+                            playsInline
+                            // @ts-ignore
+                            webkit-playsinline="true"
+                            onLoadedData={(e) => {
+                                // Ensure it plays even if low power mode tries to stop it
+                                e.currentTarget.play().catch(() => { });
+                            }}
+                        />
+                        {/* Mute Toggle Button */}
+                        <button
+                            onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setIsMuted(!isMuted);
+                                if (videoPreviewRef.current) {
+                                    videoPreviewRef.current.muted = !isMuted;
+                                }
+                            }}
+                            className="absolute bottom-2 right-2 z-20 p-2 rounded-full bg-black/70 hover:bg-black/90 transition-colors"
+                            aria-label={isMuted ? "Unmute" : "Mute"}
+                        >
+                            {isMuted ? (
+                                <VolumeX className="w-5 h-5 text-white" />
+                            ) : (
+                                <Volume2 className="w-5 h-5 text-white" />
+                            )}
+                        </button>
+                    </>
                 ) : null}
 
                 {/* Thumbnail Image */}

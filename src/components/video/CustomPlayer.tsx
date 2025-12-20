@@ -34,7 +34,7 @@ export function CustomPlayer({ src, poster }: CustomPlayerProps) {
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [hasEnded, setHasEnded] = useState(false);
     const [showControls, setShowControls] = useState(true);
-    const [isZoomed, setIsZoomed] = useState(true); // Default to zoomed/fill to remove black bars
+    const [isZoomed, setIsZoomed] = useState(false); // Default to contain to avoid blurry stretched thumbnails
 
     // User Interaction State
     const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
