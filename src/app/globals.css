@@ -75,10 +75,11 @@ body::before {
   z-index: -2;
   pointer-events: none;
   background:
-    radial-gradient(ellipse 80% 50% at -20% 0%, rgba(0, 242, 255, 0.08), transparent 50%),
-    radial-gradient(ellipse 60% 60% at 120% 100%, rgba(255, 0, 234, 0.06), transparent 50%),
-    radial-gradient(ellipse 40% 40% at 50% 50%, rgba(0, 242, 255, 0.03), transparent 60%);
+    radial-gradient(ellipse 80% 60% at -10% -10%, rgba(0, 242, 255, 0.15), transparent 55%),
+    radial-gradient(ellipse 70% 70% at 110% 110%, rgba(255, 0, 234, 0.12), transparent 55%),
+    radial-gradient(ellipse 50% 50% at 50% 50%, rgba(0, 242, 255, 0.04), transparent 70%);
 }
+
 
 /* Subtle noise texture overlay */
 body::after {
