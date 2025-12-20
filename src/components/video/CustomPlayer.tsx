@@ -253,7 +253,6 @@ export function CustomPlayer({ src, poster }: CustomPlayerProps) {
             <video
                 ref={videoRef}
                 src={src}
-                poster={poster}
                 className={cn(
                     "w-full h-full flex-grow pointer-events-none transition-all duration-300",
                     isZoomed ? "object-cover" : "object-contain"
@@ -268,6 +267,21 @@ export function CustomPlayer({ src, poster }: CustomPlayerProps) {
                 disablePictureInPicture={false}
                 disableRemotePlayback={false} // Explicitly allow casting
             />
+
+            {/* High-Quality Poster Overlay - Replaces blurry native poster */}
+            {poster && !isPlaying && !hasEnded && (
+                <div className="absolute inset-0 z-[1]">
+                    <img
+                        src={poster}
+                        alt="Video thumbnail"
+                        className={cn(
+                            "w-full h-full",
+                            isZoomed ? "object-cover" : "object-contain"
+                        )}
+                        style={{ imageRendering: "auto" }}
+                    />
+                </div>
+            )}
 
             {/* Interaction Layer - Intercepts all clicks to prevent native iOS controls */}
             <div
