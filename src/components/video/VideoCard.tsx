@@ -35,13 +35,18 @@ export function VideoCard({ video }: { video: VideoProps }) {
     const [isMuted, setIsMuted] = useState(true);
     const [isCardHovered, setIsCardHovered] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
+    const [isVisible, setIsVisible] = useState(false);
     const hoverTimeout = useRef<NodeJS.Timeout | null>(null);
 
+    // Check if this is an ad video
+    const isAd = video.category === 'Sponsored' || video.duration === 'Ad';
 
     // Extract dominant color from thumbnail for unique hover effect
     const dominantColor = useDominantColor(video.thumbnail);
 
-    // ... existing refs
+    // Refs
+    const cardRef = useRef<HTMLDivElement>(null);
+    const videoPreviewRef = useRef<HTMLVideoElement>(null);
     const menuRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const videoFileInputRef = useRef<HTMLInputElement>(null);
@@ -66,6 +71,34 @@ export function VideoCard({ video }: { video: VideoProps }) {
         window.addEventListener('resize', checkMobile);
         return () => window.removeEventListener('resize', checkMobile);
     }, []);
+
+    // IntersectionObserver for scroll-based video autoplay
+    useEffect(() => {
+        if (!cardRef.current || !video.videoUrl) return;
+
+        const observer = new IntersectionObserver(
+            (entries) => {
+                entries.forEach((entry) => {
+                    setIsVisible(entry.isIntersecting);
+                    // Control video playback based on visibility
+                    if (videoPreviewRef.current) {
+                        if (entry.isIntersecting) {
+                            videoPreviewRef.current.play().catch(() => { });
+                        } else {
+                            videoPreviewRef.current.pause();
+                        }
+                    }
+                });
+            },
+            {
+                threshold: 0.5, // 50% of card must be visible
+                rootMargin: '0px'
+            }
+        );
+
+        observer.observe(cardRef.current);
+        return () => observer.disconnect();
+    }, [video.videoUrl]);
 
     // Close menu when clicking outside
     useEffect(() => {
@@ -161,13 +194,20 @@ export function VideoCard({ video }: { video: VideoProps }) {
         // Fallback to static string
     }
 
-    // On mobile, always show the glow. On desktop, show on hover.
-    const showGlow = isMobile || isCardHovered;
+    // On mobile, always show the glow (except for ads). On desktop, show on hover.
+    const showGlow = !isAd && (isMobile || isCardHovered);
+
+    // Show video preview: on desktop when hovered, on mobile when visible in viewport
+    const shouldShowVideoPreview = video.videoUrl && (isHovered || (isMobile && isVisible));
 
     return (
         <div
-            className="group block relative p-2 -m-2 rounded-2xl transition-all duration-300 bg-[var(--card-hover-bg,transparent)] ring-1 ring-white/5 hover:ring-white/10 shadow-lg shadow-black/20"
-            style={{ "--card-hover-bg": showGlow ? dominantColor : 'transparent' } as React.CSSProperties}
+            ref={cardRef}
+            className={cn(
+                "group block relative p-2 -m-2 rounded-2xl transition-all duration-300",
+                isAd ? "" : "ring-1 ring-white/5 hover:ring-white/10 shadow-lg shadow-black/20 bg-[var(--card-hover-bg,transparent)]"
+            )}
+            style={!isAd ? { "--card-hover-bg": showGlow ? dominantColor : 'transparent' } as React.CSSProperties : undefined}
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
         >
@@ -191,9 +231,10 @@ export function VideoCard({ video }: { video: VideoProps }) {
             />
 
             <Link href={`/watch/${video.id}`} className="block relative aspect-video rounded-xl overflow-hidden bg-gray-900">
-                {/* Video Preview on Hover */}
-                {isHovered && video.videoUrl ? (
+                {/* Video Preview - shows on hover (desktop) or when visible in viewport (mobile) */}
+                {shouldShowVideoPreview ? (
                     <video
+                        ref={videoPreviewRef}
                         src={video.videoUrl}
                         className="w-full h-full object-cover absolute inset-0 z-10"
                         autoPlay
@@ -215,7 +256,7 @@ export function VideoCard({ video }: { video: VideoProps }) {
                     alt={video.title}
                     className={cn(
                         "w-full h-full object-cover group-hover:scale-105 transition-transform duration-300",
-                        isHovered && video.videoUrl ? "opacity-0" : "opacity-100",
+                        shouldShowVideoPreview ? "opacity-0" : "opacity-100",
                         isUploadingThumb && "opacity-50 blur-sm"
                     )}
                 />
