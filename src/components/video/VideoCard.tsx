@@ -73,18 +73,33 @@ export function VideoCard({ video }: { video: VideoProps }) {
     }, []);
 
     // IntersectionObserver for scroll-based video autoplay
+    // Implements single-video-at-a-time: when this video plays, others pause
     useEffect(() => {
         if (!cardRef.current || !video.videoUrl) return;
+
+        // Listen for other videos playing - pause this one if another starts
+        const handleOtherVideoPlay = (e: CustomEvent<string>) => {
+            if (e.detail !== video.id && videoPreviewRef.current) {
+                videoPreviewRef.current.pause();
+                setIsVisible(false);
+            }
+        };
+
+        window.addEventListener('videoCardPlay', handleOtherVideoPlay as EventListener);
 
         const observer = new IntersectionObserver(
             (entries) => {
                 entries.forEach((entry) => {
-                    setIsVisible(entry.isIntersecting);
-                    // Control video playback based on visibility
-                    if (videoPreviewRef.current) {
-                        if (entry.isIntersecting) {
+                    if (entry.isIntersecting) {
+                        setIsVisible(true);
+                        // Dispatch event to pause all other videos
+                        window.dispatchEvent(new CustomEvent('videoCardPlay', { detail: video.id }));
+                        if (videoPreviewRef.current) {
                             videoPreviewRef.current.play().catch(() => { });
-                        } else {
+                        }
+                    } else {
+                        setIsVisible(false);
+                        if (videoPreviewRef.current) {
                             videoPreviewRef.current.pause();
                         }
                     }
@@ -97,8 +112,11 @@ export function VideoCard({ video }: { video: VideoProps }) {
         );
 
         observer.observe(cardRef.current);
-        return () => observer.disconnect();
-    }, [video.videoUrl]);
+        return () => {
+            observer.disconnect();
+            window.removeEventListener('videoCardPlay', handleOtherVideoPlay as EventListener);
+        };
+    }, [video.videoUrl, video.id]);
 
     // Close menu when clicking outside
     useEffect(() => {
@@ -259,7 +277,7 @@ export function VideoCard({ video }: { video: VideoProps }) {
                                     videoPreviewRef.current.muted = !isMuted;
                                 }
                             }}
-                            className="absolute bottom-2 right-2 z-20 p-2 rounded-full bg-black/70 hover:bg-black/90 transition-colors"
+                            className="absolute bottom-2 left-2 z-20 p-2 rounded-full bg-black/70 hover:bg-black/90 transition-colors"
                             aria-label={isMuted ? "Unmute" : "Mute"}
                         >
                             {isMuted ? (
