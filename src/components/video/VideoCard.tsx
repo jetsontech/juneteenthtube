@@ -34,7 +34,9 @@ export function VideoCard({ video }: { video: VideoProps }) {
     const [isHovered, setIsHovered] = useState(false);
     const [isMuted, setIsMuted] = useState(true);
     const [isCardHovered, setIsCardHovered] = useState(false);
+    const [isMobile, setIsMobile] = useState(false);
     const hoverTimeout = useRef<NodeJS.Timeout | null>(null);
+
 
     // Extract dominant color from thumbnail for unique hover effect
     const dominantColor = useDominantColor(video.thumbnail);
@@ -57,6 +59,14 @@ export function VideoCard({ video }: { video: VideoProps }) {
         setIsHovered(false);
     };
 
+    // Detect mobile screen for permanent glow effect
+    useEffect(() => {
+        const checkMobile = () => setIsMobile(window.innerWidth < 640);
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
+
     // Close menu when clicking outside
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -68,6 +78,7 @@ export function VideoCard({ video }: { video: VideoProps }) {
         document.addEventListener("mousedown", handleClickOutside);
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
+
 
     const handleDelete = async (e: React.MouseEvent) => {
         e.preventDefault();
@@ -150,10 +161,13 @@ export function VideoCard({ video }: { video: VideoProps }) {
         // Fallback to static string
     }
 
+    // On mobile, always show the glow. On desktop, show on hover.
+    const showGlow = isMobile || isCardHovered;
+
     return (
         <div
             className="group block relative p-2 -m-2 rounded-2xl transition-all duration-300 bg-[var(--card-hover-bg,transparent)]"
-            style={{ "--card-hover-bg": isCardHovered ? dominantColor : 'transparent' } as React.CSSProperties}
+            style={{ "--card-hover-bg": showGlow ? dominantColor : 'transparent' } as React.CSSProperties}
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
         >
