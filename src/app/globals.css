@@ -64,37 +64,23 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
   overflow-x: hidden;
-  /* Prevent horizontal scroll */
   position: relative;
 }
 
-/* Animated Background Blobs - Matching Splash Page */
+/* LUMINA Design System Background */
 body::before {
   content: '';
   position: fixed;
   inset: 0;
-  z-index: -1;
+  z-index: -2;
   pointer-events: none;
   background:
-    radial-gradient(ellipse 60% 60% at -10% -20%, rgba(227, 28, 35, 0.12), transparent 50%),
-    radial-gradient(ellipse 60% 60% at 110% 120%, rgba(255, 215, 0, 0.08), transparent 50%),
-    radial-gradient(ellipse 30% 30% at 40% 30%, rgba(0, 107, 61, 0.05), transparent 50%);
-  animation: pulse-bg 8s ease-in-out infinite alternate;
+    radial-gradient(ellipse 80% 50% at -20% 0%, rgba(0, 242, 255, 0.08), transparent 50%),
+    radial-gradient(ellipse 60% 60% at 120% 100%, rgba(255, 0, 234, 0.06), transparent 50%),
+    radial-gradient(ellipse 40% 40% at 50% 50%, rgba(0, 242, 255, 0.03), transparent 60%);
 }
 
-@keyframes pulse-bg {
-  0% {
-    opacity: 0.8;
-    transform: scale(1);
-  }
-
-  100% {
-    opacity: 1;
-    transform: scale(1.05);
-  }
-}
-
-/* Subtle noise overlay like splash page */
+/* Subtle noise texture overlay */
 body::after {
   content: '';
   position: fixed;
@@ -102,5 +88,5 @@ body::after {
   z-index: -1;
   pointer-events: none;
   background: url('https://grainy-gradients.vercel.app/noise.svg');
-  opacity: 0.15;
+  opacity: 0.12;
 }
