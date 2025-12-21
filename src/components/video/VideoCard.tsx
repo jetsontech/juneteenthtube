@@ -73,31 +73,70 @@ export function VideoCard({ video }: { video: VideoProps }) {
     }, []);
 
     // IntersectionObserver for scroll-based video autoplay
-    // Implements single-video-at-a-time: when this video plays, others pause
+    // CRITICAL: Implements strict single-video-at-a-time to prevent Safari crashes
     useEffect(() => {
         if (!cardRef.current || !video.videoUrl) return;
 
-        // Listen for other videos playing - pause this one if another starts
+        // Global registry for tracking currently playing video - ensures only one plays
+        if (typeof window !== 'undefined' && !(window as any).__juneteenthActiveVideoId) {
+            (window as any).__juneteenthActiveVideoId = null;
+        }
+
+        // Listen for other videos playing - pause this one immediately
         const handleOtherVideoPlay = (e: CustomEvent<string>) => {
-            if (e.detail !== video.id && videoPreviewRef.current) {
-                videoPreviewRef.current.pause();
+            if (e.detail !== video.id) {
+                if (videoPreviewRef.current) {
+                    videoPreviewRef.current.pause();
+                    videoPreviewRef.current.currentTime = 0; // Reset to start
+                }
                 setIsVisible(false);
             }
         };
 
         window.addEventListener('videoCardPlay', handleOtherVideoPlay as EventListener);
 
+        // Debounce timer to prevent rapid-fire play attempts
+        let playDebounceTimer: NodeJS.Timeout | null = null;
+
         const observer = new IntersectionObserver(
             (entries) => {
                 entries.forEach((entry) => {
-                    if (entry.isIntersecting) {
-                        setIsVisible(true);
-                        // Dispatch event to pause all other videos
-                        window.dispatchEvent(new CustomEvent('videoCardPlay', { detail: video.id }));
-                        if (videoPreviewRef.current) {
-                            videoPreviewRef.current.play().catch(() => { });
-                        }
+                    if (entry.isIntersecting && entry.intersectionRatio >= 0.6) {
+                        // Clear any pending play attempt
+                        if (playDebounceTimer) clearTimeout(playDebounceTimer);
+
+                        // Debounce: wait 150ms to ensure this is the "settled" video
+                        playDebounceTimer = setTimeout(() => {
+                            // Double-check another video hasn't claimed playback
+                            const currentActive = (window as any).__juneteenthActiveVideoId;
+                            if (currentActive && currentActive !== video.id) {
+                                // Another video is already playing, don't interrupt
+                                return;
+                            }
+
+                            // Claim playback globally
+                            (window as any).__juneteenthActiveVideoId = video.id;
+
+                            // Dispatch event to pause all other videos FIRST
+                            window.dispatchEvent(new CustomEvent('videoCardPlay', { detail: video.id }));
+
+                            // Small delay to let other videos pause before we play
+                            setTimeout(() => {
+                                setIsVisible(true);
+                                if (videoPreviewRef.current) {
+                                    videoPreviewRef.current.play().catch(() => { });
+                                }
+                            }, 50);
+                        }, 150);
                     } else {
+                        // Clear any pending play
+                        if (playDebounceTimer) clearTimeout(playDebounceTimer);
+
+                        // Release global lock if we were the active video
+                        if ((window as any).__juneteenthActiveVideoId === video.id) {
+                            (window as any).__juneteenthActiveVideoId = null;
+                        }
+
                         setIsVisible(false);
                         if (videoPreviewRef.current) {
                             videoPreviewRef.current.pause();
@@ -106,15 +145,20 @@ export function VideoCard({ video }: { video: VideoProps }) {
                 });
             },
             {
-                threshold: 0.5, // 50% of card must be visible
-                rootMargin: '0px'
+                threshold: 0.6, // Require 60% visible (more strict than before)
+                rootMargin: '-10% 0px' // Shrink detection area to favor center of screen
             }
         );
 
         observer.observe(cardRef.current);
         return () => {
+            if (playDebounceTimer) clearTimeout(playDebounceTimer);
             observer.disconnect();
             window.removeEventListener('videoCardPlay', handleOtherVideoPlay as EventListener);
+            // Release global lock on unmount
+            if ((window as any).__juneteenthActiveVideoId === video.id) {
+                (window as any).__juneteenthActiveVideoId = null;
+            }
         };
     }, [video.videoUrl, video.id]);
 
