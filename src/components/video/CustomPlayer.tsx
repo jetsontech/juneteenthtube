@@ -31,9 +31,160 @@ export function CustomPlayer({ src, poster }: CustomPlayerProps) {
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
     const [volume, setVolume] = useState(1);
-    const [isCssFullscreen, setIsCssFullscreen] = useState(false); // Custom fullscreen for mobile to force layout
+    const [isFullscreen, setIsFullscreen] = useState(false);
+    const [hasEnded, setHasEnded] = useState(false);
+    const [showControls, setShowControls] = useState(true);
+    const [isZoomed, setIsZoomed] = useState(false);
+    const [isBuffering, setIsBuffering] = useState(true);
+    const [hasStartedPlaying, setHasStartedPlaying] = useState(false);
 
-    // ... (existing state) ...
+    // NEW: Custom CSS Fullscreen state for Mobile
+    const [isCssFullscreen, setIsCssFullscreen] = useState(false);
+
+    // User Interaction State
+    const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    // Force playsinline for iOS (React sometimes is tricky with this)
+    useEffect(() => {
+        if (videoRef.current) {
+            videoRef.current.setAttribute("playsinline", "");
+            videoRef.current.setAttribute("webkit-playsinline", "");
+        }
+    }, []);
+
+    // Format time helper
+    const formatTime = (time: number) => {
+        if (!isFinite(time)) return "0:00";
+        const minutes = Math.floor(time / 60);
+        const seconds = Math.floor(time % 60);
+        return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+    };
+
+    // Handle Metadata Load
+    const onLoadedMetadata = () => {
+        if (videoRef.current) {
+            setDuration(videoRef.current.duration);
+        }
+    };
+
+    // Handle Time Update
+    const onTimeUpdate = () => {
+        if (videoRef.current) {
+            setCurrentTime(videoRef.current.currentTime);
+        }
+    };
+
+    // Handle Video Ended
+    const onEnded = () => {
+        setIsPlaying(false);
+        setHasEnded(true);
+        setShowControls(true);
+    };
+
+    // Toggle Play/Pause
+    const togglePlay = (e?: React.MouseEvent) => {
+        e?.stopPropagation();
+        if (videoRef.current) {
+            if (!showControls && !hasEnded) {
+                setShowControls(true);
+                return;
+            }
+
+            if (videoRef.current.paused || hasEnded) {
+                videoRef.current.play();
+                setIsPlaying(true);
+                setHasEnded(false);
+            } else {
+                videoRef.current.pause();
+                setIsPlaying(false);
+            }
+        }
+    };
+
+    // Handle Seek
+    const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const time = parseFloat(e.target.value);
+        if (videoRef.current) {
+            videoRef.current.currentTime = time;
+            setCurrentTime(time);
+        }
+    };
+
+    // Toggle Mute
+    const toggleMute = (e?: React.MouseEvent) => {
+        e?.stopPropagation();
+        if (videoRef.current) {
+            videoRef.current.muted = !isMuted;
+            setIsMuted(!isMuted);
+        }
+    };
+
+    // Handle Volume Change
+    const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const newVolume = parseFloat(e.target.value);
+        if (videoRef.current) {
+            videoRef.current.volume = newVolume;
+            if (newVolume === 0) {
+                setIsMuted(true);
+                videoRef.current.muted = true;
+            } else if (isMuted) {
+                setIsMuted(false);
+                videoRef.current.muted = false;
+            }
+        }
+        setVolume(newVolume);
+    };
+
+    // Toggle PiP
+    const togglePip = async (e?: React.MouseEvent) => {
+        e?.stopPropagation();
+        if (!videoRef.current) return;
+
+        try {
+            if (document.pictureInPictureElement) {
+                await document.exitPictureInPicture();
+            } else {
+                await videoRef.current.requestPictureInPicture();
+            }
+        } catch (error) {
+            console.error("PiP failed:", error);
+        }
+    };
+
+    // Handle Casting (Chrome / Safari support)
+    const handleCast = async (e?: React.MouseEvent) => {
+        e?.stopPropagation();
+
+        if (!videoRef.current) return;
+
+        const video = videoRef.current as any;
+
+        // 1. Try Safari/iOS AirPlay (webkitShowPlaybackTargetPicker)
+        if (video.webkitShowPlaybackTargetPicker) {
+            try {
+                video.webkitShowPlaybackTargetPicker();
+                return;
+            } catch (error) {
+                console.error("AirPlay failed:", error);
+            }
+        }
+
+        // 2. Try Chrome/Standard Remote Playback API
+        if (video.remote && video.remote.state !== 'disabled') {
+            try {
+                await video.remote.prompt();
+            } catch (error: any) {
+                if (error.name === 'AbortError' || error.name === 'NotAllowedError' || error.message?.includes('dismissed')) {
+                    // User cancelled
+                } else {
+                    console.error("Cast error:", error);
+                    alert(`Casting failed: ${error.message || "Unknown error"}`);
+                }
+            }
+        } else {
+            alert("Casting or AirPlay is not supported on this browser/device.");
+        }
+    };
 
     // Toggle Fullscreen - Smart handling for Mobile vs Desktop
     const toggleFullscreen = (e?: React.MouseEvent) => {
@@ -72,7 +223,44 @@ export function CustomPlayer({ src, poster }: CustomPlayerProps) {
         }
     };
 
-    // ... (useEffect listeners) ...
+    // Listen for Fullscreen Changes
+    useEffect(() => {
+        const handleFullscreenChange = () => {
+            setIsFullscreen(!!document.fullscreenElement);
+        };
+
+        document.addEventListener("fullscreenchange", handleFullscreenChange);
+        document.addEventListener("webkitfullscreenchange", handleFullscreenChange);
+
+        return () => {
+            document.removeEventListener("fullscreenchange", handleFullscreenChange);
+            document.removeEventListener("webkitfullscreenchange", handleFullscreenChange);
+        };
+    }, []);
+
+    // Auto-hide controls
+    const resetControlsTimeout = () => {
+        setShowControls(true);
+        if (controlsTimeoutRef.current) {
+            clearTimeout(controlsTimeoutRef.current);
+        }
+        if (isPlaying && !hasEnded) {
+            controlsTimeoutRef.current = setTimeout(() => {
+                setShowControls(false);
+            }, 3000);
+        }
+    };
+
+    useEffect(() => {
+        resetControlsTimeout();
+        return () => {
+            if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
+        };
+    }, [isPlaying, hasEnded]);
+
+    const handleMouseMove = () => {
+        resetControlsTimeout();
+    };
 
     return (
         <div
@@ -158,9 +346,6 @@ export function CustomPlayer({ src, poster }: CustomPlayerProps) {
                     ${showControls ? 'opacity-100 visible' : 'opacity-0 invisible'}
                 `}
                 onClick={(e) => {
-                    // Tapping the overlay itself should shield the video play/pause toggle 
-                    // unless we tap the center again or something specific?
-                    // Actually, tapping the overlay background should hide controls.
                     e.stopPropagation();
                     setShowControls(false);
                 }}
@@ -173,7 +358,6 @@ export function CustomPlayer({ src, poster }: CustomPlayerProps) {
                     >
                         {/* Background Track */}
                         <div className="absolute top-0 left-0 right-0 bottom-0 bg-white/30 rounded-full overflow-hidden">
-                            {/* Buffered/Progress fill would go here */}
                         </div>
 
                         {/* Native Range Input for Interaction */}
@@ -276,7 +460,7 @@ export function CustomPlayer({ src, poster }: CustomPlayerProps) {
                                 onClick={toggleFullscreen}
                                 className="text-white hover:text-white/80 transition-colors focus:outline-none"
                             >
-                                {isFullscreen ? <Minimize className="w-6 h-6" /> : <Maximize className="w-6 h-6" />}
+                                {isFullscreen || isCssFullscreen ? <Minimize className="w-6 h-6" /> : <Maximize className="w-6 h-6" />}
                             </button>
                         </div>
                     </div>
