@@ -5,7 +5,7 @@ import { useVideo } from "@/context/VideoContext";
 import { VideoProps } from "@/components/video/VideoCard";
 import { ThumbsUp, ThumbsDown, MessageCircle, Share2, MoreVertical, X, ChevronUp, ChevronDown, Volume2, VolumeX } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export default function ShortsPlayerPage({
     params,
@@ -14,6 +14,9 @@ export default function ShortsPlayerPage({
 }) {
     const resolvedParams = use(params);
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const mode = searchParams.get('mode') || 'portrait'; // Default to portrait for vertical shorts
+    const isLandscape = mode === 'landscape';
     const { getVideoById, videos, getLikes, toggleLike } = useVideo();
     const [video, setVideo] = useState<VideoProps | undefined>();
     const [liked, setLiked] = useState(false);
@@ -125,13 +128,13 @@ export default function ShortsPlayerPage({
 
     const goToPrevious = () => {
         if (currentIndex > 0) {
-            router.push(`/shorts/${shorts[currentIndex - 1].id}`);
+            router.push(`/shorts/${shorts[currentIndex - 1].id}?mode=${mode}`);
         }
     };
 
     const goToNext = () => {
         if (currentIndex < shorts.length - 1) {
-            router.push(`/shorts/${shorts[currentIndex + 1].id}`);
+            router.push(`/shorts/${shorts[currentIndex + 1].id}?mode=${mode}`);
         }
     };
 
@@ -166,10 +169,10 @@ export default function ShortsPlayerPage({
                 </button>
             </div>
 
-            {/* Main container - 16:9 fullscreen video */}
-            <div className="relative w-full h-full max-w-[90vw] max-h-[90vh] aspect-video flex">
+            {/* Main container - dynamic aspect ratio based on mode */}
+            <div className={`relative w-full h-full flex items-center justify-center ${isLandscape ? 'max-w-[90vw] max-h-[90vh] aspect-video' : 'max-w-[400px] max-h-[90vh] aspect-[9/16]'}`}>
                 {/* Video container */}
-                <div className="relative flex-1 bg-black rounded-xl overflow-hidden">
+                <div className="relative w-full h-full bg-black rounded-xl overflow-hidden">
                     {video.videoUrl ? (
                         <video
                             ref={videoRef}

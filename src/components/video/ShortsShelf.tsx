@@ -194,7 +194,7 @@ function ShortCard({ short, onDelete, onChangeThumbnail, onChangeVideo, onRename
                 aria-label="Upload video"
             />
 
-            <Link href={short.videoUrl ? `/shorts/${short.id}` : "#"} className="block">
+            <Link href={short.videoUrl ? `/shorts/${short.id}?mode=${landscapeMode ? 'landscape' : 'portrait'}` : "#"} className="block">
                 <div className={cn(
                     "relative rounded-xl overflow-hidden bg-[#1a1a1a]",
                     landscapeMode ? "aspect-video" : "aspect-[9/16]",
@@ -301,7 +301,7 @@ function ShortCard({ short, onDelete, onChangeThumbnail, onChangeVideo, onRename
     );
 }
 
-export function ShortsShelf({ offset = 0, horizontal = false, landscapeMode = false }: { offset?: number; horizontal?: boolean; landscapeMode?: boolean } = {}) {
+export function ShortsShelf({ offset = 0, horizontal = false, landscapeMode = false, title }: { offset?: number; horizontal?: boolean; landscapeMode?: boolean; title?: string } = {}) {
     const { videos, deleteVideo, updateVideoThumbnail, updateVideoFile, updateVideoTitle } = useVideo();
     const { isOpen: isSidebarOpen } = useSidebar();
     const [isMobile, setIsMobile] = useState(false);
@@ -387,7 +387,7 @@ export function ShortsShelf({ offset = 0, horizontal = false, landscapeMode = fa
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" className="text-red-500">
                     <path d="M10 14.65v-5.3L15 12l-5 2.65zm7.77-4.33c-.77-.32-1.2-.5-1.2-.5L18 9.06c1.84-.96 2.53-3.23 1.56-5.06s-3.24-2.53-5.07-1.56L6 6.94c-1.29.68-2.07 2.04-2 3.49.07 1.42.93 2.67 2.22 3.25.03.01 1.2.5 1.2.5L6 14.93c-1.83.97-2.53 3.24-1.56 5.07.97 1.83 3.24 2.53 5.07 1.56l8.5-4.5c1.29-.68 2.07-2.04 2-3.49-.07-1.42-.93-2.67-2.22-3.25zM10 14.65v-5.3L15 12l-5 2.65z" />
                 </svg>
-                <h2 className="text-lg font-semibold text-white">Shorts</h2>
+                <h2 className="text-lg font-semibold text-white">{title || 'Shorts'}</h2>
             </div>
 
             <div className={horizontal ? horizontalClass : gridClass}>

@@ -124,8 +124,14 @@ function HomeContent() {
           ))}
         </div>
 
-        {/* Shorts Section */}
-        {selectedCategory === "All" && <ShortsShelf />}
+        {/* Shorts Section (Vertical) */}
+        {selectedCategory === "All" && (
+          <ShortsShelf
+            title="Shorts"
+            horizontal={true}
+            offset={0}
+          />
+        )}
 
         {/* Second row of videos */}
         <div className={cn(videoGridClass, "mt-8 sm:mt-12 lg:mt-14")}>
@@ -134,7 +140,15 @@ function HomeContent() {
           ))}
         </div>
 
-
+        {/* Landscape Shorts Section (16:9) - Cinema Shorts */}
+        {selectedCategory === "All" && (
+          <ShortsShelf
+            title="Cinema Shorts"
+            offset={6}
+            horizontal={true}
+            landscapeMode={true}
+          />
+        )}
 
         {/* Remaining Videos */}
         {filteredVideos.length > 6 && (
