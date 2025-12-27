@@ -170,8 +170,11 @@ export default function ShortsPlayerPage({
             </div>
 
             {/* Main container - dynamic aspect ratio based on mode. Mobile: Edge-to-edge. Desktop: Floating card. */}
-            <div className={`relative w-full flex items-center justify-center 
-                h-[100dvh] md:h-full 
+            {/* Main container - dynamic aspect ratio based on mode. Mobile: Edge-to-edge. Desktop: Floating card. */}
+            <div className={`
+                fixed inset-0 z-50 bg-black flex items-center justify-center
+                md:relative md:inset-auto md:z-auto md:bg-transparent
+                md:h-full 
                 ${isLandscape
                     ? 'md:max-w-[90vw] md:max-h-[90vh] md:aspect-video'
                     : 'md:max-w-[400px] md:max-h-[90vh] md:aspect-[9/16]'
