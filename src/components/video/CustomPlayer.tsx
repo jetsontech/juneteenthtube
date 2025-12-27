@@ -31,193 +31,38 @@ export function CustomPlayer({ src, poster }: CustomPlayerProps) {
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
     const [volume, setVolume] = useState(1);
-    const [isFullscreen, setIsFullscreen] = useState(false);
-    const [hasEnded, setHasEnded] = useState(false);
-    const [showControls, setShowControls] = useState(true);
-    const [isZoomed, setIsZoomed] = useState(false); // Default to contain to avoid blurry stretched thumbnails
-    const [isBuffering, setIsBuffering] = useState(true); // Track buffering state for quality fix
-    const [hasStartedPlaying, setHasStartedPlaying] = useState(false); // Track if video ever started
+    const [isCssFullscreen, setIsCssFullscreen] = useState(false); // Custom fullscreen for mobile to force layout
 
-    // User Interaction State
-    const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    // ... (existing state) ...
 
-    // Force playsinline for iOS (React sometimes is tricky with this)
-    useEffect(() => {
-        if (videoRef.current) {
-            videoRef.current.setAttribute("playsinline", "");
-            videoRef.current.setAttribute("webkit-playsinline", "");
-        }
-    }, []);
-
-    // Format time helper
-    const formatTime = (time: number) => {
-        if (!isFinite(time)) return "0:00";
-        const minutes = Math.floor(time / 60);
-        const seconds = Math.floor(time % 60);
-        return `${minutes}:${seconds.toString().padStart(2, "0")}`;
-    };
-
-    // Handle Metadata Load
-    const onLoadedMetadata = () => {
-        if (videoRef.current) {
-            setDuration(videoRef.current.duration);
-        }
-    };
-
-    // Handle Time Update
-    const onTimeUpdate = () => {
-        if (videoRef.current) {
-            setCurrentTime(videoRef.current.currentTime);
-        }
-    };
-
-    // Handle Video Ended
-    const onEnded = () => {
-        setIsPlaying(false);
-        setHasEnded(true);
-        setShowControls(true);
-    };
-
-    // Toggle Play/Pause
-    const togglePlay = (e?: React.MouseEvent) => {
-        e?.stopPropagation();
-        if (videoRef.current) {
-            // For mobile/touch, we prioritize showing controls on first tap
-            // But if we are in environment where touches are simulated/detected or just generic
-            // Let's make it smarter: if controls are hidden, show them. If shown, toggle play.
-            if (!showControls && !hasEnded) {
-                setShowControls(true);
-                return;
-            }
-
-            if (videoRef.current.paused || hasEnded) {
-                videoRef.current.play();
-                setIsPlaying(true);
-                setHasEnded(false);
-            } else {
-                videoRef.current.pause();
-                setIsPlaying(false);
-            }
-        }
-    };
-
-    // Handle Seek
-    const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const time = parseFloat(e.target.value);
-        if (videoRef.current) {
-            videoRef.current.currentTime = time;
-            setCurrentTime(time);
-        }
-    };
-
-    // Toggle Mute
-    const toggleMute = (e?: React.MouseEvent) => {
-        e?.stopPropagation();
-        if (videoRef.current) {
-            videoRef.current.muted = !isMuted;
-            setIsMuted(!isMuted);
-        }
-    };
-
-    // Handle Volume Change
-    const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const newVolume = parseFloat(e.target.value);
-        if (videoRef.current) {
-            videoRef.current.volume = newVolume;
-            if (newVolume === 0) {
-                setIsMuted(true);
-                videoRef.current.muted = true;
-            } else if (isMuted) {
-                setIsMuted(false);
-                videoRef.current.muted = false;
-            }
-        }
-        setVolume(newVolume);
-    };
-
-    // Toggle PiP
-    const togglePip = async (e?: React.MouseEvent) => {
-        e?.stopPropagation();
-        if (!videoRef.current) return;
-
-        try {
-            if (document.pictureInPictureElement) {
-                await document.exitPictureInPicture();
-            } else {
-                await videoRef.current.requestPictureInPicture();
-            }
-        } catch (error) {
-            console.error("PiP failed:", error);
-        }
-    };
-
-    // Handle Casting (Chrome / Safari support)
-    const handleCast = async (e?: React.MouseEvent) => {
-        e?.stopPropagation();
-
-        if (!videoRef.current) return;
-
-        const video = videoRef.current as any;
-
-        // 1. Try Safari/iOS AirPlay (webkitShowPlaybackTargetPicker)
-        if (video.webkitShowPlaybackTargetPicker) {
-            try {
-                video.webkitShowPlaybackTargetPicker();
-                return;
-            } catch (error) {
-                console.error("AirPlay failed:", error);
-            }
-        }
-
-        // 2. Try Chrome/Standard Remote Playback API
-        if (video.remote && video.remote.state !== 'disabled') {
-            try {
-                await video.remote.prompt();
-            } catch (error: any) {
-                if (error.name === 'AbortError' || error.name === 'NotAllowedError' || error.message?.includes('dismissed')) {
-                    // User cancelled
-                } else {
-                    console.error("Cast error:", error);
-                    alert(`Casting failed: ${error.message || "Unknown error"}`);
-                }
-            }
-        } else {
-            alert("Casting or AirPlay is not supported on this browser/device.");
-        }
-    };
-
-    // Toggle Fullscreen - with iOS Safari workaround
+    // Toggle Fullscreen - Smart handling for Mobile vs Desktop
     const toggleFullscreen = (e?: React.MouseEvent) => {
         e?.stopPropagation();
         if (!containerRef.current || !videoRef.current) return;
 
         const video = videoRef.current as any;
+        const isMobile = window.innerWidth < 768;
 
-        // iOS Safari: Use webkitEnterFullscreen directly on video element
-        // This is required because iOS doesn't support requestFullscreen on containers
-        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-            (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-
-        if (isIOS) {
-            // iOS requires using the video element's native fullscreen
-            if (video.webkitEnterFullscreen) {
-                video.webkitEnterFullscreen();
-                return;
-            } else if (video.webkitDisplayingFullscreen) {
-                video.webkitExitFullscreen?.();
-                return;
+        // Mobile: Use CSS Overlay "Pseudo-Fullscreen" to allow force-zoom/cover
+        if (isMobile) {
+            const willEnter = !isCssFullscreen;
+            setIsCssFullscreen(willEnter);
+            // Force zoom/cover when entering mobile fullscreen
+            if (willEnter) {
+                setIsZoomed(true);
+                // Lock body scroll
+                document.body.style.overflow = 'hidden';
+            } else {
+                document.body.style.overflow = '';
             }
+            return;
         }
 
-        // Standard fullscreen API for other browsers
+        // Desktop: Standard Fullscreen API
         if (!document.fullscreenElement) {
-            // Auto-zoom on mobile to fill screen (remove black bars)
-            if (window.innerWidth < 768) {
-                setIsZoomed(true);
-            }
             containerRef.current.requestFullscreen().catch(err => {
                 console.error(`Error attempting to enable fullscreen: ${err.message}`);
-                // Final fallback for any webkit browser
+                // Fallback
                 if (video.webkitEnterFullscreen) {
                     video.webkitEnterFullscreen();
                 }
@@ -227,52 +72,18 @@ export function CustomPlayer({ src, poster }: CustomPlayerProps) {
         }
     };
 
-    // Listen for Fullscreen Changes
-    useEffect(() => {
-        const handleFullscreenChange = () => {
-            setIsFullscreen(!!document.fullscreenElement);
-        };
-
-        document.addEventListener("fullscreenchange", handleFullscreenChange);
-        document.addEventListener("webkitfullscreenchange", handleFullscreenChange); // Safari
-
-        return () => {
-            document.removeEventListener("fullscreenchange", handleFullscreenChange);
-            document.removeEventListener("webkitfullscreenchange", handleFullscreenChange);
-        };
-    }, []);
-
-    // Auto-hide controls
-    const resetControlsTimeout = () => {
-        setShowControls(true);
-        if (controlsTimeoutRef.current) {
-            clearTimeout(controlsTimeoutRef.current);
-        }
-        if (isPlaying && !hasEnded) {
-            controlsTimeoutRef.current = setTimeout(() => {
-                setShowControls(false);
-            }, 3000);
-        }
-    };
-
-    useEffect(() => {
-        resetControlsTimeout();
-        return () => {
-            if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
-        };
-    }, [isPlaying, hasEnded]);
-
-    const handleMouseMove = () => {
-        resetControlsTimeout();
-    };
+    // ... (useEffect listeners) ...
 
     return (
         <div
             ref={containerRef}
-            className="group relative w-full h-full bg-black overflow-hidden flex flex-col"
+            className={cn(
+                "group relative bg-black overflow-hidden flex flex-col",
+                isCssFullscreen ? "fixed inset-0 z-[9999] w-screen h-[100dvh]" : "w-full h-full"
+            )}
             onMouseMove={handleMouseMove}
             onClick={resetControlsTimeout}
-            onMouseLeave={resetControlsTimeout} // Extend timeout instead of hiding immediately
+            onMouseLeave={resetControlsTimeout}
         >
             <video
                 ref={videoRef}
@@ -280,7 +91,7 @@ export function CustomPlayer({ src, poster }: CustomPlayerProps) {
                 preload="auto"
                 className={cn(
                     "w-full h-full flex-grow pointer-events-none transition-all duration-300",
-                    isZoomed ? "object-cover" : "object-contain"
+                    (isZoomed || isCssFullscreen) ? "object-cover" : "object-contain"
                 )}
                 onTimeUpdate={onTimeUpdate}
                 onLoadedMetadata={onLoadedMetadata}
