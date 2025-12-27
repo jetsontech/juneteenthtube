@@ -301,21 +301,14 @@ function ShortCard({ short, onDelete, onChangeThumbnail, onChangeVideo, onRename
     );
 }
 
+// Simplified ShortsShelf: Removes JS-based responsive logic to prevent hydration errors and resize loops
 export function ShortsShelf({ offset = 0, horizontal = false, landscapeMode = false, title }: { offset?: number; horizontal?: boolean; landscapeMode?: boolean; title?: string } = {}) {
     const { videos, deleteVideo, updateVideoThumbnail, updateVideoFile, updateVideoTitle } = useVideo();
     const { isOpen: isSidebarOpen } = useSidebar();
-    const [isMobile, setIsMobile] = useState(false);
 
-    // Detect mobile on client side
-    useEffect(() => {
-        const checkMobile = () => setIsMobile(window.innerWidth < 640);
-        checkMobile();
-        window.addEventListener('resize', checkMobile);
-        return () => window.removeEventListener('resize', checkMobile);
-    }, []);
-
-    // Mobile: 4 shorts, Desktop with sidebar: 5 shorts, Desktop without sidebar: 6 shorts
-    const shortsCount = isMobile ? 4 : (isSidebarOpen ? 5 : 6);
+    // Fixed count for performance. CSS handles the visual layout.
+    // We fetch enough to fill a large desktop screen, mobile will just scroll or wrap.
+    const SHORTS_TO_RENDER = 12;
 
     // Parse duration string (e.g., "1:30", "0:45", "12:30") to seconds
     const parseDurationToSeconds = (duration: string | undefined): number => {
@@ -342,7 +335,7 @@ export function ShortsShelf({ offset = 0, horizontal = false, landscapeMode = fa
 
     // Use real shorts if available, fill remaining with placeholders
     // offset allows second ShortsShelf to show different videos
-    const realShorts: ShortVideo[] = shortsVideos.slice(offset, offset + shortsCount).map(v => ({
+    const realShorts: ShortVideo[] = shortsVideos.slice(offset, offset + SHORTS_TO_RENDER).map(v => ({
         id: v.id,
         title: v.title,
         views: `${v.views || 0}`,
@@ -351,8 +344,9 @@ export function ShortsShelf({ offset = 0, horizontal = false, landscapeMode = fa
         isPlaceholder: false
     }));
 
-    const placeholdersNeeded = Math.max(0, shortsCount - realShorts.length);
-    const shorts = [...realShorts, ...PLACEHOLDER_SHORTS.slice(0, placeholdersNeeded)];
+    const placeholdersNeeded = Math.max(0, SHORTS_TO_RENDER - realShorts.length);
+    // Limit placeholders to avoid empty scrolling if we have no videos
+    const shorts = [...realShorts, ...PLACEHOLDER_SHORTS.slice(0, Math.min(placeholdersNeeded, 6))];
 
     const handleDelete = async (id: string) => {
         await deleteVideo(id);
@@ -370,7 +364,7 @@ export function ShortsShelf({ offset = 0, horizontal = false, landscapeMode = fa
         await updateVideoTitle(id, newTitle);
     };
 
-    // YouTube-style: 5 cols with sidebar open, 6 cols with sidebar closed on large screens
+    // YouTube-style: Responsive Grid
     const gridClass = cn(
         "grid gap-3",
         isSidebarOpen
