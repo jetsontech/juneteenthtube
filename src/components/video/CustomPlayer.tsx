@@ -211,6 +211,10 @@ export function CustomPlayer({ src, poster }: CustomPlayerProps) {
 
         // Standard fullscreen API for other browsers
         if (!document.fullscreenElement) {
+            // Auto-zoom on mobile to fill screen (remove black bars)
+            if (window.innerWidth < 768) {
+                setIsZoomed(true);
+            }
             containerRef.current.requestFullscreen().catch(err => {
                 console.error(`Error attempting to enable fullscreen: ${err.message}`);
                 // Final fallback for any webkit browser
