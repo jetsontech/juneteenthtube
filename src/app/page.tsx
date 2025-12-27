@@ -134,8 +134,7 @@ function HomeContent() {
           ))}
         </div>
 
-        {/* Second Shorts Section - landscape/horizontal video format */}
-        {selectedCategory === "All" && <ShortsShelf offset={6} landscapeMode />}
+
 
         {/* Remaining Videos */}
         {filteredVideos.length > 6 && (

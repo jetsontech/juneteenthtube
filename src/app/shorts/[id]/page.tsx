@@ -19,8 +19,25 @@ export default function ShortsPlayerPage({
     const [liked, setLiked] = useState(false);
     const [disliked, setDisliked] = useState(false);
     const [likesCount, setLikesCount] = useState(0);
-    const [isMuted, setIsMuted] = useState(true);
+    const [isMuted, setIsMuted] = useState(false); // Default unmuted for better UX
     const videoRef = useRef<HTMLVideoElement>(null);
+
+    // Try to autoplay unmuted, fallback to muted if browser blocks
+    useEffect(() => {
+        if (videoRef.current) {
+            const video = videoRef.current;
+            video.muted = false;
+            video.volume = 1;
+            video.play().catch(() => {
+                // Browser blocked unmuted autoplay, fallback to muted
+                video.muted = true;
+                setIsMuted(true);
+                video.play().catch(() => {
+                    // Ignore if still blocked
+                });
+            });
+        }
+    }, []);
 
     // Sync isMuted state with video property
     useEffect(() => {
@@ -149,15 +166,15 @@ export default function ShortsPlayerPage({
                 </button>
             </div>
 
-            {/* Main container - vertical video */}
-            <div className="relative h-full w-full max-w-[420px] max-h-[90vh] md:max-h-[85vh] flex">
+            {/* Main container - 16:9 fullscreen video */}
+            <div className="relative w-full h-full max-w-[90vw] max-h-[90vh] aspect-video flex">
                 {/* Video container */}
                 <div className="relative flex-1 bg-black rounded-xl overflow-hidden">
                     {video.videoUrl ? (
                         <video
                             ref={videoRef}
                             src={video.videoUrl}
-                            className="w-full h-full object-contain"
+                            className="w-full h-full object-cover"
                             autoPlay
                             muted={isMuted}
                             loop

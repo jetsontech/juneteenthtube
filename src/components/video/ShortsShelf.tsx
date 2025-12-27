@@ -333,22 +333,12 @@ export function ShortsShelf({ offset = 0, horizontal = false, landscapeMode = fa
 
     // Filter videos to only include shorts (max 60 seconds / 1 minute)
     const MAX_SHORT_DURATION = 60; // 1 minute in seconds
-    // List of shorts, shuffled for random rotation
-    const shuffleArray = <T,>(array: T[]): T[] => {
-        const newArray = [...array];
-        for (let i = newArray.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
-        }
-        return newArray;
-    };
 
-    const rawShortsVideos = videos.filter(v => {
+    // Get shorts videos in stable order (no shuffle to prevent duplicates across shelves)
+    const shortsVideos = videos.filter(v => {
         const durationInSeconds = parseDurationToSeconds(v.duration);
         return durationInSeconds > 0 && durationInSeconds <= MAX_SHORT_DURATION;
     });
-
-    const shortsVideos = shuffleArray(rawShortsVideos);
 
     // Use real shorts if available, fill remaining with placeholders
     // offset allows second ShortsShelf to show different videos
