@@ -18,6 +18,14 @@ export const metadata: Metadata = {
   description: "The official video platform for Net Post Media, llc",
 };
 
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  viewportFit: 'cover', // Critical for full screen on iPhone
+  themeColor: '#000000',
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
