@@ -16,13 +16,18 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Juneteenth Tube",
   description: "The official video platform for Net Post Media, llc",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Juneteenth Tube",
+  },
 };
 
 export const viewport = {
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
-  viewportFit: 'cover', // Critical for full screen on iPhone
+  viewportFit: 'cover',
   themeColor: '#000000',
 };
 
