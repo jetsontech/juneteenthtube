@@ -21,7 +21,7 @@ export const LoginSplash: React.FC<LoginSplashProps> = ({ onUnlock }) => {
 
     const handleUnlock = (e?: React.FormEvent) => {
         e?.preventDefault();
-        if (accessCode.toUpperCase() === 'JTA2026') {
+        if (accessCode === '9999') {
             setPhase('welcome');
             sessionStorage.setItem('guest_access_granted', 'true');
         } else {
@@ -46,11 +46,11 @@ export const LoginSplash: React.FC<LoginSplashProps> = ({ onUnlock }) => {
             "fixed inset-0 z-[9999] flex items-center justify-center bg-[#050505] transition-all duration-1000 ease-in-out overflow-hidden",
             isExiting ? "opacity-0 scale-110 pointer-events-none" : "opacity-100 scale-100"
         )}>
-            {/* Animated Background Elements */}
+            {/* Animated Background Elements - PERFORMANCE: Reduced blur for mobile */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute -top-[20%] -left-[10%] w-[60%] h-[60%] bg-red-600/10 rounded-full blur-[120px] animate-pulse" />
-                <div className="absolute -bottom-[20%] -right-[10%] w-[60%] h-[60%] bg-yellow-500/10 rounded-full blur-[120px] animate-pulse delay-1s" />
-                <div className="absolute top-[30%] left-[40%] w-[30%] h-[30%] bg-green-500/5 rounded-full blur-[100px] animate-pulse delay-2s" />
+                <div className="absolute -top-[20%] -left-[10%] w-[60%] h-[60%] bg-red-600/10 rounded-full blur-[40px]" />
+                <div className="absolute -bottom-[20%] -right-[10%] w-[60%] h-[60%] bg-yellow-500/10 rounded-full blur-[40px]" />
+                <div className="absolute top-[30%] left-[40%] w-[30%] h-[30%] bg-green-500/5 rounded-full blur-[40px]" />
             </div>
 
             {/* Subtle Grid Overlay */}

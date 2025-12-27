@@ -21,7 +21,7 @@ const MOCK_VIDEOS: VideoProps[] = [
 
 interface VideoContextType {
     videos: VideoProps[];
-    uploadVideo: (file: File, category?: string) => Promise<void>;
+    uploadVideo: (file: File, category?: string, state?: string) => Promise<void>;
     getVideoById: (id: string) => VideoProps | undefined;
     isUploading: boolean;
     uploadProgress: number;
@@ -50,6 +50,7 @@ interface DBVideo {
     duration?: string;
     video_url: string;
     category?: string;
+    state?: string;
 }
 
 const VideoContext = createContext<VideoContextType | undefined>(undefined);
@@ -101,7 +102,8 @@ export function VideoProvider({ children }: { children: ReactNode }) {
                         duration: video.duration || mockChannel.duration || "5:00",
                         videoUrl: video.video_url,
                         category: video.category || "All",
-                        createdAt: video.created_at
+                        createdAt: video.created_at,
+                        state: video.state || "GLOBAL"
                     };
                 });
                 setVideos(dbVideos);
@@ -524,7 +526,7 @@ export function VideoProvider({ children }: { children: ReactNode }) {
     };
 
 
-    const uploadVideo = async (file: File, category: string = "All") => {
+    const uploadVideo = async (file: File, category: string = "All", state: string = "GLOBAL") => {
         setIsUploading(true);
         setUploadProgress(0);
 
@@ -619,7 +621,8 @@ export function VideoProvider({ children }: { children: ReactNode }) {
                         video_url: publicUrl,
                         thumbnail_url: "https://images.unsplash.com/photo-1610483145520-412708686f94?q=80&w=600&auto=format&fit=crop",
                         category: category,
-                        duration: duration
+                        duration: duration,
+                        state: state
                     }
                 ])
                 .select()

@@ -26,12 +26,13 @@ const PLACEHOLDER_SHORTS: ShortVideo[] = [
     { id: "p6", title: "Upload Your First Short", views: "0", thumbnail: "https://placehold.co/180x320/272727/666666?text=+", isPlaceholder: true },
 ];
 
-function ShortCard({ short, onDelete, onChangeThumbnail, onChangeVideo, onRename }: {
+function ShortCard({ short, onDelete, onChangeThumbnail, onChangeVideo, onRename, landscapeMode = false }: {
     short: ShortVideo;
     onDelete?: (id: string) => void;
     onChangeThumbnail?: (id: string, file: File) => void;
     onChangeVideo?: (id: string, file: File) => void;
     onRename?: (id: string, newTitle: string) => void;
+    landscapeMode?: boolean;
 }) {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
@@ -153,7 +154,10 @@ function ShortCard({ short, onDelete, onChangeThumbnail, onChangeVideo, onRename
     if (short.isPlaceholder) {
         return (
             <div className="group relative">
-                <div className="relative aspect-[9/16] rounded-xl overflow-hidden bg-[#272727] flex items-center justify-center">
+                <div className={cn(
+                    "relative rounded-xl overflow-hidden bg-[#272727] flex items-center justify-center",
+                    landscapeMode ? "aspect-video" : "aspect-[9/16]"
+                )}>
                     <div className="text-center p-2">
                         <div className="w-10 h-10 mx-auto mb-2 rounded-full bg-[#3f3f3f] flex items-center justify-center">
                             <Play className="w-5 h-5 text-gray-500" />
@@ -192,7 +196,8 @@ function ShortCard({ short, onDelete, onChangeThumbnail, onChangeVideo, onRename
 
             <Link href={short.videoUrl ? `/shorts/${short.id}` : "#"} className="block">
                 <div className={cn(
-                    "relative aspect-[9/16] rounded-xl overflow-hidden bg-[#1a1a1a]",
+                    "relative rounded-xl overflow-hidden bg-[#1a1a1a]",
+                    landscapeMode ? "aspect-video" : "aspect-[9/16]",
                     (isUploadingThumb || isUploadingVideo) && "opacity-50"
                 )}>
                     <img
@@ -296,7 +301,7 @@ function ShortCard({ short, onDelete, onChangeThumbnail, onChangeVideo, onRename
     );
 }
 
-export function ShortsShelf({ offset = 0 }: { offset?: number } = {}) {
+export function ShortsShelf({ offset = 0, horizontal = false, landscapeMode = false }: { offset?: number; horizontal?: boolean; landscapeMode?: boolean } = {}) {
     const { videos, deleteVideo, updateVideoThumbnail, updateVideoFile, updateVideoTitle } = useVideo();
     const { isOpen: isSidebarOpen } = useSidebar();
     const [isMobile, setIsMobile] = useState(false);
@@ -383,6 +388,9 @@ export function ShortsShelf({ offset = 0 }: { offset?: number } = {}) {
             : "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
     );
 
+    // Horizontal layout class for scrolling row view
+    const horizontalClass = "flex gap-3 overflow-x-auto scrollbar-none pb-2";
+
     return (
         <div className="py-6 border-y border-white/5 my-6">
             <div className="flex items-center gap-2 mb-4">
@@ -392,16 +400,18 @@ export function ShortsShelf({ offset = 0 }: { offset?: number } = {}) {
                 <h2 className="text-lg font-semibold text-white">Shorts</h2>
             </div>
 
-            <div className={gridClass}>
+            <div className={horizontal ? horizontalClass : gridClass}>
                 {shorts.map((short) => (
-                    <ShortCard
-                        key={short.id}
-                        short={short}
-                        onDelete={!short.isPlaceholder ? handleDelete : undefined}
-                        onChangeThumbnail={!short.isPlaceholder ? handleChangeThumbnail : undefined}
-                        onChangeVideo={!short.isPlaceholder ? handleChangeVideo : undefined}
-                        onRename={!short.isPlaceholder ? handleRename : undefined}
-                    />
+                    <div key={short.id} className={horizontal ? "flex-shrink-0 w-[140px] sm:w-[160px] md:w-[180px]" : ""}>
+                        <ShortCard
+                            short={short}
+                            onDelete={!short.isPlaceholder ? handleDelete : undefined}
+                            onChangeThumbnail={!short.isPlaceholder ? handleChangeThumbnail : undefined}
+                            onChangeVideo={!short.isPlaceholder ? handleChangeVideo : undefined}
+                            onRename={!short.isPlaceholder ? handleRename : undefined}
+                            landscapeMode={landscapeMode}
+                        />
+                    </div>
                 ))}
             </div>
         </div>

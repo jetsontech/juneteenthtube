@@ -35,6 +35,8 @@ export function CustomPlayer({ src, poster }: CustomPlayerProps) {
     const [hasEnded, setHasEnded] = useState(false);
     const [showControls, setShowControls] = useState(true);
     const [isZoomed, setIsZoomed] = useState(false); // Default to contain to avoid blurry stretched thumbnails
+    const [isBuffering, setIsBuffering] = useState(true); // Track buffering state for quality fix
+    const [hasStartedPlaying, setHasStartedPlaying] = useState(false); // Track if video ever started
 
     // User Interaction State
     const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -184,18 +186,36 @@ export function CustomPlayer({ src, poster }: CustomPlayerProps) {
         }
     };
 
-    // Toggle Fullscreen
+    // Toggle Fullscreen - with iOS Safari workaround
     const toggleFullscreen = (e?: React.MouseEvent) => {
         e?.stopPropagation();
-        if (!containerRef.current) return;
+        if (!containerRef.current || !videoRef.current) return;
 
+        const video = videoRef.current as any;
+
+        // iOS Safari: Use webkitEnterFullscreen directly on video element
+        // This is required because iOS doesn't support requestFullscreen on containers
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+            (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+        if (isIOS) {
+            // iOS requires using the video element's native fullscreen
+            if (video.webkitEnterFullscreen) {
+                video.webkitEnterFullscreen();
+                return;
+            } else if (video.webkitDisplayingFullscreen) {
+                video.webkitExitFullscreen?.();
+                return;
+            }
+        }
+
+        // Standard fullscreen API for other browsers
         if (!document.fullscreenElement) {
             containerRef.current.requestFullscreen().catch(err => {
                 console.error(`Error attempting to enable fullscreen: ${err.message}`);
-                // Fallback for iOS video element fullscreen if container fails (safari on iPhone often requires video element)
-                // But generally for Custom Controls on iOS, we want to stay inline OR use the container.
-                if (videoRef.current && (videoRef.current as any).webkitEnterFullscreen) {
-                    (videoRef.current as any).webkitEnterFullscreen();
+                // Final fallback for any webkit browser
+                if (video.webkitEnterFullscreen) {
+                    video.webkitEnterFullscreen();
                 }
             });
         } else {
@@ -253,6 +273,7 @@ export function CustomPlayer({ src, poster }: CustomPlayerProps) {
             <video
                 ref={videoRef}
                 src={src}
+                preload="auto"
                 className={cn(
                     "w-full h-full flex-grow pointer-events-none transition-all duration-300",
                     isZoomed ? "object-cover" : "object-contain"
@@ -260,6 +281,12 @@ export function CustomPlayer({ src, poster }: CustomPlayerProps) {
                 onTimeUpdate={onTimeUpdate}
                 onLoadedMetadata={onLoadedMetadata}
                 onEnded={onEnded}
+                onWaiting={() => setIsBuffering(true)}
+                onCanPlayThrough={() => setIsBuffering(false)}
+                onPlaying={() => {
+                    setIsBuffering(false);
+                    setHasStartedPlaying(true);
+                }}
                 playsInline
                 webkit-playsinline="true"
                 // @ts-ignore
@@ -268,17 +295,19 @@ export function CustomPlayer({ src, poster }: CustomPlayerProps) {
                 disableRemotePlayback={false} // Explicitly allow casting
             />
 
-            {/* High-Quality Poster Overlay - Replaces blurry native poster */}
-            {poster && !isPlaying && !hasEnded && (
+            {/* High-Quality Poster Overlay - Only shows before first play or after video ends */}
+            {poster && (!hasStartedPlaying || hasEnded) && (
                 <div className="absolute inset-0 z-[1]">
                     <img
                         src={poster}
                         alt="Video thumbnail"
+                        loading="eager"
+                        decoding="sync"
+                        fetchPriority="high"
                         className={cn(
                             "w-full h-full",
                             isZoomed ? "object-cover" : "object-contain"
                         )}
-                        style={{ imageRendering: "auto" }}
                     />
                 </div>
             )}
@@ -323,7 +352,10 @@ export function CustomPlayer({ src, poster }: CustomPlayerProps) {
             >
                 <div className="px-4 pb-4 pt-12 bg-gradient-to-t from-black/90 via-black/40 to-transparent" onClick={(e) => e.stopPropagation()}>
                     {/* Progress Bar */}
-                    <div className="relative group/progress h-2 mb-4 cursor-pointer w-full">
+                    <div
+                        className="relative group/progress h-2 mb-4 cursor-pointer w-full"
+                        style={{ '--progress-percent': `${duration > 0 ? (currentTime / duration) * 100 : 0}%` } as React.CSSProperties}
+                    >
                         {/* Background Track */}
                         <div className="absolute top-0 left-0 right-0 bottom-0 bg-white/30 rounded-full overflow-hidden">
                             {/* Buffered/Progress fill would go here */}
@@ -344,17 +376,15 @@ export function CustomPlayer({ src, poster }: CustomPlayerProps) {
 
                         {/* Visual Progress Fill */}
                         <div
-                            className="absolute top-0 left-0 h-full bg-j-red rounded-full z-10 pointer-events-none"
-                            style={{ width: `${(currentTime / duration) * 100}%` }}
+                            className="absolute top-0 left-0 h-full bg-j-red rounded-full z-10 pointer-events-none w-[var(--progress-percent)]"
                         />
 
                         {/* Scrubber Knob (Visual only) */}
                         <div
                             className="
                             absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full shadow-md z-10 pointer-events-none
-                            scale-0 group-hover/progress:scale-100 transition-transform
+                            scale-0 group-hover/progress:scale-100 transition-transform left-[var(--progress-percent)]
                         "
-                            style={{ left: `${(currentTime / duration) * 100}%` }}
                         />
                     </div>
 

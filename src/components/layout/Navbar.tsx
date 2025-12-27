@@ -6,7 +6,10 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { useVideo } from "@/context/VideoContext";
 import { useAuth } from "@/context/AuthContext";
+import { useStateFilter } from "@/context/StateContext";
 import { AuthModal } from "../auth/AuthModal";
+import { StateSelector } from "./StateSelector";
+import { US_STATES, DEFAULT_STATE, USState } from "@/lib/states";
 
 interface NavbarProps {
     onMenuClick: () => void;
@@ -18,8 +21,10 @@ export function Navbar({ onMenuClick }: NavbarProps) {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [isUploadOpen, setIsUploadOpen] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState<string>("All");
+    const [selectedUploadState, setSelectedUploadState] = useState<USState>(DEFAULT_STATE);
     const { uploadVideo, isUploading, uploadProgress, cancelUpload } = useVideo();
     const { user, signOut } = useAuth();
+    const { selectedState, setSelectedState } = useStateFilter();
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
     const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
     const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
@@ -57,10 +62,11 @@ export function Navbar({ onMenuClick }: NavbarProps) {
 
         try {
             // CRITICAL: Await the upload so errors are caught here!
-            await uploadVideo(file, selectedCategory);
+            await uploadVideo(file, selectedCategory, selectedUploadState.code);
 
             setIsUploadOpen(false);
             setSelectedCategory("All"); // Reset category after upload
+            setSelectedUploadState(DEFAULT_STATE); // Reset state after upload
             input.value = "";
             if (confirm("Upload Successful! Press OK to refresh and see your video.")) {
                 window.location.reload();
@@ -113,6 +119,10 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                             Juneteenth<span className="text-j-red">Tube</span>
                         </span>
                     </Link>
+                    <StateSelector
+                        selectedState={selectedState}
+                        onStateChange={setSelectedState}
+                    />
                 </div>
 
                 {/* Middle Section - Search */}
@@ -303,6 +313,29 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                                     {CATEGORIES.map((cat) => (
                                         <option key={cat} value={cat} className="bg-gray-900 text-white">
                                             {cat}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            {/* State Selector */}
+                            <div className="w-full max-w-xs">
+                                <label className="block text-sm font-medium text-gray-300 mb-2">
+                                    State / Region
+                                </label>
+                                <select
+                                    value={selectedUploadState.code}
+                                    onChange={(e) => {
+                                        const state = US_STATES.find(s => s.code === e.target.value);
+                                        if (state) setSelectedUploadState(state);
+                                    }}
+                                    className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-j-gold/50 focus:border-j-gold/50 transition-all"
+                                    disabled={isUploading}
+                                    aria-label="Select video state/region"
+                                >
+                                    {US_STATES.map((state) => (
+                                        <option key={state.code} value={state.code} className="bg-gray-900 text-white">
+                                            {state.name}
                                         </option>
                                     ))}
                                 </select>

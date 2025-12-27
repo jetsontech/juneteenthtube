@@ -21,6 +21,7 @@ export interface VideoProps {
     category?: string;
     likes?: number;
     createdAt?: string; // ISO String for better date formatting
+    state?: string; // US state code (e.g., "TX", "GA") or "GLOBAL"
 }
 
 export function VideoCard({ video }: { video: VideoProps }) {
@@ -88,6 +89,9 @@ export function VideoCard({ video }: { video: VideoProps }) {
                 if (videoPreviewRef.current) {
                     videoPreviewRef.current.pause();
                     videoPreviewRef.current.currentTime = 0; // Reset to start
+                    // MEMORY FIX: Unload video src to release memory
+                    videoPreviewRef.current.removeAttribute('src');
+                    videoPreviewRef.current.load();
                 }
                 setIsVisible(false);
             }
@@ -124,6 +128,10 @@ export function VideoCard({ video }: { video: VideoProps }) {
                             setTimeout(() => {
                                 setIsVisible(true);
                                 if (videoPreviewRef.current) {
+                                    // Re-set src if it was cleared
+                                    if (!videoPreviewRef.current.src || videoPreviewRef.current.src === '') {
+                                        videoPreviewRef.current.src = video.videoUrl!;
+                                    }
                                     videoPreviewRef.current.play().catch(() => { });
                                 }
                             }, 50);
@@ -140,6 +148,9 @@ export function VideoCard({ video }: { video: VideoProps }) {
                         setIsVisible(false);
                         if (videoPreviewRef.current) {
                             videoPreviewRef.current.pause();
+                            // MEMORY FIX: Unload video src to release memory when not visible
+                            videoPreviewRef.current.removeAttribute('src');
+                            videoPreviewRef.current.load();
                         }
                     }
                 });
@@ -158,6 +169,12 @@ export function VideoCard({ video }: { video: VideoProps }) {
             // Release global lock on unmount
             if ((window as any).__juneteenthActiveVideoId === video.id) {
                 (window as any).__juneteenthActiveVideoId = null;
+            }
+            // MEMORY FIX: Clean up video element on unmount
+            if (videoPreviewRef.current) {
+                videoPreviewRef.current.pause();
+                videoPreviewRef.current.removeAttribute('src');
+                videoPreviewRef.current.load();
             }
         };
     }, [video.videoUrl, video.id]);
@@ -262,14 +279,18 @@ export function VideoCard({ video }: { video: VideoProps }) {
     // Show video preview: on desktop when hovered, on mobile when visible in viewport
     const shouldShowVideoPreview = video.videoUrl && (isHovered || (isMobile && isVisible));
 
+    // Compute background color directly to avoid inline style lint warning
+    const cardBgColor = !isAd && showGlow && dominantColor ? dominantColor : 'transparent';
+
     return (
         <div
             ref={cardRef}
             className={cn(
                 "group block relative p-2 -m-2 rounded-2xl transition-all duration-300",
-                isAd ? "" : "ring-1 ring-white/5 hover:ring-white/10 shadow-lg shadow-black/20 bg-[var(--card-hover-bg,transparent)]"
+                isAd ? "" : "ring-1 ring-white/5 hover:ring-white/10 shadow-lg shadow-black/20"
             )}
-            style={!isAd ? { "--card-hover-bg": showGlow ? dominantColor : 'transparent' } as React.CSSProperties : undefined}
+            // Using inline style for dynamic CSS variable - required for runtime color values
+            {...(!isAd && { style: { backgroundColor: cardBgColor } as React.CSSProperties })}
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
         >

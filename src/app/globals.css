@@ -12,6 +12,7 @@
   --color-j-black: #000000;
 }
 
+/* stylelint-disable-next-line at-rule-no-unknown */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -50,6 +51,7 @@
   }
 }
 
+/* stylelint-disable-next-line at-rule-no-unknown */
 @utility no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -76,6 +78,7 @@ body::-webkit-scrollbar {
 
 
 /* Animated Background - Matching ACCESS PLATFORM / Login Splash */
+/* PERFORMANCE: Static gradient instead of infinite animation to prevent mobile overheating */
 body::before {
   content: '';
   position: fixed;
@@ -86,19 +89,7 @@ body::before {
     radial-gradient(ellipse 60% 60% at -10% -20%, rgba(220, 38, 38, 0.15), transparent 50%),
     radial-gradient(ellipse 60% 60% at 110% 120%, rgba(234, 179, 8, 0.15), transparent 50%),
     radial-gradient(ellipse 30% 30% at 40% 30%, rgba(34, 197, 94, 0.08), transparent 50%);
-  animation: backgroundPulse 6s ease-in-out infinite alternate;
-}
-
-@keyframes backgroundPulse {
-  0% {
-    opacity: 0.8;
-    transform: scale(1);
-  }
-
-  100% {
-    opacity: 1;
-    transform: scale(1.02);
-  }
+  /* Removed infinite animation - was causing device heat */
 }
 
 /* Noise texture overlay - Matching ACCESS PLATFORM / Login Splash */

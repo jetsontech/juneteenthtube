@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { VideoProvider } from "@/context/VideoContext";
 import { SidebarProvider, useSidebar } from "@/context/SidebarContext";
 import { AuthProvider } from "@/context/AuthContext";
+import { StateProvider } from "@/context/StateContext";
 import { LoginSplash } from "./LoginSplash";
 import { useState, useEffect } from "react";
 
@@ -49,9 +50,11 @@ export default function ClientShell({ children }: { children: React.ReactNode })
     return (
         <AuthProvider>
             <SidebarProvider>
-                <VideoProvider>
-                    <ShellContent>{children}</ShellContent>
-                </VideoProvider>
+                <StateProvider>
+                    <VideoProvider>
+                        <ShellContent>{children}</ShellContent>
+                    </VideoProvider>
+                </StateProvider>
             </SidebarProvider>
         </AuthProvider>
     );

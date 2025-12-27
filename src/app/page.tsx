@@ -6,6 +6,7 @@ import { VideoCard, type VideoProps } from "@/components/video/VideoCard";
 import { ShortsShelf } from "@/components/video/ShortsShelf";
 import { useVideo } from "@/context/VideoContext";
 import { useSidebar } from "@/context/SidebarContext";
+import { useStateFilter } from "@/context/StateContext";
 import { useSearchParams } from "next/navigation";
 import { cn } from "@/lib/utils";
 
@@ -14,6 +15,7 @@ const CATEGORIES = ["All", "Parade", "Music", "Food", "History", "Speeches", "Li
 function HomeContent() {
   const { videos } = useVideo();
   const { isOpen: isSidebarOpen } = useSidebar();
+  const { selectedState } = useStateFilter();
   const searchParams = useSearchParams();
   const searchQuery = searchParams.get('q')?.toLowerCase() || "";
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
@@ -42,7 +44,7 @@ function HomeContent() {
     return newArray;
   };
 
-  // Filter videos by category AND search query, EXCLUDING shorts (≤ 60s)
+  // Filter videos by category, search query, state, EXCLUDING shorts (≤ 60s)
   const MAX_SHORT_DURATION = 60;
   const rawFilteredVideos = videos.filter(video => {
     const matchesCategory = selectedCategory === "All" || video.category === selectedCategory;
@@ -50,10 +52,15 @@ function HomeContent() {
       video.title.toLowerCase().includes(searchQuery) ||
       video.channelName.toLowerCase().includes(searchQuery);
 
+    // State filter: GLOBAL shows all videos, otherwise match the selected state
+    const matchesState = selectedState.code === "GLOBAL" ||
+      video.state === selectedState.code ||
+      video.state === "GLOBAL"; // Global videos always show regardless of filter
+
     const durationInSeconds = parseDurationToSeconds(video.duration);
     const isShort = durationInSeconds > 0 && durationInSeconds <= MAX_SHORT_DURATION;
 
-    return matchesCategory && matchesSearch && !isShort;
+    return matchesCategory && matchesSearch && matchesState && !isShort;
   });
 
   // Pin Ad Video (if exists in data or use placeholder)
@@ -127,8 +134,8 @@ function HomeContent() {
           ))}
         </div>
 
-        {/* Second Shorts Section - shows next set of videos */}
-        {selectedCategory === "All" && <ShortsShelf offset={6} />}
+        {/* Second Shorts Section - landscape/horizontal video format */}
+        {selectedCategory === "All" && <ShortsShelf offset={6} landscapeMode />}
 
         {/* Remaining Videos */}
         {filteredVideos.length > 6 && (
