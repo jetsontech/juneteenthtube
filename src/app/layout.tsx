@@ -27,8 +27,7 @@ export const metadata: Metadata = {
 export const viewport = {
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
-  viewportFit: 'cover',
+  viewportFit: 'auto',
   themeColor: '#000000',
 };
 
@@ -40,7 +39,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#121212] text-white`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-black text-white`}
       >
         <ClientShell>
           {children}

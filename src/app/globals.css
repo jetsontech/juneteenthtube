@@ -61,19 +61,47 @@
   }
 }
 
+html {
+  background-color: #000000 !important;
+}
+
 body {
-  background-color: #050505;
-  color: var(--foreground);
-  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  min-height: 100dvh;
+  width: 100%;
+  margin: 0;
+  padding: 0;
   overflow-x: hidden;
+  background-color: #000000 !important;
+  color: var(--foreground);
+  font-family: var(--font-sans), sans-serif;
   position: relative;
-  /* Hide scrollbar on mobile */
   -ms-overflow-style: none;
   scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  /* Safe area support for mobile devices */
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Lock body scroll when mobile sidebar is open */
+body.sidebar-open-mobile {
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
 }
 
 body::-webkit-scrollbar {
-  display: none;
+  display: none !important;
+}
+
+/* Hide scrollbars on ALL overflow containers (for mobile) */
+* {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+*::-webkit-scrollbar {
+  display: none !important;
 }
 
 

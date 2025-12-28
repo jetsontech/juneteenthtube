@@ -52,6 +52,21 @@ export function CustomPlayer({ src, poster }: CustomPlayerProps) {
         }
     }, []);
 
+    // CRITICAL: Cleanup body scroll lock on unmount or when CSS fullscreen exits
+    useEffect(() => {
+        return () => {
+            // Always restore scroll when component unmounts
+            document.body.style.overflow = '';
+        };
+    }, []);
+
+    // Ensure body scroll is restored when exiting CSS fullscreen
+    useEffect(() => {
+        if (!isCssFullscreen) {
+            document.body.style.overflow = '';
+        }
+    }, [isCssFullscreen]);
+
     // Format time helper
     const formatTime = (time: number) => {
         if (!isFinite(time)) return "0:00";
@@ -192,7 +207,7 @@ export function CustomPlayer({ src, poster }: CustomPlayerProps) {
         if (!containerRef.current || !videoRef.current) return;
 
         const video = videoRef.current as any;
-        const isMobile = window.innerWidth < 768;
+        const isMobile = /iPhone|iPad|iPod|Android|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 1024;
 
         // Mobile: Use CSS Overlay "Pseudo-Fullscreen" to allow force-zoom/cover
         if (isMobile) {
@@ -247,7 +262,7 @@ export function CustomPlayer({ src, poster }: CustomPlayerProps) {
         if (isPlaying && !hasEnded) {
             controlsTimeoutRef.current = setTimeout(() => {
                 setShowControls(false);
-            }, 3000);
+            }, 6000);
         }
     };
 
@@ -267,7 +282,7 @@ export function CustomPlayer({ src, poster }: CustomPlayerProps) {
             ref={containerRef}
             className={cn(
                 "group relative bg-black overflow-hidden flex flex-col",
-                isCssFullscreen ? "fixed inset-0 z-[9999] w-screen h-[100dvh]" : "w-full h-full"
+                isCssFullscreen ? "fixed inset-0 z-[9999] w-full" : "w-full h-full"
             )}
             onMouseMove={handleMouseMove}
             onClick={resetControlsTimeout}
@@ -278,7 +293,7 @@ export function CustomPlayer({ src, poster }: CustomPlayerProps) {
                 src={src}
                 preload="auto"
                 className={cn(
-                    "w-full h-full flex-grow pointer-events-none transition-all duration-300",
+                    "w-full h-full flex-grow pointer-events-none",
                     (isZoomed || isCssFullscreen) ? "object-cover" : "object-contain"
                 )}
                 onTimeUpdate={onTimeUpdate}
@@ -321,27 +336,13 @@ export function CustomPlayer({ src, poster }: CustomPlayerProps) {
                 onClick={togglePlay}
             />
 
-            {/* Big Play/Replay Overlay - HIDDEN ON MOBILE */}
-            {(!isPlaying || hasEnded) && (
-                <div
-                    className="absolute inset-0 hidden sm:flex items-center justify-center bg-black/30 cursor-pointer z-10"
-                    onClick={togglePlay}
-                >
-                    <div className="p-6 bg-j-red/90 rounded-full shadow-2xl hover:scale-110 transition-transform backdrop-blur-sm group/btn">
-                        {hasEnded ? (
-                            <RotateCcw className="w-12 h-12 text-white ml-1 group-hover/btn:rotate-[-45deg] transition-transform" />
-                        ) : (
-                            <Play className="w-12 h-12 text-white ml-1" />
-                        )}
-                    </div>
-                </div>
-            )}
+            {/* Big Play/Replay Overlay - REMOVED per user request */}
 
             {/* Controls Bar */}
             <div
                 className={`
                     absolute inset-0 z-20
-                    bg-black/20 backdrop-blur-[2px]
+                    bg-transparent
                     transition-opacity duration-300 flex flex-col justify-end
                     ${showControls ? 'opacity-100 visible' : 'opacity-0 invisible'}
                 `}
@@ -350,7 +351,16 @@ export function CustomPlayer({ src, poster }: CustomPlayerProps) {
                     setShowControls(false);
                 }}
             >
-                <div className="px-4 pb-4 pt-12 bg-gradient-to-t from-black/90 via-black/40 to-transparent" onClick={(e) => e.stopPropagation()}>
+                <div
+                    className="
+                        w-full 
+                        px-[max(1rem,env(safe-area-inset-left),env(safe-area-inset-right))]
+                        pb-[max(1rem,env(safe-area-inset-bottom))] 
+                        pt-12 
+                        bg-gradient-to-t from-black/90 via-black/40 to-transparent
+                    "
+                    onClick={(e) => e.stopPropagation()}
+                >
                     {/* Progress Bar */}
                     <div
                         className="relative group/progress h-2 mb-4 cursor-pointer w-full"
@@ -393,10 +403,11 @@ export function CustomPlayer({ src, poster }: CustomPlayerProps) {
                             {/* Play/Pause */}
                             <button
                                 onClick={togglePlay}
-                                className="text-white hover:text-j-red transition-colors focus:outline-none"
+                                className="text-white hover:text-j-red transition-colors focus:outline-none p-4 -m-4 relative z-50 pointer-events-auto touch-action-manipulation"
+                                style={{ touchAction: 'manipulation' }}
                                 aria-label={isPlaying ? "Pause" : "Play"}
                             >
-                                {isPlaying ? <Pause className="w-7 h-7" /> : <Play className="w-7 h-7" />}
+                                {isPlaying ? <Pause className="w-8 h-8" /> : <Play className="w-8 h-8" />}
                             </button>
 
                             {/* Volume Group */}
@@ -435,37 +446,41 @@ export function CustomPlayer({ src, poster }: CustomPlayerProps) {
                                     setIsZoomed(!isZoomed);
                                 }}
                                 className={cn(
-                                    "text-white hover:text-j-gold transition-colors focus:outline-none",
+                                    "text-white hover:text-j-gold transition-colors focus:outline-none p-4 -m-4 relative z-50 pointer-events-auto",
                                     isZoomed && "text-j-gold"
                                 )}
+                                style={{ touchAction: 'manipulation' }}
                                 title={isZoomed ? "Original Aspect" : "Zoom to Fill"}
                             >
-                                <Maximize2 className="w-5 h-5" />
+                                <Maximize2 className="w-6 h-6" />
                             </button>
                             <button
                                 onClick={handleCast}
-                                className="text-white hover:text-white/80 transition-colors focus:outline-none z-50 relative pointer-events-auto"
+                                className="text-white hover:text-white/80 transition-colors focus:outline-none p-4 -m-4 relative z-50 pointer-events-auto"
+                                style={{ touchAction: 'manipulation' }}
                                 title="Cast to Device"
                             >
-                                <Cast className="w-5 h-5" />
+                                <Cast className="w-6 h-6" />
                             </button>
                             <button
                                 onClick={togglePip}
-                                className="text-white hover:text-white/80 transition-colors focus:outline-none"
+                                className="text-white hover:text-white/80 transition-colors focus:outline-none p-4 -m-4 relative z-50 pointer-events-auto"
+                                style={{ touchAction: 'manipulation' }}
                                 title="Picture-in-Picture"
                             >
-                                <PictureInPicture className="w-5 h-5" />
+                                <PictureInPicture className="w-6 h-6" />
                             </button>
                             <button
                                 onClick={toggleFullscreen}
-                                className="text-white hover:text-white/80 transition-colors focus:outline-none"
+                                className="text-white hover:text-white/80 transition-colors focus:outline-none p-4 -m-4 relative z-50 pointer-events-auto"
+                                style={{ touchAction: 'manipulation' }}
                             >
-                                {isFullscreen || isCssFullscreen ? <Minimize className="w-6 h-6" /> : <Maximize className="w-6 h-6" />}
+                                {isFullscreen || isCssFullscreen ? <Minimize className="w-7 h-7" /> : <Maximize className="w-7 h-7" />}
                             </button>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
+        </div >
     );
 }

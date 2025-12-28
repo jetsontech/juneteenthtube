@@ -23,6 +23,20 @@ function ShellContent({ children }: { children: React.ReactNode }) {
         setIsChecking(false);
     }, []);
 
+    // Lock body scroll on mobile when sidebar is open
+    useEffect(() => {
+        if (isOpen && window.innerWidth < 640) { // sm breakpoint
+            document.body.classList.add('sidebar-open-mobile');
+        } else {
+            document.body.classList.remove('sidebar-open-mobile');
+        }
+
+        // Cleanup on unmount
+        return () => {
+            document.body.classList.remove('sidebar-open-mobile');
+        };
+    }, [isOpen]);
+
     if (isChecking) return null;
 
     return (
@@ -30,7 +44,7 @@ function ShellContent({ children }: { children: React.ReactNode }) {
             {isLocked && <LoginSplash onUnlock={() => setIsLocked(false)} />}
 
             <Navbar onMenuClick={toggle} />
-            <Sidebar isOpen={isOpen} />
+            <Sidebar isOpen={isOpen} onClose={toggle} />
 
             <main
                 className={cn(
