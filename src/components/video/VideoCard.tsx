@@ -155,8 +155,8 @@ export function VideoCard({ video }: { video: VideoProps }) {
                 });
             },
             {
-                threshold: 0.75, // Stricter: 75% visible to play on mobile
-                rootMargin: '-20% 0px' // High margin to focus on center of screen
+                threshold: 0.6, // Relaxed: 60% visible prevents "skipping" while scrolling
+                rootMargin: '-10% 0px' // Slightly wider check
             }
         );
 

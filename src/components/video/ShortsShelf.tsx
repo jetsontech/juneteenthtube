@@ -368,8 +368,8 @@ export function ShortsShelf({ offset = 0, horizontal = false, landscapeMode = fa
     const gridClass = cn(
         "grid gap-3",
         isSidebarOpen
-            ? "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
-            : "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
+            ? "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 min-[1180px]:grid-cols-5 lg:grid-cols-5"
+            : "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 min-[1180px]:grid-cols-6 xl:grid-cols-6"
     );
 
     // Horizontal layout class for scrolling row view

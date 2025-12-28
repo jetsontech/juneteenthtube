@@ -62,10 +62,10 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                     "fixed left-0 bottom-0 z-[100] bg-[#0f0f0f]/95 backdrop-blur-xl overflow-y-auto transition-all duration-300 scrollbar-none",
                     // Mobile: Slide in/out, always w-64 when visible/animating
                     isOpen ? "translate-x-0 w-64" : "-translate-x-full w-64",
-                    // Desktop: Always visible (translate-0). 
-                    // When expanded (isOpen or Hover), it covers content (w-64). When collapsed, it's just icons (w-[72px]).
+                    // Desktop: Always visible (translate-0), toggle width
                     "sm:translate-x-0",
-                    isExpanded ? "sm:w-64 shadow-2xl shadow-black/80 border-r border-white/5" : "sm:w-[72px]",
+                    isExpanded ? "sm:w-64" : "sm:w-[72px]",
+                    (isHovered && !isOpen) && "shadow-2xl shadow-black/50 border-r border-white/5"
                 )}
                 style={{
                     top: 'var(--navbar-height)',
