@@ -90,7 +90,7 @@ function HomeContent() {
   const videoGridClass = cn(
     "grid gap-x-4",
     "gap-y-8 sm:gap-y-12 lg:gap-y-14", // Increased vertical gap for YouTube-style airy look
-    "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+    "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5"
   );
 
   return (

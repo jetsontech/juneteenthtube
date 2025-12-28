@@ -54,9 +54,8 @@ export function VideoCard({ video }: { video: VideoProps }) {
 
     const handleMouseEnter = () => {
         setIsCardHovered(true);
-        hoverTimeout.current = setTimeout(() => {
-            setIsHovered(true);
-        }, 600); // 600ms delay like YouTube
+        // Instant preview on desktop (no delay)
+        setIsHovered(true);
     };
 
     const handleMouseLeave = () => {
@@ -156,8 +155,8 @@ export function VideoCard({ video }: { video: VideoProps }) {
                 });
             },
             {
-                threshold: 0.6, // Require 60% visible (more strict than before)
-                rootMargin: '-10% 0px' // Shrink detection area to favor center of screen
+                threshold: 0.75, // Stricter: 75% visible to play on mobile
+                rootMargin: '-20% 0px' // High margin to focus on center of screen
             }
         );
 

@@ -14,7 +14,7 @@ function ShellContent({ children }: { children: React.ReactNode }) {
     const { isOpen, toggle, setIsOpen } = useSidebar();
     const [isLocked, setIsLocked] = useState(true);
     const [isChecking, setIsChecking] = useState(true);
-    const [touchStart, setTouchStart] = useState<number | null>(null);
+    const [touchStart, setTouchStart] = useState<{ x: number, y: number } | null>(null);
 
     useEffect(() => {
         const hasAccess = sessionStorage.getItem('guest_access_granted');
@@ -36,24 +36,33 @@ function ShellContent({ children }: { children: React.ReactNode }) {
 
     // Simple Swipe Detection
     const handleTouchStart = (e: React.TouchEvent) => {
-        setTouchStart(e.targetTouches[0].clientX);
+        setTouchStart({
+            x: e.targetTouches[0].clientX,
+            y: e.targetTouches[0].clientY
+        });
     };
 
     const handleTouchEnd = (e: React.TouchEvent) => {
         if (!touchStart) return;
         const touchEnd = e.changedTouches[0].clientX;
-        const diff = touchStart - touchEnd;
+        const touchEndY = e.changedTouches[0].clientY;
 
-        // Swipe Right (Open) - must start near left edge if closed
-        if (diff < -50) {
-            if (!isOpen && touchStart < 40) {
-                setIsOpen(true);
+        const diffX = touchStart.x - touchEnd;
+        const diffY = touchStart.y - touchEndY;
+
+        // Only trigger if horizontal swipe is dominant
+        if (Math.abs(diffX) > Math.abs(diffY)) {
+            // Swipe Right (Open) - must start near left edge if closed
+            if (diffX < -50) {
+                if (!isOpen && touchStart.x < 40) {
+                    setIsOpen(true);
+                }
             }
-        }
 
-        // Swipe Left (Close)
-        if (diff > 50 && isOpen) {
-            setIsOpen(false);
+            // Swipe Left (Close)
+            if (diffX > 50 && isOpen) {
+                setIsOpen(false);
+            }
         }
 
         setTouchStart(null);
