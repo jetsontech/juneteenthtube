@@ -78,9 +78,11 @@ body {
   -ms-overflow-style: none;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
-  /* Safe area support for mobile devices */
+  /* Safe area support for mobile devices (all sides) */
   padding-top: env(safe-area-inset-top);
+  padding-right: env(safe-area-inset-right);
   padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
 }
 
 /* Lock body scroll when mobile sidebar is open */

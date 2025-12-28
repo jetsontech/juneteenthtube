@@ -103,7 +103,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
 
     return (
         <>
-            <nav className="fixed top-0 left-0 right-0 h-14 bg-[#0f0f0f]/90 backdrop-blur-sm z-50 flex items-center px-4 justify-between">
+            <nav className="fixed top-0 left-0 right-0 h-14 bg-[#0f0f0f]/90 backdrop-blur-sm z-50 flex items-center justify-between" style={{ paddingLeft: 'max(1rem, env(safe-area-inset-left))', paddingRight: 'max(1rem, env(safe-area-inset-right))' }}>
                 {/* Left Section */}
                 <div className="flex items-center gap-4">
                     <button

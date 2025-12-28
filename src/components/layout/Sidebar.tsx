@@ -51,6 +51,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                     // Mobile: full overlay when open, hidden when closed
                     isOpen ? "w-64" : "w-0 sm:w-[72px] -translate-x-full sm:translate-x-0"
                 )}
+                style={{ paddingLeft: 'env(safe-area-inset-left)', paddingBottom: 'env(safe-area-inset-bottom)' }}
             >
                 <div className="p-2 space-y-2">
                     {mainLinks.map((link) => {

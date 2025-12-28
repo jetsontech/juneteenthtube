@@ -27,7 +27,7 @@ export const metadata: Metadata = {
 export const viewport = {
   width: 'device-width',
   initialScale: 1,
-  viewportFit: 'auto',
+  viewportFit: 'cover', // Extend into safe areas (notch, home indicator)
   themeColor: '#000000',
 };
 
