@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import ClientShell from "@/components/layout/ClientShell";
+import { BackgroundSystem } from "@/components/layout/BackgroundSystem";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -28,7 +29,7 @@ export const viewport = {
   width: 'device-width',
   initialScale: 1,
   viewportFit: 'cover', // Extend into safe areas (notch, home indicator)
-  themeColor: '#000000',
+  themeColor: '#050505',
 };
 
 export default function RootLayout({
@@ -39,8 +40,9 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-black text-white`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased text-white`}
       >
+        <BackgroundSystem />
         <ClientShell>
           {children}
         </ClientShell>

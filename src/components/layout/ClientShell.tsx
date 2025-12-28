@@ -11,9 +11,10 @@ import { LoginSplash } from "./LoginSplash";
 import { useState, useEffect } from "react";
 
 function ShellContent({ children }: { children: React.ReactNode }) {
-    const { isOpen, toggle } = useSidebar();
+    const { isOpen, toggle, setIsOpen } = useSidebar();
     const [isLocked, setIsLocked] = useState(true);
     const [isChecking, setIsChecking] = useState(true);
+    const [touchStart, setTouchStart] = useState<number | null>(null);
 
     useEffect(() => {
         const hasAccess = sessionStorage.getItem('guest_access_granted');
@@ -30,17 +31,42 @@ function ShellContent({ children }: { children: React.ReactNode }) {
         } else {
             document.body.classList.remove('sidebar-open-mobile');
         }
-
-        // Cleanup on unmount
-        return () => {
-            document.body.classList.remove('sidebar-open-mobile');
-        };
+        return () => document.body.classList.remove('sidebar-open-mobile');
     }, [isOpen]);
+
+    // Simple Swipe Detection
+    const handleTouchStart = (e: React.TouchEvent) => {
+        setTouchStart(e.targetTouches[0].clientX);
+    };
+
+    const handleTouchEnd = (e: React.TouchEvent) => {
+        if (!touchStart) return;
+        const touchEnd = e.changedTouches[0].clientX;
+        const diff = touchStart - touchEnd;
+
+        // Swipe Right (Open) - must start near left edge if closed
+        if (diff < -50) {
+            if (!isOpen && touchStart < 40) {
+                setIsOpen(true);
+            }
+        }
+
+        // Swipe Left (Close)
+        if (diff > 50 && isOpen) {
+            setIsOpen(false);
+        }
+
+        setTouchStart(null);
+    };
 
     if (isChecking) return null;
 
     return (
-        <div className="min-h-screen bg-transparent text-foreground">
+        <div
+            className="min-h-screen bg-transparent text-foreground"
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
+        >
             {isLocked && <LoginSplash onUnlock={() => setIsLocked(false)} />}
 
             <Navbar onMenuClick={toggle} />
@@ -51,8 +77,21 @@ function ShellContent({ children }: { children: React.ReactNode }) {
                     "pt-14 transition-all duration-300 min-h-screen",
                     isOpen ? "sm:pl-64" : "sm:pl-[72px]"
                 )}
+                style={{
+                    // Use CSS variable for consistent spacing with Navbar/Sidebar
+                    paddingTop: 'var(--navbar-height)',
+                    paddingRight: 'env(safe-area-inset-right)',
+                    paddingBottom: 'env(safe-area-inset-bottom)',
+                    paddingLeft: 'env(safe-area-inset-left)'
+                }}
             >
-                <div className="max-w-[1600px] mx-auto">
+                <div
+                    className="max-w-[1600px] mx-auto"
+                    style={{
+                        paddingLeft: 'env(safe-area-inset-left)',
+                        paddingRight: 'env(safe-area-inset-right)',
+                    }}
+                >
                     {children}
                 </div>
             </main>

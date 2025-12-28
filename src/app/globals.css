@@ -10,6 +10,20 @@
   --color-j-green: #006B3D;
   --color-j-gold: #FFD700;
   --color-j-black: #000000;
+
+  /* Navbar & Safe Area Logic */
+  /* Default: Trust the env, fallback to 0 */
+  --safe-area-top: env(safe-area-inset-top, 0px);
+  --navbar-height: calc(3.5rem + var(--safe-area-top));
+}
+
+/* Mobile Overrides to handle PWA fullscreen notch issues */
+@media (pointer: coarse) {
+  :root {
+    /* On mobile, enforce minimum 48px if env is failing or 0 in fullscreen */
+    --safe-area-top: max(env(safe-area-inset-top), 48px);
+    --navbar-height: calc(3.5rem + var(--safe-area-top));
+  }
 }
 
 /* stylelint-disable-next-line at-rule-no-unknown */
@@ -61,8 +75,111 @@
   }
 }
 
-html {
-  background-color: #000000 !important;
+/* GLOBAL SCROLLBAR HIDE - STRICT ENFORCEMENT */
+html,
+body,
+#__next,
+main,
+div,
+span,
+applet,
+object,
+iframe,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+blockquote,
+pre,
+a,
+abbr,
+acronym,
+address,
+big,
+cite,
+code,
+del,
+dfn,
+em,
+img,
+ins,
+kbd,
+q,
+s,
+samp,
+small,
+strike,
+strong,
+sub,
+sup,
+tt,
+var,
+b,
+u,
+i,
+center,
+dl,
+dt,
+dd,
+ol,
+ul,
+li,
+fieldset,
+form,
+label,
+legend,
+table,
+caption,
+tbody,
+tfoot,
+thead,
+tr,
+th,
+td,
+article,
+aside,
+canvas,
+details,
+embed,
+figure,
+figcaption,
+footer,
+header,
+hgroup,
+menu,
+nav,
+output,
+ruby,
+section,
+summary,
+time,
+mark,
+audio,
+video {
+  -ms-overflow-style: none !important;
+  /* IE and Edge */
+  scrollbar-width: none !important;
+  /* Firefox */
+}
+
+/* Chrome, Safari and Opera */
+*::-webkit-scrollbar {
+  display: none !important;
+  width: 0px !important;
+  background: transparent !important;
+  /* Optional: just make scrollbar invisible */
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: transparent !important;
+  border: none !important;
 }
 
 body {
@@ -71,18 +188,20 @@ body {
   margin: 0;
   padding: 0;
   overflow-x: hidden;
-  background-color: #000000 !important;
+  /* Prevent elastic bounce which reveals browser UI */
+  overscroll-behavior: none;
+  overscroll-behavior-y: none;
   color: var(--foreground);
   font-family: var(--font-sans), sans-serif;
   position: relative;
   -ms-overflow-style: none;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
-  /* Safe area support for mobile devices (all sides) */
-  padding-top: env(safe-area-inset-top);
-  padding-right: env(safe-area-inset-right);
-  padding-bottom: env(safe-area-inset-bottom);
-  padding-left: env(safe-area-inset-left);
+}
+
+html {
+  overscroll-behavior: none;
+  overscroll-behavior-y: none;
 }
 
 /* Lock body scroll when mobile sidebar is open */
@@ -90,45 +209,4 @@ body.sidebar-open-mobile {
   overflow: hidden;
   position: fixed;
   width: 100%;
-}
-
-body::-webkit-scrollbar {
-  display: none !important;
-}
-
-/* Hide scrollbars on ALL overflow containers (for mobile) */
-* {
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-
-*::-webkit-scrollbar {
-  display: none !important;
-}
-
-
-/* Animated Background - Matching ACCESS PLATFORM / Login Splash */
-/* PERFORMANCE: Static gradient instead of infinite animation to prevent mobile overheating */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: -2;
-  pointer-events: none;
-  background:
-    radial-gradient(ellipse 60% 60% at -10% -20%, rgba(220, 38, 38, 0.15), transparent 50%),
-    radial-gradient(ellipse 60% 60% at 110% 120%, rgba(234, 179, 8, 0.15), transparent 50%),
-    radial-gradient(ellipse 30% 30% at 40% 30%, rgba(34, 197, 94, 0.08), transparent 50%);
-  /* Removed infinite animation - was causing device heat */
-}
-
-/* Noise texture overlay - Matching ACCESS PLATFORM / Login Splash */
-body::after {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background: url('https://grainy-gradients.vercel.app/noise.svg');
-  opacity: 0.20;
 }

@@ -26,8 +26,22 @@ const secondaryLinks = [
     { icon: Clock, label: "Watch Later", href: "/playlist/watch-later" },
 ];
 
+import { useState } from "react";
+import { useSidebar } from "@/context/SidebarContext";
+
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
     const pathname = usePathname();
+    const { isMobile, setIsOpen } = useSidebar();
+    const [isHovered, setIsHovered] = useState(false);
+
+    // Visual state: Open if pinned (isOpen) OR hovered
+    const isExpanded = isOpen || isHovered;
+
+    const handleMobileClose = () => {
+        if (isMobile) {
+            setIsOpen(false);
+        }
+    };
 
     return (
         <>
@@ -37,7 +51,6 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                     className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[90] sm:hidden transition-opacity duration-300"
                     onClick={onClose}
                     onTouchStart={(e) => {
-                        // Prevent scroll-through on mobile
                         e.preventDefault();
                     }}
                     aria-label="Close sidebar"
@@ -46,12 +59,18 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
             {/* Sidebar */}
             <aside
+                onMouseEnter={() => setIsHovered(true)}
+                onMouseLeave={() => setIsHovered(false)}
                 className={cn(
-                    "fixed top-16 left-0 bottom-0 z-[100] bg-[#0f0f0f]/95 backdrop-blur-xl overflow-y-auto transition-all duration-300 scrollbar-none",
-                    // Mobile: full overlay when open, hidden when closed
-                    isOpen ? "w-64" : "w-0 sm:w-[72px] -translate-x-full sm:translate-x-0"
+                    "fixed left-0 bottom-0 z-[100] bg-[#0f0f0f]/95 backdrop-blur-xl overflow-y-auto transition-all duration-300 scrollbar-none",
+                    isExpanded ? "w-64" : "w-0 sm:w-[72px] -translate-x-full sm:translate-x-0",
+                    (isHovered && !isOpen) && "shadow-2xl shadow-black/50 border-r border-white/5"
                 )}
-                style={{ paddingLeft: 'env(safe-area-inset-left)', paddingBottom: 'env(safe-area-inset-bottom)' }}
+                style={{
+                    top: 'var(--navbar-height)',
+                    paddingLeft: 'env(safe-area-inset-left)',
+                    paddingBottom: 'env(safe-area-inset-bottom)'
+                }}
             >
                 <div className="p-2 space-y-2">
                     {mainLinks.map((link) => {
@@ -60,15 +79,16 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                             <Link
                                 key={link.href}
                                 href={link.href}
+                                onClick={handleMobileClose}
                                 className={cn(
                                     "flex items-center gap-4 px-3 py-3 rounded-lg transition-colors hover:bg-white/10 group",
                                     isActive ? "bg-white/10" : "text-gray-300"
                                 )}
                             >
-                                <link.icon className={cn("w-6 h-6", isActive ? "text-j-red" : "group-hover:text-white")} />
+                                <link.icon className={cn("w-6 h-6 shrink-0", isActive ? "text-j-red" : "group-hover:text-white")} />
                                 <span className={cn(
                                     "text-sm font-medium whitespace-nowrap transition-opacity duration-200",
-                                    !isOpen && "opacity-0 hidden",
+                                    !isExpanded && "opacity-0 hidden",
                                     isActive ? "text-white" : "text-gray-300 group-hover:text-white"
                                 )}>
                                     {link.label}
@@ -77,12 +97,13 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                         );
                     })}
 
-                    {isOpen && <hr className="border-white/10 my-2 mx-4" />}
+                    {isExpanded && <hr className="border-white/10 my-2 mx-4" />}
 
-                    {isOpen && secondaryLinks.map((link) => (
+                    {isExpanded && secondaryLinks.map((link) => (
                         <Link
                             key={link.href}
                             href={link.href}
+                            onClick={handleMobileClose}
                             className="flex items-center gap-4 px-3 py-3 rounded-lg transition-colors hover:bg-white/10 text-gray-300 group"
                         >
                             <link.icon className="w-6 h-6 group-hover:text-white" />
@@ -92,13 +113,13 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                         </Link>
                     ))}
 
-                    {isOpen && (
+                    {isExpanded && (
                         <div className="mt-4 px-4 text-xs text-gray-500">
                             <p>© 2026 Net Post Media, llc</p>
                         </div>
                     )}
                 </div>
-            </aside>
+            </aside >
         </>
     );
 }

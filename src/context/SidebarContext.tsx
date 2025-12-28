@@ -4,12 +4,14 @@ import { createContext, useContext, useState, useEffect, ReactNode } from "react
 
 interface SidebarContextType {
     isOpen: boolean;
+    setIsOpen: (value: boolean) => void;
     toggle: () => void;
     isMobile: boolean;
 }
 
 const SidebarContext = createContext<SidebarContextType>({
     isOpen: true,
+    setIsOpen: () => { },
     toggle: () => { },
     isMobile: false,
 });
@@ -40,7 +42,7 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
     const toggle = () => setIsOpen(!isOpen);
 
     return (
-        <SidebarContext.Provider value={{ isOpen, toggle, isMobile }}>
+        <SidebarContext.Provider value={{ isOpen, setIsOpen, toggle, isMobile }}>
             {children}
         </SidebarContext.Provider>
     );
