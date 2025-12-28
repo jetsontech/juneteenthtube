@@ -64,7 +64,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                     isOpen ? "translate-x-0 w-64" : "-translate-x-full w-64",
                     // Desktop: Always visible (translate-0), toggle width
                     "sm:translate-x-0",
-                    isExpanded ? "sm:w-64" : "sm:w-[72px]",
+                    isExpanded ? "sm:w-64 border-r border-white/5" : "sm:w-[72px]",
                     (isHovered && !isOpen) && "shadow-2xl shadow-black/50 border-r border-white/5"
                 )}
                 style={{
