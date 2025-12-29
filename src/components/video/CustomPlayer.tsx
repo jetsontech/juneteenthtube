@@ -41,6 +41,12 @@ export function CustomPlayer({ src, poster }: CustomPlayerProps) {
     // NEW: Custom CSS Fullscreen state for Mobile
     const [isCssFullscreen, setIsCssFullscreen] = useState(false);
 
+    // NEW: Audio & Video Quality State
+    const [qualityBadge, setQualityBadge] = useState<string | null>(null);
+    const audioContextRef = useRef<AudioContext | null>(null);
+    const sourceNodeRef = useRef<MediaElementAudioSourceNode | null>(null);
+    const compressorNodeRef = useRef<DynamicsCompressorNode | null>(null);
+
     // User Interaction State
     const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -67,6 +73,59 @@ export function CustomPlayer({ src, poster }: CustomPlayerProps) {
         }
     }, [isCssFullscreen]);
 
+    // SMART AUDIO NORMALIZATION (The "YouTube" Sound)
+    useEffect(() => {
+        if (!videoRef.current || audioContextRef.current) return;
+
+        const initAudio = () => {
+            // Only initialize on first interaction to respect browser autoplay policies
+            // However, for a player that plays on click, we can try init immediately or lazy load
+            try {
+                const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+                if (!AudioContextClass) return;
+
+                const ctx = new AudioContextClass();
+                audioContextRef.current = ctx;
+
+                // Create Source
+                const source = ctx.createMediaElementSource(videoRef.current!);
+                sourceNodeRef.current = source;
+
+                // Create Dynamics Compressor (The "Mastering" Effect)
+                // Settings tuned for "Broadcast Safe"
+                const compressor = ctx.createDynamicsCompressor();
+                compressor.threshold.value = -24; // Start compressing at -24dB
+                compressor.knee.value = 30;       // Soft knee for transparent compression
+                compressor.ratio.value = 12;      // High ratio to catch peaks
+                compressor.attack.value = 0.003;  // Fast attack to catch transients
+                compressor.release.value = 0.25;  // Smooth release
+                compressorNodeRef.current = compressor;
+
+                // Connect Graph: Source -> Compressor -> Destination
+                source.connect(compressor);
+                compressor.connect(ctx.destination);
+
+                console.log("🔊 Smart Audio Normalization Active");
+            } catch (e) {
+                console.warn("Audio Context Init Failed (CORS or Browser Restriction):", e);
+            }
+        };
+
+        // Initialize immediately if possible, or wait for interaction if blocked
+        // We'll attach a one-time listener to the video play event just in case
+        const handlePlayParams = () => {
+            if (!audioContextRef.current) initAudio();
+            if (audioContextRef.current?.state === 'suspended') {
+                audioContextRef.current.resume();
+            }
+        };
+
+        const v = videoRef.current;
+        v.addEventListener('play', handlePlayParams);
+        return () => v.removeEventListener('play', handlePlayParams);
+
+    }, []);
+
     // Format time helper
     const formatTime = (time: number) => {
         if (!isFinite(time)) return "0:00";
@@ -79,6 +138,17 @@ export function CustomPlayer({ src, poster }: CustomPlayerProps) {
     const onLoadedMetadata = () => {
         if (videoRef.current) {
             setDuration(videoRef.current.duration);
+
+            // DETECT VIDEO QUALITY
+            const { videoWidth, videoHeight } = videoRef.current;
+            // Simple logic: Height or Width checks
+            if (videoWidth >= 3840 || videoHeight >= 2160) {
+                setQualityBadge("4K");
+            } else if (videoWidth >= 1920 || videoHeight >= 1080) {
+                setQualityBadge("HD");
+            } else {
+                setQualityBadge(null); // SD
+            }
         }
     };
 
@@ -311,6 +381,10 @@ export function CustomPlayer({ src, poster }: CustomPlayerProps) {
                 x5-playsinline="true"
                 disablePictureInPicture={false}
                 disableRemotePlayback={false} // Explicitly allow casting
+                crossOrigin="anonymous" // CRITICAL for Web Audio API
+                style={{
+                    filter: "contrast(1.08) saturate(1.12)" // SMART ENHANCE: Subtle pop for "Cinema" look
+                }}
             />
 
             {/* High-Quality Poster Overlay - Only shows before first play or after video ends */}
@@ -337,6 +411,13 @@ export function CustomPlayer({ src, poster }: CustomPlayerProps) {
             />
 
             {/* Big Play/Replay Overlay - REMOVED per user request */}
+
+            {/* Quality Badge Overlay (Top Right) */}
+            {qualityBadge && (
+                <div className="absolute top-4 right-4 z-10 px-2 py-1 bg-black/60 backdrop-blur-md rounded text-[10px] font-bold text-white/90 border border-white/10 shadow-sm pointer-events-none">
+                    {qualityBadge}
+                </div>
+            )}
 
             {/* Controls Bar */}
             <div
