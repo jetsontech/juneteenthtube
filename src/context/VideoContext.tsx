@@ -39,6 +39,7 @@ interface VideoContextType {
     toggleLike: (videoId: string, type: 'like' | 'dislike') => Promise<any>;
     getSubscription: (channelName: string) => Promise<boolean>;
     toggleSubscription: (channelName: string) => Promise<boolean>;
+    isLoading: boolean;
 }
 
 interface DBVideo {
@@ -68,6 +69,7 @@ const getMockChannelData = (title: string) => {
 
 export function VideoProvider({ children }: { children: ReactNode }) {
     const [videos, setVideos] = useState<VideoProps[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
     const [isUploading, setIsUploading] = useState(false);
     const [uploadProgress, setUploadProgress] = useState(0);
     const abortControllerRef = useRef<AbortController | null>(null);
@@ -655,7 +657,8 @@ export function VideoProvider({ children }: { children: ReactNode }) {
         <VideoContext.Provider value={{
             videos, uploadVideo, getVideoById, isUploading, uploadProgress, cancelUpload,
             deleteVideo, updateVideoTitle, updateVideoThumbnail, updateVideoFile, incrementView,
-            getVideoComments, postComment, getLikes, toggleLike, getSubscription, toggleSubscription
+            getVideoComments, postComment, getLikes, toggleLike, getSubscription, toggleSubscription,
+            isLoading
         }}>
             {children}
         </VideoContext.Provider>
