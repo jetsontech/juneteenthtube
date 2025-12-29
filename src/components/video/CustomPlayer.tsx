@@ -8,7 +8,6 @@ import {
     VolumeX,
     Maximize,
     Minimize,
-    Minimize,
     PictureInPicture,
     Cast,
     Maximize2
@@ -384,7 +383,8 @@ export function CustomPlayer({ src, poster }: CustomPlayerProps) {
                 }}
                 playsInline
                 webkit-playsinline="true"
-                // @ts-expect-error - x5-playsinline is a non-standard property
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-ignore
                 x5-playsinline="true"
                 disablePictureInPicture={false}
                 disableRemotePlayback={false} // Explicitly allow casting
