@@ -114,7 +114,8 @@ export function VideoProvider({ children }: { children: ReactNode }) {
             }
         } catch (err) {
             console.error("Unexpected error fetching videos:", err);
-            setVideos(MOCK_VIDEOS);
+        } finally {
+            setIsLoading(false);
         }
     };
 
