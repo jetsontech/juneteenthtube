@@ -104,7 +104,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
     return (
         <>
             <nav
-                className="fixed top-0 left-0 right-0 z-50 flex flex-col bg-[#0f0f0f]/90 backdrop-blur-sm transition-all duration-300"
+                className="fixed top-0 left-0 right-0 z-50 flex flex-col bg-black/60 backdrop-blur-md transition-all duration-300"
                 style={{
                     // Use robust CSS variables defined in globals.css
                     height: 'var(--navbar-height)',
