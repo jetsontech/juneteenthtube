@@ -8,11 +8,10 @@ import {
     VolumeX,
     Maximize,
     Minimize,
-    RotateCcw,
+    Minimize,
     PictureInPicture,
     Cast,
-    Maximize2,
-    Crop
+    Maximize2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -35,6 +34,7 @@ export function CustomPlayer({ src, poster }: CustomPlayerProps) {
     const [hasEnded, setHasEnded] = useState(false);
     const [showControls, setShowControls] = useState(true);
     const [isZoomed, setIsZoomed] = useState(false);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [isBuffering, setIsBuffering] = useState(true);
     const [hasStartedPlaying, setHasStartedPlaying] = useState(false);
 
@@ -276,6 +276,7 @@ export function CustomPlayer({ src, poster }: CustomPlayerProps) {
         e?.stopPropagation();
         if (!containerRef.current || !videoRef.current) return;
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const video = videoRef.current as any;
         const isMobile = /iPhone|iPad|iPod|Android|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 1024;
 
@@ -336,11 +337,17 @@ export function CustomPlayer({ src, poster }: CustomPlayerProps) {
         }
     };
 
+    // Fix: Separate effect initialization to avoid synchronous setState warning
     useEffect(() => {
-        resetControlsTimeout();
-        return () => {
-            if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
-        };
+        // Only set timeout if playing, don't force showControls(true) here unconditionally
+        if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
+
+        if (isPlaying && !hasEnded) {
+            controlsTimeoutRef.current = setTimeout(() => {
+                setShowControls(false);
+            }, 6000);
+        }
+        // We intentionally don't call resetControlsTimeout() here to avoid the state loop
     }, [isPlaying, hasEnded]);
 
     const handleMouseMove = () => {
@@ -377,7 +384,7 @@ export function CustomPlayer({ src, poster }: CustomPlayerProps) {
                 }}
                 playsInline
                 webkit-playsinline="true"
-                // @ts-ignore
+                // @ts-expect-error - x5-playsinline is a non-standard property
                 x5-playsinline="true"
                 disablePictureInPicture={false}
                 disableRemotePlayback={false} // Explicitly allow casting

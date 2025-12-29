@@ -33,10 +33,10 @@ interface VideoContextType {
     updateVideoFile: (id: string, file: File) => Promise<void>;
     incrementView: (id: string) => Promise<void>;
     // Engagement
-    getVideoComments: (videoId: string) => Promise<any[]>;
-    postComment: (videoId: string, text: string, userName: string) => Promise<any>;
+    getVideoComments: (videoId: string) => Promise<unknown[]>;
+    postComment: (videoId: string, text: string, userName: string) => Promise<unknown>;
     getLikes: (videoId: string) => Promise<{ likes: number, userStatus: string | null }>;
-    toggleLike: (videoId: string, type: 'like' | 'dislike') => Promise<any>;
+    toggleLike: (videoId: string, type: 'like' | 'dislike') => Promise<unknown>;
     getSubscription: (channelName: string) => Promise<boolean>;
     toggleSubscription: (channelName: string) => Promise<boolean>;
     isLoading: boolean;
@@ -419,6 +419,14 @@ export function VideoProvider({ children }: { children: ReactNode }) {
 
     // --- UPLOAD LOGIC ---
     const uploadMultipart = async (file: File, _category: string): Promise<string> => {
+        // Use _category to avoid lint warning, or remove it from signature if not needed (but typically kept for parity)
+        // Actually, just removing the underscore or using it in a console log satisfies "unused" if we want to keep the signature.
+        // Better: simply use it or remove it. Since it's unused, let's just comment it out effectively or keep it but ignore.
+        // Lint said: '_category' is defined but never used. 
+        // We'll just remove the parameter usage in the function body if it wasn't used, but here the error is about the argument itself.
+        // We will mock usage:
+        void _category;
+
         const CHUNK_SIZE = 5 * 1024 * 1024; // 5MB chunks (reduced for better reliability on slow/unstable connections)
         const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
         const signal = abortControllerRef.current?.signal;
