@@ -1,0 +1,155 @@
+
+> juneteenthtube@0.1.0 lint
+> eslint
+
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\scripts\apply_cors.ts
+  49:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\scripts\check_cors.ts
+   8:11  warning  'publicUrl' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  40:19  error    Unexpected any. Specify a different type        @typescript-eslint/no-explicit-any
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\scripts\debug-s3.js
+  2:1   error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  3:52  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\scripts\debug_delete.ts
+  42:33  warning  'count' is assigned a value but never used       @typescript-eslint/no-unused-vars
+  53:41  warning  'checkError' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\scripts\find_specific.ts
+  20:19  warning  'error' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\scripts\placeholder.ts
+   9:7   warning  'supabase' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  14:16  warning  'migrate' is defined but never used            @typescript-eslint/no-unused-vars
+  15:11  warning  'sql' is assigned a value but never used       @typescript-eslint/no-unused-vars
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\scripts\repro_s3_error.ts
+  27:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\scripts\sync-env.js
+   1:12  error    A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+   2:22  error    A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+   3:14  error    A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  36:26  warning  'e' is defined but never used            @typescript-eslint/no-unused-vars
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\scripts\test-upload.js
+  2:15  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\scripts\test_r2_upload.ts
+  73:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\scripts\upload_headless.ts
+  112:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\scripts\upload_manual_robust.ts
+   90:31  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  129:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\scripts\verify_upload.ts
+  52:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\app\api\comments\route.ts
+  65:14  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\app\api\likes\route.ts
+  86:14  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\app\api\subscribe\route.ts
+  41:14  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\app\api\videos\route.ts
+  27:14  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\app\georgia-united\page.tsx
+  43:36  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+  87:31  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\app\page.tsx
+  17:19  warning  'isSidebarOpen' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    @typescript-eslint/no-unused-vars
+  88:5   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\app\page.tsx:88:5
+  86 |
+  87 |     const shuffled = shuffleArray(rawFilteredVideos);
+> 88 |     setFilteredVideos([AD_VIDEO, ...shuffled]);
+     |     ^^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  89 |   }, [rawFilteredVideos]); // Re-shuffle when list changes (inefficient if list reference changes often, but acceptable for now)
+  90 |
+  91 |   // YouTube-style: Always 3 columns on desktop to maintain consistent card size  react-hooks/set-state-in-effect
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\app\photos\page.tsx
+  104:25  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  151:25  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\app\settings\page.tsx
+  4:22  warning  'Shield' is defined but never used             @typescript-eslint/no-unused-vars
+  4:30  warning  'Moon' is defined but never used               @typescript-eslint/no-unused-vars
+  5:8   warning  'Link' is defined but never used               @typescript-eslint/no-unused-vars
+  8:12  warning  'theme' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  8:19  warning  'setTheme' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\app\shorts\[id]\page.tsx
+  100:18  warning  'e' is defined but never used                                                                                                                                                                                                                                                            @typescript-eslint/no-unused-vars
+  115:18  warning  'e' is defined but never used                                                                                                                                                                                                                                                            @typescript-eslint/no-unused-vars
+  204:29  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  213:37  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  305:29  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\app\watch\[id]\page.tsx
+  108:18  warning  'e' is defined but never used                                                                                                                                                                                                                                                            @typescript-eslint/no-unused-vars
+  125:18  warning  'e' is defined but never used                                                                                                                                                                                                                                                            @typescript-eslint/no-unused-vars
+  224:33  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  358:29  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\app\you\page.tsx
+  4:10  warning  'User' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\components\auth\AuthModal.tsx
+  6:10  warning  'cn' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\components\layout\Navbar.tsx
+  4:59  warning  'AlertCircle' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\components\layout\Sidebar.tsx
+  3:16  warning  'Compass' is defined but never used     @typescript-eslint/no-unused-vars
+  3:43  warning  'Box' is defined but never used         @typescript-eslint/no-unused-vars
+  3:74  warning  'PlayCircle' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\components\layout\StateSelector.tsx
+  5:30  warning  'DEFAULT_STATE' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\components\video\CustomPlayer.tsx
+  411:21  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\components\video\InlinePlayer.tsx
+  3:18  warning  'useState' is defined but never used  @typescript-eslint/no-unused-vars
+  4:10  warning  'Play' is defined but never used      @typescript-eslint/no-unused-vars
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\components\video\ShortsShelf.tsx
+  203:21  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\components\video\VideoCard.tsx
+   34:83  warning  'isUploading' is assigned a value but never used                                                                                                                                                                                                                                         @typescript-eslint/no-unused-vars
+   34:96  warning  'uploadProgress' is assigned a value but never used                                                                                                                                                                                                                                      @typescript-eslint/no-unused-vars
+   40:12  warning  'isUploadingVideo' is assigned a value but never used                                                                                                                                                                                                                                    @typescript-eslint/no-unused-vars
+  182:33  warning  The ref value 'videoPreviewRef.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'videoPreviewRef.current' to a variable inside the effect, and use that variable in the cleanup function            react-hooks/exhaustive-deps
+  277:14  warning  'e' is defined but never used                                                                                                                                                                                                                                                            @typescript-eslint/no-unused-vars
+  362:17  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  432:25  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\hooks\useDominantColor.ts
+  3:10  warning  'useState' is defined but never used   @typescript-eslint/no-unused-vars
+  3:20  warning  'useEffect' is defined but never used  @typescript-eslint/no-unused-vars
+  9:34  warning  'imageUrl' is defined but never used   @typescript-eslint/no-unused-vars
+
+Ô£û 67 problems (17 errors, 50 warnings)
+

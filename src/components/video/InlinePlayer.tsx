@@ -1,7 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { Play } from "lucide-react";
+import { useRef } from "react";
 
 interface InlinePlayerProps {
     src: string;
@@ -17,7 +16,6 @@ export function InlinePlayer({ src, poster }: InlinePlayerProps) {
                 ref={videoRef}
                 controls
                 playsInline
-                // @ts-ignore
                 webkit-playsinline=""
                 poster={poster}
                 className="w-full h-full object-cover"

@@ -1,6 +1,8 @@
 
-require('dotenv').config({ path: '.env.local' });
-const { S3Client, CreateMultipartUploadCommand } = require('@aws-sdk/client-s3');
+import dotenv from 'dotenv';
+import { S3Client, CreateMultipartUploadCommand } from '@aws-sdk/client-s3';
+
+dotenv.config({ path: '.env.local' });
 
 async function testS3() {
     console.log('Checking Environment Variables...');

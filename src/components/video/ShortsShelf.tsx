@@ -2,6 +2,7 @@
 
 import { MoreVertical, Play, Trash2, Image as ImageIcon, Film, Edit2, X, Check } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { useVideo } from "@/context/VideoContext";
 import { useSidebar } from "@/context/SidebarContext";
 import { useState, useRef, useEffect } from "react";
@@ -200,10 +201,12 @@ function ShortCard({ short, onDelete, onChangeThumbnail, onChangeVideo, onRename
                     landscapeMode ? "aspect-video" : "aspect-[9/16]",
                     (isUploadingThumb || isUploadingVideo) && "opacity-50"
                 )}>
-                    <img
+                    <Image
                         src={short.thumbnail}
                         alt={short.title}
-                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        fill
+                        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 180px"
+                        className="object-cover transition-transform duration-300 group-hover:scale-105"
                     />
                     <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/80 to-transparent" />
                     <div className="absolute bottom-2 left-2 flex items-center gap-1 text-white text-xs font-medium">

@@ -1,10 +1,20 @@
 "use client";
 
-import { use, useEffect, useState } from "react";
+import { use, useEffect, useState, useMemo } from "react";
 import dynamic from "next/dynamic";
+import Image from "next/image";
 import { ThumbsUp, ThumbsDown, Share2, MoreHorizontal } from "lucide-react";
 import { useVideo } from "@/context/VideoContext";
-import { VideoProps } from "@/components/video/VideoCard";
+
+interface Comment {
+    id: number | string;
+    user: string;
+    text: string;
+    timestamp: string;
+    user_name?: string;
+    content?: string;
+    created_at?: string;
+}
 
 // Dynamic import to avoid SSR issues
 const CustomPlayer = dynamic(
@@ -19,13 +29,10 @@ export default function WatchPage({
 }) {
     const resolvedParams = use(params);
     const { getVideoById, videos, getVideoComments, postComment, getLikes, toggleLike, getSubscription, toggleSubscription } = useVideo();
-    const [video, setVideo] = useState<VideoProps | undefined>();
-
-    // Re-run when videos are loaded from database
-    useEffect(() => {
-        if (resolvedParams.id && videos.length > 0) {
-            setVideo(getVideoById(resolvedParams.id));
-        }
+    // Derived State (No side effects)
+    const video = useMemo(() => {
+        if (!resolvedParams.id || videos.length === 0) return undefined;
+        return getVideoById(resolvedParams.id);
     }, [resolvedParams.id, videos, getVideoById]);
 
     // Interaction State
@@ -35,7 +42,7 @@ export default function WatchPage({
     const [likesCount, setLikesCount] = useState(0);
 
     // Comments State
-    const [comments, setComments] = useState<any[]>([]);
+    const [comments, setComments] = useState<Comment[]>([]);
     const [newComment, setNewComment] = useState("");
 
     // Fetch Engagement Data
@@ -43,7 +50,7 @@ export default function WatchPage({
         if (!resolvedParams.id) return;
 
         // Load Comments
-        getVideoComments(resolvedParams.id).then(setComments);
+        getVideoComments(resolvedParams.id).then((data) => setComments(data as Comment[]));
 
         // Load Likes
         getLikes(resolvedParams.id).then(({ likes, userStatus }) => {
@@ -57,18 +64,18 @@ export default function WatchPage({
             getSubscription(video.channelName).then(setIsSubscribed);
         }
 
-    }, [resolvedParams.id, video?.channelName]);
+    }, [resolvedParams.id, video?.channelName, getVideoComments, getLikes, getSubscription]);
 
     const handleComment = async () => {
         if (!newComment.trim() || !video) return;
         try {
-            const added = await postComment(video.id, newComment, "You"); // "You" is placeholder
+            const added = await postComment(video.id, newComment, "You") as { comment: Comment };
             // Optimistic update or refetch? Let's just append for speed
             const newCommentObj = {
                 // Map DB response to UI
-                id: added.comment.id,
-                user: added.comment.user_name,
-                text: added.comment.content,
+                id: added.comment?.id || Date.now(),
+                user: added.comment?.user_name || "You",
+                text: added.comment?.content || newComment,
                 timestamp: new Date().toISOString() // or formatDistanceToNow
             };
             setComments(prev => [newCommentObj, ...prev]);
@@ -99,7 +106,7 @@ export default function WatchPage({
 
         try {
             await toggleLike(video.id, 'like');
-        } catch (e) {
+        } catch {
             // Revert if failed
             setLiked(wasLiked);
         }
@@ -116,7 +123,7 @@ export default function WatchPage({
 
         try {
             await toggleLike(video.id, 'dislike');
-        } catch (e) {
+        } catch {
             setDisliked(wasDisliked);
         }
     };
@@ -176,7 +183,7 @@ export default function WatchPage({
                                 className="flex items-center gap-1.5 pl-4 pr-3 py-2 rounded-l-full hover:bg-[#3f3f3f] transition-colors"
                                 aria-label="Like video"
                             >
-                                <ThumbsUp className={`w-5 h-5 ${liked ? "fill-white" : ""}`} />
+                                <ThumbsUp className={`w - 5 h - 5 ${liked ? "fill-white" : ""} `} />
                                 <span className="text-[13px] font-medium">{likesCount}</span>
                             </button>
                             <div className="w-px h-6 bg-white/20"></div>
@@ -185,7 +192,7 @@ export default function WatchPage({
                                 className="pl-3 pr-4 py-2 rounded-r-full hover:bg-[#3f3f3f] transition-colors"
                                 aria-label="Dislike video"
                             >
-                                <ThumbsDown className={`w-5 h-5 ${disliked ? "fill-white" : ""}`} />
+                                <ThumbsDown className={`w - 5 h - 5 ${disliked ? "fill-white" : ""} `} />
                             </button>
                         </div>
 
@@ -213,9 +220,9 @@ export default function WatchPage({
 
                     {/* Channel Row - Avatar, Name, Subs, Subscribe Button */}
                     <div className="flex items-center gap-3 mt-3 py-3 border-t border-white/5">
-                        <div className="w-10 h-10 rounded-full bg-j-green flex-shrink-0 overflow-hidden cursor-pointer hover:opacity-90">
+                        <div className="w-10 h-10 rounded-full bg-j-green flex-shrink-0 overflow-hidden cursor-pointer hover:opacity-90 relative">
                             {video.channelAvatar ? (
-                                <img src={video.channelAvatar} alt={video.channelName} className="object-cover w-full h-full" />
+                                <Image src={video.channelAvatar} alt={video.channelName} fill sizes="40px" className="object-cover" />
                             ) : (
                                 <div className="w-full h-full bg-j-green" />
                             )}
@@ -226,10 +233,10 @@ export default function WatchPage({
                         </div>
                         <button
                             onClick={handleSubscribe}
-                            className={`px-4 py-2 rounded-full text-[14px] font-semibold transition-all flex-shrink-0 ${isSubscribed
+                            className={`px - 4 py - 2 rounded - full text - [14px] font - semibold transition - all flex - shrink - 0 ${isSubscribed
                                 ? "bg-[#272727] text-white hover:bg-[#3f3f3f]"
                                 : "bg-white text-black hover:bg-gray-200"
-                                }`}
+                                } `}
                         >
                             {isSubscribed ? "Subscribed" : "Subscribe"}
                         </button>
@@ -283,10 +290,10 @@ export default function WatchPage({
                                 <button
                                     onClick={handleComment}
                                     disabled={!newComment.trim()}
-                                    className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${newComment.trim()
+                                    className={`px - 4 py - 2 rounded - full text - sm font - medium transition - colors ${newComment.trim()
                                         ? "bg-[#3ea6ff] text-black hover:bg-[#65b8ff]"
                                         : "bg-[#272727] text-gray-500 cursor-not-allowed"
-                                        }`}
+                                        } `}
                                 >
                                     Comment
                                 </button>
@@ -347,9 +354,9 @@ export default function WatchPage({
                 </div>
 
                 {videos.filter(v => v.id !== video?.id).map((v) => (
-                    <a href={`/watch/${v.id}`} key={v.id} className="flex gap-2 cursor-pointer group hover:bg-[#272727] p-2 rounded-xl transition-colors">
+                    <a href={`/ watch / ${v.id} `} key={v.id} className="flex gap-2 cursor-pointer group hover:bg-[#272727] p-2 rounded-xl transition-colors">
                         <div className="w-[168px] aspect-video bg-gray-800 rounded-lg overflow-hidden flex-shrink-0 relative">
-                            <img src={v.thumbnail} className="w-full h-full object-cover" alt={v.title} />
+                            <Image src={v.thumbnail} fill sizes="168px" className="object-cover" alt={v.title} />
                             <div className="absolute bottom-1.5 right-1.5 bg-black/80 text-[10px] px-1.5 py-0.5 rounded text-white font-medium tracking-wide">
                                 {v.duration}
                             </div>

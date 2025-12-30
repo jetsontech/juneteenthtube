@@ -1,6 +1,10 @@
-const fs = require('fs');
-const { execSync } = require('child_process');
-const path = require('path');
+import fs from 'fs';
+import { execSync } from 'child_process';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const envPath = path.join(__dirname, '..', '.env.local');
 
@@ -33,7 +37,7 @@ keysToSync.forEach(key => {
                 // Remove existing to avoid duplicates/errors
                 try {
                     execSync(`echo y | vercel env rm ${key} production`, { stdio: 'pipe' });
-                } catch (e) {
+                } catch {
                     // Ignore error if it doesn't exist
                 }
 

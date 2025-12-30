@@ -70,8 +70,8 @@ async function testUpload() {
             console.log("Upload Failed:", text);
         }
 
-    } catch (error: any) {
-        console.error("ERROR:", error.message);
+    } catch (error: unknown) {
+        console.error("ERROR:", (error as Error).message);
         console.error("Full Error:", error);
     }
 }

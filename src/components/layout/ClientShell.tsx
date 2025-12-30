@@ -19,9 +19,9 @@ function ShellContent({ children }: { children: React.ReactNode }) {
     useEffect(() => {
         const hasAccess = sessionStorage.getItem('guest_access_granted');
         if (hasAccess === 'true') {
-            setIsLocked(false);
+            setTimeout(() => setIsLocked(false), 0);
         }
-        setIsChecking(false);
+        setTimeout(() => setIsChecking(false), 0);
     }, []);
 
     // Lock body scroll on mobile when sidebar is open

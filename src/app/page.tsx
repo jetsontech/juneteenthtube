@@ -1,11 +1,10 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, useEffect, Suspense, useMemo } from "react";
 import { VideoGrid } from "@/components/video/VideoGrid";
 import { VideoCard, type VideoProps } from "@/components/video/VideoCard";
 import { ShortsShelf } from "@/components/video/ShortsShelf";
 import { useVideo } from "@/context/VideoContext";
-import { useSidebar } from "@/context/SidebarContext";
 import { useStateFilter } from "@/context/StateContext";
 import { useSearchParams } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -14,7 +13,6 @@ const CATEGORIES = ["All", "Parade", "Music", "Food", "History", "Speeches", "Li
 
 function HomeContent() {
   const { videos } = useVideo();
-  const { isOpen: isSidebarOpen } = useSidebar();
   const { selectedState } = useStateFilter();
   const searchParams = useSearchParams();
   const searchQuery = searchParams.get('q')?.toLowerCase() || "";
@@ -46,44 +44,52 @@ function HomeContent() {
 
   // Filter videos by category, search query, state, EXCLUDING shorts (≤ 60s)
   const MAX_SHORT_DURATION = 60;
-  const rawFilteredVideos = videos.filter(video => {
-    const matchesCategory = selectedCategory === "All" || video.category === selectedCategory;
-    const matchesSearch = !searchQuery ||
-      video.title.toLowerCase().includes(searchQuery) ||
-      video.channelName.toLowerCase().includes(searchQuery);
 
-    // State filter: GLOBAL shows all videos, otherwise match the selected state
-    const matchesState = selectedState.code === "GLOBAL" ||
-      video.state === selectedState.code ||
-      video.state === "GLOBAL"; // Global videos always show regardless of filter
+  const rawFilteredVideos = useMemo(() => {
+    return videos.filter(video => {
+      const matchesCategory = selectedCategory === "All" || video.category === selectedCategory;
+      const matchesSearch = !searchQuery ||
+        video.title.toLowerCase().includes(searchQuery) ||
+        video.channelName.toLowerCase().includes(searchQuery);
 
-    const durationInSeconds = parseDurationToSeconds(video.duration);
-    const isShort = durationInSeconds > 0 && durationInSeconds <= MAX_SHORT_DURATION;
+      // State filter: GLOBAL shows all videos, otherwise match the selected state
+      const matchesState = selectedState.code === "GLOBAL" ||
+        video.state === selectedState.code ||
+        video.state === "GLOBAL"; // Global videos always show regardless of filter
 
-    return matchesCategory && matchesSearch && matchesState && !isShort;
-  });
+      const durationInSeconds = parseDurationToSeconds(video.duration);
+      const isShort = durationInSeconds > 0 && durationInSeconds <= MAX_SHORT_DURATION;
 
-  // Pin Ad Video (if exists in data or use placeholder)
-  // For now, let's treat the first video as the potential "Ad" slot if we want to pin a specific one,
-  // or use a placeholder if needed.
-  // The user wants the first "SLOT" locked for advertisers.
-  const AD_VIDEO: VideoProps = {
-    id: "advertisement-01",
-    title: "Project Juneteenth | Official Advertisement",
-    thumbnail: "https://images.unsplash.com/photo-1516280440614-37939bbacd81?q=80&w=1000&auto=format&fit=crop",
-    channelName: "Juneteenth Global",
-    channelAvatar: "https://juneteenthatl.com/wp-content/uploads/2024/01/Juneteenth-Atlanta-Logo.png",
-    views: "Sponsored",
-    postedAt: "Just Now",
-    duration: "Ad",
-    videoUrl: "", // Ad video URL
-    category: "Sponsored"
-  };
+      return matchesCategory && matchesSearch && matchesState && !isShort;
+    });
+  }, [videos, selectedCategory, searchQuery, selectedState]);
 
-  // Shuffle all videos except for specific pinned content if needed
-  // For now, we'll shuffle everything and then prepend the AD.
-  const shuffledVideos = shuffleArray(rawFilteredVideos);
-  const filteredVideos = [AD_VIDEO, ...shuffledVideos];
+  // Shuffle videos in useEffect to avoid impure render
+  const [filteredVideos, setFilteredVideos] = useState<VideoProps[]>([]);
+
+  useEffect(() => {
+    // Pin Ad Video
+    const AD_VIDEO: VideoProps = {
+      id: "advertisement-01",
+      title: "Project Juneteenth | Official Advertisement",
+      thumbnail: "https://images.unsplash.com/photo-1516280440614-37939bbacd81?q=80&w=1000&auto=format&fit=crop",
+      channelName: "Juneteenth Global",
+      channelAvatar: "https://juneteenthatl.com/wp-content/uploads/2024/01/Juneteenth-Atlanta-Logo.png",
+      views: "Sponsored",
+      postedAt: "Just Now",
+      duration: "Ad",
+      videoUrl: "",
+      category: "Sponsored"
+    };
+
+    const shuffled = shuffleArray(rawFilteredVideos);
+    // Use setTimeout to avoid calling setState synchronously within effect
+    const timeoutId = setTimeout(() => {
+      setFilteredVideos([AD_VIDEO, ...shuffled]);
+    }, 0);
+
+    return () => clearTimeout(timeoutId);
+  }, [rawFilteredVideos]);
 
   // YouTube-style: Always 3 columns on desktop to maintain consistent card size
   // Mobile: single column with tighter vertical spacing

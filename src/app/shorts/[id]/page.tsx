@@ -5,6 +5,7 @@ import { useVideo } from "@/context/VideoContext";
 import { VideoProps } from "@/components/video/VideoCard";
 import { ThumbsUp, ThumbsDown, MessageCircle, Share2, MoreVertical, X, ChevronUp, ChevronDown, Volume2, VolumeX } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 
 export default function ShortsPlayerPage({
@@ -76,7 +77,7 @@ export default function ShortsPlayerPage({
 
     useEffect(() => {
         if (resolvedParams.id && videos.length > 0) {
-            setVideo(getVideoById(resolvedParams.id));
+            setTimeout(() => setVideo(getVideoById(resolvedParams.id)), 0);
         }
     }, [resolvedParams.id, videos, getVideoById]);
 
@@ -87,7 +88,7 @@ export default function ShortsPlayerPage({
             if (userStatus === 'like') setLiked(true);
             else if (userStatus === 'dislike') setDisliked(true);
         });
-    }, [resolvedParams.id]);
+    }, [resolvedParams.id, getLikes]);
 
     const handleLike = async () => {
         if (!video) return;
@@ -97,7 +98,7 @@ export default function ShortsPlayerPage({
         if (disliked) setDisliked(false);
         try {
             await toggleLike(video.id, 'like');
-        } catch (e) {
+        } catch {
             setLiked(wasLiked);
         }
     };
@@ -112,7 +113,7 @@ export default function ShortsPlayerPage({
         }
         try {
             await toggleLike(video.id, 'dislike');
-        } catch (e) {
+        } catch {
             setDisliked(wasDisliked);
         }
     };
@@ -191,7 +192,6 @@ export default function ShortsPlayerPage({
                             muted={isMuted}
                             loop
                             playsInline
-                            // @ts-ignore
                             webkit-playsinline=""
                             controls={false}
                             onClick={(e) => {
@@ -202,16 +202,16 @@ export default function ShortsPlayerPage({
                         />
                     ) : (
                         <div className="w-full h-full flex items-center justify-center">
-                            <img src={video.thumbnail} alt={video.title} className="w-full h-full object-cover" />
+                            <Image src={video.thumbnail} alt={video.title} fill sizes="(max-width: 768px) 100vw, 400px" className="object-cover" />
                         </div>
                     )}
 
                     {/* Bottom info overlay */}
                     <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
                         <div className="flex items-center gap-3 mb-3">
-                            <div className="w-10 h-10 rounded-full bg-gray-700 overflow-hidden">
+                            <div className="w-10 h-10 rounded-full bg-gray-700 overflow-hidden relative">
                                 {video.channelAvatar ? (
-                                    <img src={video.channelAvatar} alt={video.channelName} className="w-full h-full object-cover" />
+                                    <Image src={video.channelAvatar} alt={video.channelName} fill sizes="40px" className="object-cover" />
                                 ) : (
                                     <div className="w-full h-full bg-gradient-to-br from-red-500 to-yellow-500" />
                                 )}
@@ -301,9 +301,9 @@ export default function ShortsPlayerPage({
                     </button>
 
                     {/* Channel avatar as sound/music indicator like YouTube */}
-                    <div className="w-10 h-10 rounded-lg bg-gray-700 overflow-hidden border-2 border-white/30 mt-2 animate-spin-slow">
+                    <div className="w-10 h-10 rounded-lg bg-gray-700 overflow-hidden border-2 border-white/30 mt-2 animate-spin-slow relative">
                         {video.channelAvatar ? (
-                            <img src={video.channelAvatar} alt="" className="w-full h-full object-cover" />
+                            <Image src={video.channelAvatar} alt="" fill sizes="40px" className="object-cover" />
                         ) : (
                             <div className="w-full h-full bg-gradient-to-br from-red-500 to-green-500" />
                         )}

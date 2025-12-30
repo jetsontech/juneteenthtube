@@ -46,12 +46,16 @@ interface DBVideo {
     id: string;
     title: string;
     thumbnail_url?: string;
-    views?: number;
+    views?: number | string; // Can be number or string in DB/Mock
     created_at: string;
     duration?: string;
     video_url: string;
     category?: string;
     state?: string;
+    // New Columns
+    channel_name?: string;
+    channel_avatar?: string;
+    posted_at?: string;
 }
 
 const VideoContext = createContext<VideoContextType | undefined>(undefined);
@@ -90,17 +94,18 @@ export function VideoProvider({ children }: { children: ReactNode }) {
 
             if (data && data.length > 0) {
                 const dbVideos: VideoProps[] = data.map((video: DBVideo) => {
-                    // Smart Mocking for missing DB columns (Schema Parity)
+                    // Smart Mocking ONLY if DB data is missing
                     const mockChannel = getMockChannelData(video.title);
 
                     return {
                         id: video.id,
                         title: video.title,
                         thumbnail: video.thumbnail_url || "https://images.unsplash.com/photo-1610483145520-412708686f94?q=80&w=600&auto=format&fit=crop",
-                        channelName: video.category === 'Food' ? 'ATL Foodie' : (mockChannel.name || "JuneteenthTV"),
-                        channelAvatar: mockChannel.avatar || "https://i.pravatar.cc/150?u=jtube",
+                        // Prioritize DB columns -> Fallback to smart mock -> Fallback to generic default
+                        channelName: video.channel_name || video.category === 'Food' ? 'ATL Foodie' : (mockChannel.name || "JuneteenthTV"),
+                        channelAvatar: video.channel_avatar || mockChannel.avatar || "https://i.pravatar.cc/150?u=jtube",
                         views: video.views?.toString() || mockChannel.views || "1.2K",
-                        postedAt: video.created_at ? new Date(video.created_at).toLocaleDateString() : "Recently",
+                        postedAt: video.posted_at || (video.created_at ? new Date(video.created_at).toLocaleDateString() : "Recently"),
                         duration: video.duration || mockChannel.duration || "5:00",
                         videoUrl: video.video_url,
                         category: video.category || "All",

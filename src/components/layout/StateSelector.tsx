@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { ChevronDown, MapPin, Globe, Search, X } from "lucide-react";
-import { US_STATES, USState, DEFAULT_STATE } from "@/lib/states";
+import { US_STATES, USState } from "@/lib/states";
 import { cn } from "@/lib/utils";
 
 interface StateSelectorProps {

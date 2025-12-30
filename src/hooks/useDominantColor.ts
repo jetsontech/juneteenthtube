@@ -1,12 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
-
 /**
  * Extracts the dominant color from an image URL using canvas
  * Returns an RGBA color string with low opacity for use as hover background
  */
-export function useDominantColor(imageUrl: string | undefined): string {
+export function useDominantColor(): string {
     // Disabled to prevent CORS errors with R2 public domain
     // The effect is subtle anyway - just returns a default hover color
     return "rgba(255, 255, 255, 0.05)";

@@ -22,10 +22,10 @@ export function StateProvider({ children }: { children: ReactNode }) {
         if (savedCode) {
             const state = getStateByCode(savedCode);
             if (state) {
-                setSelectedState(state);
+                setTimeout(() => setSelectedState(state), 0);
             }
         }
-        setIsHydrated(true);
+        setTimeout(() => setIsHydrated(true), 0);
     }, []);
 
     // Save state to localStorage when it changes

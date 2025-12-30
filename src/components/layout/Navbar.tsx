@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Menu, Search, Video, Bell, User, X, UploadCloud, AlertCircle } from "lucide-react";
+import { Menu, Search, Video, Bell, User, X, UploadCloud } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { useVideo } from "@/context/VideoContext";
@@ -72,11 +72,11 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                 window.location.reload();
             }
 
-        } catch (error: any) {
+        } catch (error: unknown) {
             input.value = "";
             console.error("Upload error:", error);
             // Don't alert if it was just cancelled
-            if (error?.message === "Upload cancelled") return;
+            if (error instanceof Error && error.message === "Upload cancelled") return;
 
             let errorMessage = "Unknown error occurred";
             if (error instanceof Error) {
@@ -380,7 +380,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                             </div>
 
                             <div className="p-4 border-t border-white/10 bg-black/20 text-center text-xs text-gray-500 rounded-b-2xl">
-                                By submitting your videos to Juneteenth Tube, you acknowledge that you agree to Net Post Media, llc's Terms of Service.
+                                By submitting your videos to Juneteenth Tube, you acknowledge that you agree to Net Post Media, llc&apos;s Terms of Service.
                             </div>
                         </div>
                     </div>

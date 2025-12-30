@@ -1,6 +1,6 @@
 "use client";
 
-import { Home, Compass, Library, History, Box, PlaySquare, Clock, Users, PlayCircle, Film, Image, Flag } from "lucide-react";
+import { Home, Library, History, PlaySquare, Clock, Users, Film, Image, Flag } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { usePathname } from "next/navigation";

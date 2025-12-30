@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { X, ChevronLeft, ChevronRight, Image as ImageIcon } from "lucide-react";
+import Image from "next/image";
 
 // Placeholder gallery images - can be replaced with Supabase storage later
 const GALLERY_IMAGES = [
@@ -101,10 +102,12 @@ export default function PhotosPage() {
                         onClick={() => openLightbox(index)}
                         className="group relative aspect-square overflow-hidden rounded-xl bg-white/5 border border-white/10 hover:border-j-gold/50 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-j-gold/50"
                     >
-                        <img
+                        <Image
                             src={image.src}
                             alt={image.alt}
-                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                            fill
+                            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                            className="object-cover transition-transform duration-500 group-hover:scale-110"
                             loading="lazy"
                         />
                         {/* Overlay */}
@@ -148,9 +151,11 @@ export default function PhotosPage() {
                         className="max-w-[90vw] max-h-[85vh] flex flex-col items-center"
                         onClick={(e) => e.stopPropagation()}
                     >
-                        <img
+                        <Image
                             src={GALLERY_IMAGES[selectedIndex].src}
                             alt={GALLERY_IMAGES[selectedIndex].alt}
+                            width={1200}
+                            height={800}
                             className="max-w-full max-h-[75vh] object-contain rounded-lg shadow-2xl"
                         />
                         <p className="text-white text-lg mt-4 font-medium">

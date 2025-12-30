@@ -1,5 +1,5 @@
 
-const fetch = require('node-fetch'); // unlikely to be available, use native fetch if node 18+
+// Using native fetch (Node 18+)
 
 async function test() {
     try {

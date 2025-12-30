@@ -83,7 +83,7 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ status: "added", type });
         }
 
-    } catch (error) {
+    } catch {
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
     }
 }

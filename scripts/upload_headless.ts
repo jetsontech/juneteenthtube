@@ -109,8 +109,8 @@ async function uploadFile(filePath: string) {
         console.log("🎉 SUCCESS! Video is live.");
         console.log("🆔 Video ID:", data.id);
 
-    } catch (err: any) {
-        console.error("❌ Error:", err.message);
+    } catch (err: unknown) {
+        console.error("❌ Error:", (err as Error).message);
         console.error(err);
     }
 }

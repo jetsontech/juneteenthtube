@@ -5,7 +5,7 @@ import { supabase } from "@/lib/supabase";
 
 export default function DebugUploadPage() {
     const [logs, setLogs] = useState<string[]>([]);
-    const [status, setStatus] = useState("idle");
+
 
     const addLog = (msg: string) => setLogs(prev => [...prev, `${new Date().toLocaleTimeString()} - ${msg}`]);
 
@@ -14,7 +14,6 @@ export default function DebugUploadPage() {
         if (!file) return;
 
         setLogs([]);
-        setStatus("running");
         addLog(`Started upload for: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`);
 
         try {
@@ -96,7 +95,7 @@ export default function DebugUploadPage() {
 
             // STEP 3: Supabase Insert
             addLog("Step 3: Inserting metadata to Supabase...");
-            const { data, error: dbError } = await supabase
+            const { error: dbError } = await supabase
                 .from('videos')
                 .insert([{
                     title: `DEBUG: ${file.name}`,
@@ -113,13 +112,12 @@ export default function DebugUploadPage() {
 
             addLog("✅ Step 3 Success. Saved to DB.");
             addLog("🎉 FULL SUCCESS!");
-            setStatus("success");
+            addLog("🎉 FULL SUCCESS!");
 
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error(err);
-            addLog(`❌ ERROR: ${err.message}`);
-            if (err.cause) addLog(`   Cause: ${JSON.stringify(err.cause)}`);
-            setStatus("error");
+            const errorMsg = err instanceof Error ? err.message : "Unknown error";
+            addLog(`❌ ERROR: ${errorMsg}`);
         }
     };
 
@@ -127,8 +125,9 @@ export default function DebugUploadPage() {
         <div className="min-h-screen bg-black text-white p-8 font-mono">
             <h1 className="text-2xl font-bold mb-4 text-red-500">Video Upload Debugger</h1>
             <div className="mb-8 p-4 border border-white/20 rounded bg-white/5">
-                <label className="block mb-2 font-bold">Select a Video File:</label>
+                <label htmlFor="video-upload" className="block mb-2 font-bold">Select a Video File:</label>
                 <input
+                    id="video-upload"
                     type="file"
                     onChange={handleUpload}
                     className="block w-full text-sm text-gray-500
@@ -147,7 +146,7 @@ export default function DebugUploadPage() {
                         const blob = new Blob(["This is a connectivity test file."], { type: "text/plain" });
                         const file = new File([blob], "conn-test.txt", { type: "text/plain" });
                         // Create synthetic event
-                        const event = { target: { files: [file] } } as any;
+                        const event = { target: { files: [file] } } as unknown as React.ChangeEvent<HTMLInputElement>;
                         handleUpload(event);
                     }}
                     className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded transition-colors"

@@ -40,9 +40,24 @@ const S3 = new S3Client({
 
 const BUCKET_NAME = process.env.S3_BUCKET_NAME;
 
+interface UploadPart {
+    ETag: string;
+    PartNumber: number;
+}
+
+interface MultipartRequestBody {
+    action: 'create' | 'sign-part' | 'complete';
+    filename?: string;
+    contentType?: string;
+    key?: string;
+    uploadId?: string;
+    partNumber?: number;
+    parts?: UploadPart[];
+}
+
 export async function POST(req: NextRequest) {
     try {
-        const body = await req.json();
+        const body = await req.json() as MultipartRequestBody;
         const { action } = body;
 
         if (!process.env.S3_ENDPOINT) {
@@ -56,6 +71,8 @@ export async function POST(req: NextRequest) {
         // --- ACTION: CREATE (Init) ---
         if (action === "create") {
             const { filename, contentType } = body;
+            if (!filename || !contentType) return NextResponse.json({ error: "Missing filename or contentType" }, { status: 400 });
+
             const sanitizedFilename = filename.replace(/[^a-zA-Z0-9.-]/g, "_");
             const key = `${Date.now()}-${sanitizedFilename}`;
 
@@ -75,6 +92,7 @@ export async function POST(req: NextRequest) {
         // --- ACTION: SIGN PART ---
         if (action === "sign-part") {
             const { key, uploadId, partNumber } = body;
+            if (!key || !uploadId || !partNumber) return NextResponse.json({ error: "Missing key, uploadId, or partNumber" }, { status: 400 });
 
             const command = new UploadPartCommand({
                 Bucket: BUCKET_NAME,
@@ -91,9 +109,10 @@ export async function POST(req: NextRequest) {
         // --- ACTION: COMPLETE ---
         if (action === "complete") {
             const { key, uploadId, parts } = body; // parts = [{ ETag, PartNumber }, ...]
+            if (!key || !uploadId || !parts) return NextResponse.json({ error: "Missing key, uploadId, or parts" }, { status: 400 });
 
             // Sort parts by PartNumber just in case
-            const sortedParts = parts.sort((a: any, b: any) => a.PartNumber - b.PartNumber);
+            const sortedParts = parts.sort((a, b) => a.PartNumber - b.PartNumber);
 
             const command = new CompleteMultipartUploadCommand({
                 Bucket: BUCKET_NAME,
@@ -122,10 +141,11 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json({ error: "Invalid Action" }, { status: 400 });
 
-    } catch (error: any) {
+    } catch (error) {
         console.error("Multipart API Error:", error);
+        const msg = (error instanceof Error) ? error.message : "Multipart Operation Failed";
         return NextResponse.json(
-            { error: error.message || "Multipart Operation Failed" },
+            { error: msg },
             { status: 500 }
         );
     }

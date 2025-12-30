@@ -46,9 +46,10 @@ async function applyCors() {
         console.log("   - Allowed Origins:", corsRules[0].AllowedOrigins.join(", "));
         console.log("   - Allowed Methods:", corsRules[0].AllowedMethods.join(", "));
 
-    } catch (err: any) {
-        console.error("❌ Failed to apply CORS:", err.message);
-        if (err.$metadata) console.error("   Request ID:", err.$metadata.requestId);
+    } catch (err: unknown) {
+        const error = err as Error;
+        console.error("❌ Failed to apply CORS:", error.message);
+        if ('$metadata' in error) console.error("   Request ID:", (error as { $metadata?: { requestId?: string } }).$metadata?.requestId);
     }
 }
 

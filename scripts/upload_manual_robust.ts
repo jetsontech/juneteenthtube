@@ -87,8 +87,8 @@ async function uploadFile(filePath: string) {
                     });
                     uploaded = true;
 
-                } catch (err: any) {
-                    console.log(`\n⚠️  Chunk Failed (Attempt ${attempts}): ${err.message}`);
+                } catch (err: unknown) {
+                    console.log(`\n⚠️  Chunk Failed (Attempt ${attempts}): ${(err as Error).message}`);
                     console.log("   ♻️  Retrying in 2 seconds...");
                     await new Promise(r => setTimeout(r, 2000));
                 }
@@ -126,8 +126,8 @@ async function uploadFile(filePath: string) {
         if (error) console.error("DB Error:", error.message);
         else console.log("🎉 SUCCESS! Video Created:", data.id);
 
-    } catch (err: any) {
-        console.error("\n❌ FATAL ERROR:", err.message);
+    } catch (err: unknown) {
+        console.error("\n❌ FATAL ERROR:", (err as Error).message);
         if (uploadId) {
             console.log("⚠️  Attempting to abort upload to save costs...");
             await s3.send(new AbortMultipartUploadCommand({ Bucket: S3_BUCKET, Key: key, UploadId: uploadId }));

@@ -12,19 +12,15 @@ const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function listVideos() {
-    console.log("Fetching all videos from DB...");
     const { data, error } = await supabase
         .from('videos')
-        .select('id, title, thumbnail_url, created_at')
-        .order('created_at', { ascending: false });
+        .select('*')
+        .limit(1);
 
     if (error) {
-        console.error("Error fetching videos:", error);
+        console.error("ERROR:", JSON.stringify(error));
     } else {
-        console.log(`Found ${data.length} videos:`);
-        data.forEach(v => {
-            console.log(`- [${v.id}] "${v.title}" (Thumb: ${v.thumbnail_url ? 'Yes' : 'No'})`);
-        });
+        console.log("SUCCESS_DATA:", JSON.stringify(data));
     }
 }
 

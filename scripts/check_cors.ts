@@ -3,9 +3,7 @@ import dotenv from "dotenv";
 dotenv.config({ path: ".env.local" });
 
 async function checkCors() {
-    // URL to check
-    // Try the Public URL assuming it's serving files
-    const publicUrl = process.env.S3_PUBLIC_DOMAIN + "/test-file.txt"; // Dummy path
+    // URL to check - using hardcoded R2 URL for testing
     // Also try the S3 API endpoint if possible (usually requires auth for simple fetches, but OPTIONS might work?)
     // S3 endpoints are tricky with fetch. Let's stick to the public endpoint first if it exists.
 
@@ -37,8 +35,8 @@ async function checkCors() {
             console.log("\n❌ FAILURE: CORS headers missing or incorrect.");
         }
 
-    } catch (err: any) {
-        console.error("Error making request:", err.message);
+    } catch (err: unknown) {
+        console.error("Error making request:", (err as Error).message);
     }
 }
 

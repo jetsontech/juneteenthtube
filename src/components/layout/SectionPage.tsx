@@ -3,9 +3,11 @@
 import { VideoGrid } from "@/components/video/VideoGrid";
 import { useVideo } from "@/context/VideoContext";
 
+import { VideoProps } from "@/components/video/VideoCard";
+
 interface SectionPageProps {
     title: string;
-    filter?: (video: any) => boolean;
+    filter?: (video: VideoProps) => boolean;
     emptyMessage?: string;
 }
 

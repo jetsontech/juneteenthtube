@@ -17,7 +17,15 @@ export async function PATCH(req: NextRequest) {
             return NextResponse.json({ error: 'Missing Video ID' }, { status: 400 });
         }
 
-        const updates: any = {};
+        interface VideoUpdates {
+            title?: string;
+            thumbnail_url?: string;
+            views?: number | string;
+            video_url?: string;
+            duration?: string;
+        }
+
+        const updates: VideoUpdates = {};
         if (title !== undefined) updates.title = title;
         if (thumbnail_url !== undefined) {
             updates.thumbnail_url = thumbnail_url;

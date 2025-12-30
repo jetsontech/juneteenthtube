@@ -1,11 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { User, Bell, Shield, Moon, LogOut, ChevronRight } from "lucide-react";
-import Link from "next/link";
+import { User, Bell, LogOut, ChevronRight } from "lucide-react";
 
 export default function SettingsPage() {
-    const [theme, setTheme] = useState("dark");
     const [notifications, setNotifications] = useState(true);
 
     return (

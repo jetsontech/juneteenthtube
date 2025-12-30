@@ -49,9 +49,9 @@ async function testUpload() {
         console.log("✅ Upload Successful!");
         console.log(`⏱️  Total Time: ${Date.now() - start}ms`);
 
-    } catch (error: any) {
-        console.error("❌ Test Failed:", error.message);
-        if (error.cause) console.error("Cause:", error.cause);
+    } catch (error: unknown) {
+        console.error("❌ Test Failed:", (error as Error).message);
+        if (error && typeof error === 'object' && 'cause' in error) console.error("Cause:", (error as { cause: unknown }).cause);
     }
 }
 

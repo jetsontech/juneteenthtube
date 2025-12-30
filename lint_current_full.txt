@@ -1,0 +1,66 @@
+
+> juneteenthtube@0.1.0 lint
+> eslint
+
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\scripts\debug_delete.ts
+  42:33  warning  'count' is assigned a value but never used       @typescript-eslint/no-unused-vars
+  53:41  warning  'checkError' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\scripts\find_specific.ts
+  20:19  warning  'error' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\scripts\placeholder.ts
+   9:7   warning  'supabase' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  14:16  warning  'migrate' is defined but never used            @typescript-eslint/no-unused-vars
+  15:11  warning  'sql' is assigned a value but never used       @typescript-eslint/no-unused-vars
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\scripts\repro_s3_error.ts
+  27:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\scripts\sync-env.js
+  40:26  warning  '_e' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\scripts\test_r2_upload.ts
+  73:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\scripts\upload_headless.ts
+  112:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\scripts\upload_manual_robust.ts
+   90:31  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  129:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\scripts\verify_upload.ts
+  52:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\app\photos\page.tsx
+  104:25  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  151:25  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\app\shorts\[id]\page.tsx
+  100:18  warning  '_e' is defined but never used                                                                                                                                                                                                                                                           @typescript-eslint/no-unused-vars
+  115:18  warning  '_e' is defined but never used                                                                                                                                                                                                                                                           @typescript-eslint/no-unused-vars
+  204:29  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  213:37  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  305:29  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\app\watch\[id]\page.tsx
+  108:18  warning  '_e' is defined but never used                                                                                                                                                                                                                                                           @typescript-eslint/no-unused-vars
+  125:18  warning  '_e' is defined but never used                                                                                                                                                                                                                                                           @typescript-eslint/no-unused-vars
+  224:33  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  358:29  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\components\video\CustomPlayer.tsx
+  411:21  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\components\video\ShortsShelf.tsx
+  203:21  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\components\video\VideoCard.tsx
+  275:14  warning  '_e' is defined but never used                                                                                                                                                                                                                                                           @typescript-eslint/no-unused-vars
+  360:17  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  430:25  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+Ô£û 29 problems (6 errors, 23 warnings)
+

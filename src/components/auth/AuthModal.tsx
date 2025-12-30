@@ -3,7 +3,6 @@
 import React, { useState } from 'react';
 import { X, Mail, Lock, User, Loader2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
-import { cn } from '@/lib/utils';
 
 interface AuthModalProps {
     isOpen: boolean;
@@ -48,8 +47,8 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
                 if (error) throw error;
                 onClose();
             }
-        } catch (err: any) {
-            setError(err.message || 'An error occurred during authentication');
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : 'An error occurred during authentication');
         } finally {
             setLoading(false);
         }

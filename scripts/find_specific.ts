@@ -17,7 +17,7 @@ async function find() {
         'Juneteenth Stage (Official High-Res MP4)'
     ];
 
-    const { data, error } = await supabase.from('videos').select('title').in('title', titles);
+    const { data } = await supabase.from('videos').select('title').in('title', titles);
     console.log("Found:", data?.map(v => v.title));
 
     // If not found, let's look for candidates to rename

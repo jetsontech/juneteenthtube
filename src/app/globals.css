@@ -17,14 +17,7 @@
   --navbar-height: calc(3.5rem + var(--safe-area-top));
 }
 
-/* Mobile Overrides to handle PWA fullscreen notch issues */
-@media (pointer: coarse) {
-  :root {
-    /* On mobile, enforce minimum 48px if env is failing or 0 in fullscreen */
-    --safe-area-top: max(env(safe-area-inset-top), 48px);
-    --navbar-height: calc(3.5rem + var(--safe-area-top));
-  }
-}
+
 
 /* stylelint-disable-next-line at-rule-no-unknown */
 @theme inline {

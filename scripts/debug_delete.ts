@@ -39,7 +39,7 @@ async function testDelete() {
 
     // 2. Try to Delete it
     console.log(`Attempting to delete video: ${id}`);
-    const { error: deleteError, count } = await supabase
+    const { error: deleteError } = await supabase
         .from('videos')
         .delete()
         .eq('id', id);
@@ -50,7 +50,7 @@ async function testDelete() {
         console.log("Deletion call successful. Checking if it's actually gone...");
 
         // 3. Verify
-        const { data: checkData, error: checkError } = await supabase
+        const { data: checkData } = await supabase
             .from('videos')
             .select('*')
             .eq('id', id);

@@ -79,14 +79,15 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json({ signedUrl, publicUrl, key });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("S3 Presign Error:", error);
 
         // DEBUG: Return endpoint details in error
         const debugInfo = cleanEndpoint ? `Endpoint: [${cleanEndpoint}] (Code: ${cleanEndpoint.charCodeAt(cleanEndpoint.length - 1)})` : "No Endpoint";
+        const errorMsg = error instanceof Error ? error.message : "Failed to generate upload URL";
 
         return NextResponse.json(
-            { error: `${error.message || "Failed to generate upload URL"} | DEBUG: ${debugInfo}` },
+            { error: `${errorMsg} | DEBUG: ${debugInfo}` },
             { status: 500 }
         );
     }

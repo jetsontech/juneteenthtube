@@ -24,8 +24,8 @@ const runTest = async (region: string | undefined, endpoint: string | undefined,
     try {
         await getSignedUrl(S3, command, { expiresIn: 3600 });
         console.log("RESULT: Success");
-    } catch (error: any) {
-        console.log(`RESULT: Error -> ${error.message}`);
+    } catch (error: unknown) {
+        console.log(`RESULT: Error -> ${(error as Error).message}`);
     }
 };
 

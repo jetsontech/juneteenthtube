@@ -40,7 +40,7 @@ export default function GeorgiaUnitedPage() {
                         {/* Description */}
                         <p className="text-lg text-gray-300 mb-6 max-w-2xl">
                             Celebrating Juneteenth across Georgia. From Atlanta to Savannah, explore videos showcasing
-                            Georgia's rich Juneteenth heritage and community celebrations.
+                            Georgia&apos;s rich Juneteenth heritage and community celebrations.
                         </p>
 
                         {/* Stats */}
@@ -84,7 +84,7 @@ export default function GeorgiaUnitedPage() {
                         </div>
                         <h3 className="text-xl font-bold text-white mb-2">Georgia Content Coming Soon</h3>
                         <p className="text-gray-400 text-center max-w-md mb-6">
-                            We're curating the best Juneteenth content from across Georgia.
+                            We&apos;re curating the best Juneteenth content from across Georgia.
                             Check back soon or upload your own Georgia celebration videos!
                         </p>
                         <Link

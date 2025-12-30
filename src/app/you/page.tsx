@@ -1,7 +1,7 @@
 "use client";
 
 import { useAuth } from "@/context/AuthContext";
-import { User, Video, Clock, ThumbsUp } from "lucide-react";
+import { Video, Clock, ThumbsUp } from "lucide-react";
 import Link from "next/link";
 
 export default function YouPage() {

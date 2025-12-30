@@ -1,0 +1,18 @@
+
+> juneteenthtube@0.1.0 lint
+> eslint
+
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\app\shorts\[id]\page.tsx
+  101:18  warning  '_e' is defined but never used  @typescript-eslint/no-unused-vars
+  116:18  warning  '_e' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\app\watch\[id]\page.tsx
+  109:18  warning  '_e' is defined but never used  @typescript-eslint/no-unused-vars
+  126:18  warning  '_e' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\components\video\VideoCard.tsx
+  276:14  warning  '_e' is defined but never used  @typescript-eslint/no-unused-vars
+
+Ô£û 5 problems (0 errors, 5 warnings)
+

@@ -2,11 +2,18 @@
 
 import { MoreVertical, Trash2, Edit2, X, Check, Image as ImageIcon, UploadCloud, Film, Volume2, VolumeX } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { useState, useRef, useEffect } from "react";
 import { useVideo } from "@/context/VideoContext";
 import { formatDistanceToNow } from "date-fns";
 import { useDominantColor } from "@/hooks/useDominantColor";
+
+declare global {
+    interface Window {
+        __juneteenthActiveVideoId: string | null;
+    }
+}
 
 export interface VideoProps {
     id: string;
@@ -25,13 +32,12 @@ export interface VideoProps {
 }
 
 export function VideoCard({ video }: { video: VideoProps }) {
-    const { deleteVideo, updateVideoTitle, updateVideoThumbnail, updateVideoFile, isUploading, uploadProgress } = useVideo();
+    const { deleteVideo, updateVideoTitle, updateVideoThumbnail, updateVideoFile } = useVideo();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [editTitle, setEditTitle] = useState(video.title);
     const [isDeleting, setIsDeleting] = useState(false);
     const [isUploadingThumb, setIsUploadingThumb] = useState(false);
-    const [isUploadingVideo, setIsUploadingVideo] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
     const [isMuted, setIsMuted] = useState(true);
     const [isCardHovered, setIsCardHovered] = useState(false);
@@ -43,7 +49,7 @@ export function VideoCard({ video }: { video: VideoProps }) {
     const isAd = video.category === 'Sponsored' || video.duration === 'Ad';
 
     // Extract dominant color from thumbnail for unique hover effect
-    const dominantColor = useDominantColor(video.thumbnail);
+    const dominantColor = useDominantColor();
 
     // Refs
     const cardRef = useRef<HTMLDivElement>(null);
@@ -78,8 +84,8 @@ export function VideoCard({ video }: { video: VideoProps }) {
         if (!cardRef.current || !video.videoUrl) return;
 
         // Global registry for tracking currently playing video - ensures only one plays
-        if (typeof window !== 'undefined' && !(window as any).__juneteenthActiveVideoId) {
-            (window as any).__juneteenthActiveVideoId = null;
+        if (typeof window !== 'undefined' && !window.__juneteenthActiveVideoId) {
+            window.__juneteenthActiveVideoId = null;
         }
 
         // Listen for other videos playing - pause this one immediately
@@ -111,14 +117,14 @@ export function VideoCard({ video }: { video: VideoProps }) {
                         // Debounce: wait 150ms to ensure this is the "settled" video
                         playDebounceTimer = setTimeout(() => {
                             // Double-check another video hasn't claimed playback
-                            const currentActive = (window as any).__juneteenthActiveVideoId;
+                            const currentActive = window.__juneteenthActiveVideoId;
                             if (currentActive && currentActive !== video.id) {
                                 // Another video is already playing, don't interrupt
                                 return;
                             }
 
                             // Claim playback globally
-                            (window as any).__juneteenthActiveVideoId = video.id;
+                            window.__juneteenthActiveVideoId = video.id;
 
                             // Dispatch event to pause all other videos FIRST
                             window.dispatchEvent(new CustomEvent('videoCardPlay', { detail: video.id }));
@@ -140,8 +146,8 @@ export function VideoCard({ video }: { video: VideoProps }) {
                         if (playDebounceTimer) clearTimeout(playDebounceTimer);
 
                         // Release global lock if we were the active video
-                        if ((window as any).__juneteenthActiveVideoId === video.id) {
-                            (window as any).__juneteenthActiveVideoId = null;
+                        if (window.__juneteenthActiveVideoId === video.id) {
+                            window.__juneteenthActiveVideoId = null;
                         }
 
                         setIsVisible(false);
@@ -161,19 +167,21 @@ export function VideoCard({ video }: { video: VideoProps }) {
         );
 
         observer.observe(cardRef.current);
+        const currentVideoRef = videoPreviewRef.current; // Capture ref for cleanup
+
         return () => {
             if (playDebounceTimer) clearTimeout(playDebounceTimer);
             observer.disconnect();
             window.removeEventListener('videoCardPlay', handleOtherVideoPlay as EventListener);
             // Release global lock on unmount
-            if ((window as any).__juneteenthActiveVideoId === video.id) {
-                (window as any).__juneteenthActiveVideoId = null;
+            if (window.__juneteenthActiveVideoId === video.id) {
+                window.__juneteenthActiveVideoId = null;
             }
             // MEMORY FIX: Clean up video element on unmount
-            if (videoPreviewRef.current) {
-                videoPreviewRef.current.pause();
-                videoPreviewRef.current.removeAttribute('src');
-                videoPreviewRef.current.load();
+            if (currentVideoRef) {
+                currentVideoRef.pause();
+                currentVideoRef.removeAttribute('src');
+                currentVideoRef.load();
             }
         };
     }, [video.videoUrl, video.id]);
@@ -252,13 +260,10 @@ export function VideoCard({ video }: { video: VideoProps }) {
         if (!file) return;
 
         try {
-            setIsUploadingVideo(true);
             await updateVideoFile(video.id, file);
         } catch (error) {
             console.error("Video update failed", error);
             alert("Failed to update video");
-        } finally {
-            setIsUploadingVideo(false);
         }
     };
 
@@ -268,7 +273,7 @@ export function VideoCard({ video }: { video: VideoProps }) {
         if (video.createdAt) {
             timeAgo = formatDistanceToNow(new Date(video.createdAt), { addSuffix: true });
         }
-    } catch (e) {
+    } catch {
         // Fallback to static string
     }
 
@@ -324,7 +329,6 @@ export function VideoCard({ video }: { video: VideoProps }) {
                             muted={isMuted}
                             loop
                             playsInline
-                            // @ts-ignore
                             webkit-playsinline="true"
                             onLoadedData={(e) => {
                                 // Ensure it plays even if low power mode tries to stop it
@@ -354,11 +358,13 @@ export function VideoCard({ video }: { video: VideoProps }) {
                 ) : null}
 
                 {/* Thumbnail Image */}
-                <img
+                <Image
                     src={video.thumbnail}
                     alt={video.title}
+                    fill
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                     className={cn(
-                        "w-full h-full object-cover group-hover:scale-105 transition-transform duration-300",
+                        "object-cover group-hover:scale-105 transition-transform duration-300",
                         shouldShowVideoPreview ? "opacity-0" : "opacity-100",
                         isUploadingThumb && "opacity-50 blur-sm"
                     )}
@@ -423,8 +429,8 @@ export function VideoCard({ video }: { video: VideoProps }) {
             <div className="flex gap-3 mt-3 px-1 sm:px-0 pr-2">
                 {/* Avatar */}
                 <div className="flex-shrink-0">
-                    <Link href={`/channel/${video.channelName}`} className="w-9 h-9 rounded-full bg-j-green overflow-hidden block">
-                        <img src={video.channelAvatar} alt={video.channelName} className="w-full h-full object-cover" />
+                    <Link href={`/channel/${video.channelName}`} className="w-9 h-9 rounded-full bg-j-green overflow-hidden block relative">
+                        <Image src={video.channelAvatar || '/default-avatar.png'} alt={video.channelName} fill sizes="36px" className="object-cover" />
                     </Link>
                 </div>
 

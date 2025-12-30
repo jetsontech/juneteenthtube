@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import {
     Play,
     Pause,
@@ -17,6 +18,12 @@ import { cn } from "@/lib/utils";
 interface CustomPlayerProps {
     src: string;
     poster?: string;
+}
+
+
+interface HTMLVideoElementWithWebKit extends HTMLVideoElement {
+    webkitShowPlaybackTargetPicker?: () => void;
+    webkitEnterFullscreen?: () => void;
 }
 
 export function CustomPlayer({ src, poster }: CustomPlayerProps) {
@@ -80,7 +87,7 @@ export function CustomPlayer({ src, poster }: CustomPlayerProps) {
             // Only initialize on first interaction to respect browser autoplay policies
             // However, for a player that plays on click, we can try init immediately or lazy load
             try {
-                const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+                const AudioContextClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
                 if (!AudioContextClass) return;
 
                 const ctx = new AudioContextClass();
@@ -241,7 +248,7 @@ export function CustomPlayer({ src, poster }: CustomPlayerProps) {
 
         if (!videoRef.current) return;
 
-        const video = videoRef.current as any;
+        const video = videoRef.current as unknown as HTMLVideoElementWithWebKit;
 
         // 1. Try Safari/iOS AirPlay (webkitShowPlaybackTargetPicker)
         if (video.webkitShowPlaybackTargetPicker) {
@@ -254,15 +261,21 @@ export function CustomPlayer({ src, poster }: CustomPlayerProps) {
         }
 
         // 2. Try Chrome/Standard Remote Playback API
-        if (video.remote && video.remote.state !== 'disabled') {
+        if (video.remote) {
             try {
-                await video.remote.prompt();
-            } catch (error: any) {
-                if (error.name === 'AbortError' || error.name === 'NotAllowedError' || error.message?.includes('dismissed')) {
+                if (video.remote.state === 'disconnected') {
+                    await video.remote.prompt();
+                } else {
+                    // If connected, maybe prompt to disconnect? Or just prompt universally.
+                    // Standard behavior is prompt() handles the toggle or selection.
+                    await video.remote.prompt();
+                }
+            } catch (error) {
+                if (error instanceof Error && (error.name === 'AbortError' || error.name === 'NotAllowedError' || error.message?.includes('dismissed'))) {
                     // User cancelled
                 } else {
                     console.error("Cast error:", error);
-                    alert(`Casting failed: ${error.message || "Unknown error"}`);
+                    alert(`Casting failed: ${(error instanceof Error ? error.message : "Unknown error")}`);
                 }
             }
         } else {
@@ -275,8 +288,7 @@ export function CustomPlayer({ src, poster }: CustomPlayerProps) {
         e?.stopPropagation();
         if (!containerRef.current || !videoRef.current) return;
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const video = videoRef.current as any;
+        const video = videoRef.current as unknown as HTMLVideoElementWithWebKit;
         const isMobile = /iPhone|iPad|iPod|Android|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 1024;
 
         // Mobile: Use CSS Overlay "Pseudo-Fullscreen" to allow force-zoom/cover
@@ -397,15 +409,15 @@ export function CustomPlayer({ src, poster }: CustomPlayerProps) {
             {/* High-Quality Poster Overlay - Only shows before first play or after video ends */}
             {poster && (!hasStartedPlaying || hasEnded) && (
                 <div className="absolute inset-0 z-[1]">
-                    <img
+                    <Image
                         src={poster}
                         alt="Video thumbnail"
-                        loading="eager"
-                        decoding="sync"
-                        fetchPriority="high"
+                        fill
+                        priority
+                        sizes="100vw"
                         className={cn(
-                            "w-full h-full",
-                            isZoomed ? "object-cover" : "object-contain"
+                            "object-contain",
+                            isZoomed && "object-cover"
                         )}
                     />
                 </div>

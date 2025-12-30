@@ -17,7 +17,7 @@ export const LoginSplash: React.FC<LoginSplashProps> = ({ onUnlock }) => {
     const [phase, setPhase] = useState<'gate' | 'welcome'>('gate');
 
     useEffect(() => {
-        setIsLoaded(true);
+        setTimeout(() => setIsLoaded(true), 100);
     }, []);
 
     const handleUnlock = (e?: React.FormEvent) => {
