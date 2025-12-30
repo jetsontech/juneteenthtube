@@ -62,7 +62,7 @@ export function StateSelector({ selectedState, onStateChange }: StateSelectorPro
                     isOpen && "bg-white/10 border-j-gold/50"
                 )}
                 aria-label="Select state"
-                aria-expanded={isOpen}
+                aria-expanded={isOpen ? "true" : "false"}
             >
                 {isGlobal ? (
                     <Globe className="w-4 h-4 text-j-gold" />

@@ -175,8 +175,8 @@ function ShortCard({ short, onDelete, onChangeThumbnail, onChangeVideo, onRename
             <input
                 type="file"
                 ref={fileInputRef}
-                id={`thumb-input-${short.id}`}
-                name={`thumb-input-${short.id}`}
+                id={`thumb-input-short-${short.id}`}
+                name={`thumb-input-short-${short.id}`}
                 className="hidden"
                 accept="image/*"
                 onChange={handleFileChange}
@@ -186,8 +186,8 @@ function ShortCard({ short, onDelete, onChangeThumbnail, onChangeVideo, onRename
             <input
                 type="file"
                 ref={videoFileInputRef}
-                id={`video-input-${short.id}`}
-                name={`video-input-${short.id}`}
+                id={`video-input-short-${short.id}`}
+                name={`video-input-short-${short.id}`}
                 className="hidden"
                 accept="video/*"
                 onChange={handleVideoFileChange}
@@ -230,6 +230,7 @@ function ShortCard({ short, onDelete, onChangeThumbnail, onChangeVideo, onRename
                         onChange={(e) => setEditTitle(e.target.value)}
                         className="flex-1 bg-[#272727] text-white text-sm px-2 py-1 rounded border border-white/20 focus:outline-none focus:border-white/50"
                         onClick={(e) => e.stopPropagation()}
+                        aria-label="Edit video title"
                         autoFocus
                     />
                     <button
