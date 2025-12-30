@@ -4,7 +4,7 @@ import { MoreVertical, Trash2, Edit2, X, Check, Image as ImageIcon, UploadCloud,
 import Link from "next/link";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, memo } from "react";
 import { useVideo } from "@/context/VideoContext";
 import { formatDistanceToNow } from "date-fns";
 import { useDominantColor } from "@/hooks/useDominantColor";
@@ -541,3 +541,16 @@ export function VideoCard({ video }: { video: VideoProps }) {
         </div>
     );
 }
+
+// Performance optimization: Memoize VideoCard to prevent re-renders
+// Only re-render if video data actually changes
+export default memo(VideoCard, (prevProps, nextProps) => {
+    // Return true if props are equal (skip re-render)
+    return (
+        prevProps.video.id === nextProps.video.id &&
+        prevProps.video.title === nextProps.video.title &&
+        prevProps.video.thumbnail === nextProps.video.thumbnail &&
+        prevProps.video.views === nextProps.video.views &&
+        prevProps.video.likes === nextProps.video.likes
+    );
+});

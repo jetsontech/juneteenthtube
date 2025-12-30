@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, ReactNode, useEffect, useRef } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect, useRef, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
 import { VideoProps } from '@/components/video/VideoCard';
 import pLimit from 'p-limit';
@@ -667,13 +667,16 @@ export function VideoProvider({ children }: { children: ReactNode }) {
         return videos.find(v => v.id === id);
     };
 
+    // Memoize context value to prevent unnecessary re-renders
+    const contextValue = useMemo(() => ({
+        videos, uploadVideo, getVideoById, isUploading, uploadProgress, cancelUpload,
+        deleteVideo, updateVideoTitle, updateVideoThumbnail, updateVideoFile, incrementView,
+        getVideoComments, postComment, getLikes, toggleLike, getSubscription, toggleSubscription,
+        isLoading
+    }), [videos, isUploading, uploadProgress, isLoading, uploadVideo, getVideoById, cancelUpload, deleteVideo, updateVideoTitle, updateVideoThumbnail, updateVideoFile, incrementView, getVideoComments, postComment, getLikes, toggleLike, getSubscription, toggleSubscription]);
+
     return (
-        <VideoContext.Provider value={{
-            videos, uploadVideo, getVideoById, isUploading, uploadProgress, cancelUpload,
-            deleteVideo, updateVideoTitle, updateVideoThumbnail, updateVideoFile, incrementView,
-            getVideoComments, postComment, getLikes, toggleLike, getSubscription, toggleSubscription,
-            isLoading
-        }}>
+        <VideoContext.Provider value={contextValue}>
             {children}
         </VideoContext.Provider>
     );
