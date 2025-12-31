@@ -199,6 +199,12 @@ body {
   -ms-overflow-style: none;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
+  touch-action: manipulation;
+}
+
+/* Improve Touch Targets & Responsiveness */
+button, a, input[type="range"], [role="button"] {
+  touch-action: manipulation;
 }
 
 /* Glassmorphism & Gloss System - Premium 2.0 */

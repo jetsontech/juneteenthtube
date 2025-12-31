@@ -383,6 +383,9 @@ export function CustomPlayer({ src, poster }: CustomPlayerProps) {
             onMouseMove={handleMouseMove}
             onClick={resetControlsTimeout}
             onMouseLeave={resetControlsTimeout}
+            onTouchStart={(e) => e.stopPropagation()}
+            onTouchMove={(e) => e.stopPropagation()}
+            onTouchEnd={(e) => e.stopPropagation()}
         >
             <video
                 ref={videoRef}
