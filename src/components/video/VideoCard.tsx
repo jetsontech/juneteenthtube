@@ -291,13 +291,16 @@ export function VideoCard({ video }: { video: VideoProps }) {
             ref={cardRef}
             className={cn(
                 "group block relative p-2 -m-2 rounded-2xl transition-all duration-300",
-                isAd ? "" : "ring-1 ring-white/5 hover:ring-white/10 shadow-lg shadow-black/20"
+                isAd ? "" : "glass-panel hover:bg-white/[0.02] hover:ring-1 hover:ring-white/10 hover:shadow-2xl hover:shadow-black/50"
             )}
             // Using inline style for dynamic CSS variable - required for runtime color values
             {...(!isAd && { style: { backgroundColor: cardBgColor } as React.CSSProperties })}
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
         >
+            {/* Gloss Overlay for premium feel */}
+            <div className="gloss-overlay opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl" />
+
             <input
                 type="file"
                 ref={fileInputRef}
