@@ -186,6 +186,18 @@ export function VideoCard({ video }: { video: VideoProps }) {
         };
     }, [video.videoUrl, video.id]);
 
+    // Explicit cleanup for the video element when the component unmounts
+    // This ensures the browser stops buffering and releases the file handle
+    useEffect(() => {
+        return () => {
+            if (videoPreviewRef.current) {
+                videoPreviewRef.current.pause();
+                videoPreviewRef.current.src = "";
+                videoPreviewRef.current.load();
+            }
+        };
+    }, []);
+
     // Close menu when clicking outside
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {

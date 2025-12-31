@@ -128,7 +128,15 @@ export function CustomPlayer({ src, poster }: CustomPlayerProps) {
 
         const v = videoRef.current;
         v.addEventListener('play', handlePlayParams);
-        return () => v.removeEventListener('play', handlePlayParams);
+
+        // CLEANUP: Close AudioContext to prevent memory accumulation (Browser Limit ~6)
+        return () => {
+            v.removeEventListener('play', handlePlayParams);
+            if (audioContextRef.current) {
+                audioContextRef.current.close().catch(e => console.warn("Error closing AudioContext:", e));
+                audioContextRef.current = null;
+            }
+        };
 
     }, []);
 
