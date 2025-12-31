@@ -95,7 +95,7 @@ function ShellContent({ children }: { children: React.ReactNode }) {
                 }}
             >
                 <div
-                    className="max-w-[1600px] mx-auto px-4"
+                    className="w-full max-w-[1600px] mx-auto px-4 overflow-x-hidden"
                 >
                     {children}
                 </div>

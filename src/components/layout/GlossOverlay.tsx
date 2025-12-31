@@ -14,8 +14,8 @@ export const GlossOverlay = ({ className, style }: GlossOverlayProps) => {
                 // Glossy gradient: Subtle white shine from top-left
                 background: 'linear-gradient(125deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0.0) 40%, rgba(0,0,0,0) 100%)',
                 // Glass effect to blur the underlying colored blobs
-                backdropFilter: 'blur(40px)',
-                WebkitBackdropFilter: 'blur(40px)',
+                backdropFilter: 'blur(20px)',
+                WebkitBackdropFilter: 'blur(20px)',
                 ...style
             }}
         />
