@@ -1,7 +1,7 @@
 "use client";
 
 import { useVideo } from "@/context/VideoContext";
-import { VideoCard } from "@/components/video/VideoCard";
+import { VideoGrid } from "@/components/video/VideoGrid";
 import { Film, Loader2 } from "lucide-react";
 
 export default function GalleryPage() {
@@ -27,11 +27,7 @@ export default function GalleryPage() {
                     <Loader2 className="w-8 h-8 text-j-gold animate-spin" />
                 </div>
             ) : videos.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-y-8 gap-x-4">
-                    {videos.map((video) => (
-                        <VideoCard key={video.id} video={video} />
-                    ))}
-                </div>
+                <VideoGrid videos={videos} />
             ) : (
                 <div className="flex flex-col items-center justify-center h-64 text-gray-500">
                     <Film className="w-12 h-12 mb-4 opacity-50" />

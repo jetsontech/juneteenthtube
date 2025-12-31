@@ -21,7 +21,7 @@ export const BackgroundSystem = () => {
             </div>
 
             {/* 3. Subtle Grid/Noise Overlay */}
-            <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 contrast-150 brightness-100 mix-blend-overlay" />
+            {/* Noise texture removed - external URL */}
 
             {/* 4. Gloss Overlay - Topmost background layer */}
             <GlossOverlay className="absolute inset-0 z-[0]" />

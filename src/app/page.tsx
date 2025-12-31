@@ -68,35 +68,20 @@ function HomeContent() {
   const [filteredVideos, setFilteredVideos] = useState<VideoProps[]>([]);
 
   useEffect(() => {
-    // Pin Ad Video
-    const AD_VIDEO: VideoProps = {
-      id: "advertisement-01",
-      title: "Project Juneteenth | Official Advertisement",
-      thumbnail: "https://images.unsplash.com/photo-1516280440614-37939bbacd81?q=80&w=1000&auto=format&fit=crop",
-      channelName: "Juneteenth Global",
-      channelAvatar: "https://juneteenthatl.com/wp-content/uploads/2024/01/Juneteenth-Atlanta-Logo.png",
-      views: "Sponsored",
-      postedAt: "Just Now",
-      duration: "Ad",
-      videoUrl: "",
-      category: "Sponsored"
-    };
-
     const shuffled = shuffleArray(rawFilteredVideos);
-    // Use setTimeout to avoid calling setState synchronously within effect
     const timeoutId = setTimeout(() => {
-      setFilteredVideos([AD_VIDEO, ...shuffled]);
+      setFilteredVideos(shuffled);
     }, 0);
 
     return () => clearTimeout(timeoutId);
   }, [rawFilteredVideos]);
 
-  // YouTube-style: Always 3 columns on desktop to maintain consistent card size
+  // YouTube-style: Maximum 3 columns on desktop to maintain consistent card size
   // Mobile: single column with tighter vertical spacing
   const videoGridClass = cn(
     "grid gap-x-4",
     "gap-y-8 sm:gap-y-12 lg:gap-y-14", // Increased vertical gap for YouTube-style airy look
-    "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4"
+    "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
   );
 
   return (

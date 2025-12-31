@@ -21,7 +21,7 @@ export default function GeorgiaUnitedPage() {
         <div className="min-h-screen">
             {/* Hero Section */}
             <div className="relative overflow-hidden bg-gradient-to-br from-j-red/20 via-black to-j-green/20 border-b border-white/10">
-                <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1575936123452-b67c3203c357?w=1920&auto=format&fit=crop')] bg-cover bg-center opacity-10" />
+                {/* Background image removed - external URL */}
                 <div className="absolute inset-0 bg-gradient-to-t from-[#0f0f0f] via-transparent to-transparent" />
 
                 <div className="relative px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20">

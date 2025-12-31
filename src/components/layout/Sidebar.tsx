@@ -59,7 +59,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 onMouseEnter={() => setIsHovered(true)}
                 onMouseLeave={() => setIsHovered(false)}
                 className={cn(
-                    "fixed left-0 bottom-0 z-[100] bg-[#0f0f0f]/95 backdrop-blur-xl overflow-y-auto transition-all duration-300 scrollbar-none",
+                    "fixed left-0 bottom-0 z-[100] glass-heavy overflow-y-auto transition-all duration-300 scrollbar-none",
                     // Mobile: Slide in/out, always w-64 when visible/animating
                     isOpen ? "translate-x-0 w-64" : "-translate-x-full w-64",
                     // Desktop: Always visible (translate-0), toggle width
@@ -82,8 +82,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                                 href={link.href}
                                 onClick={handleMobileClose}
                                 className={cn(
-                                    "flex items-center gap-4 px-3 py-3 rounded-lg transition-colors hover:bg-white/10 group",
-                                    isActive ? "bg-white/10" : "text-gray-300"
+                                    "flex items-center gap-4 px-3 py-3 rounded-lg transition-all duration-200 hover:glass-button group",
+                                    isActive ? "glass-button border-l-2 border-l-j-red bg-white/5" : "text-gray-300 border-l-2 border-l-transparent"
                                 )}
                             >
                                 <link.icon className={cn("w-6 h-6 shrink-0", isActive ? "text-j-red" : "group-hover:text-white")} />

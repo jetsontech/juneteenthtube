@@ -221,10 +221,12 @@ export default function WatchPage({
                     {/* Channel Row - Avatar, Name, Subs, Subscribe Button */}
                     <div className="flex items-center gap-3 mt-3 py-3 border-t border-white/5">
                         <div className="w-10 h-10 rounded-full bg-j-green flex-shrink-0 overflow-hidden cursor-pointer hover:opacity-90 relative">
-                            {video.channelAvatar ? (
+                            {video.channelAvatar && video.channelAvatar.includes('pub-efcc4aa0b3b24e3d97760577b0ec20bd.r2.dev') ? (
                                 <Image src={video.channelAvatar} alt={video.channelName} fill sizes="40px" className="object-cover" />
                             ) : (
-                                <div className="w-full h-full bg-j-green" />
+                                <div className="w-full h-full bg-gradient-to-br from-j-green to-j-gold flex items-center justify-center text-white font-bold">
+                                    {video.channelName.charAt(0).toUpperCase()}
+                                </div>
                             )}
                         </div>
                         <div className="flex flex-col min-w-0 flex-1">
@@ -354,9 +356,15 @@ export default function WatchPage({
                 </div>
 
                 {videos.filter(v => v.id !== video?.id).map((v) => (
-                    <a href={`/ watch / ${v.id} `} key={v.id} className="flex gap-2 cursor-pointer group hover:bg-[#272727] p-2 rounded-xl transition-colors">
+                    <a href={`/watch/${v.id}`} key={v.id} className="flex gap-2 cursor-pointer group hover:bg-[#272727] p-2 rounded-xl transition-colors">
                         <div className="w-[168px] aspect-video bg-gray-800 rounded-lg overflow-hidden flex-shrink-0 relative">
-                            <Image src={v.thumbnail} fill sizes="168px" className="object-cover" alt={v.title} />
+                            {v.thumbnail && v.thumbnail.includes('pub-efcc4aa0b3b24e3d97760577b0ec20bd.r2.dev') ? (
+                                <Image src={v.thumbnail} fill sizes="168px" className="object-cover" alt={v.title} />
+                            ) : (
+                                <div className="w-full h-full bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center">
+                                    <span className="text-gray-500 text-xs">No Thumbnail</span>
+                                </div>
+                            )}
                             <div className="absolute bottom-1.5 right-1.5 bg-black/80 text-[10px] px-1.5 py-0.5 rounded text-white font-medium tracking-wide">
                                 {v.duration}
                             </div>

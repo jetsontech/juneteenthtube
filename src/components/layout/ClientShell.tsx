@@ -12,17 +12,18 @@ import { useState, useEffect } from "react";
 
 function ShellContent({ children }: { children: React.ReactNode }) {
     const { isOpen, toggle, setIsOpen } = useSidebar();
-    const [isLocked, setIsLocked] = useState(true);
-    const [isChecking, setIsChecking] = useState(true);
+    const [isLocked, setIsLocked] = useState(false); // Disabled gateway for public access
+    const [isChecking, setIsChecking] = useState(false); // Skip checking animation
     const [touchStart, setTouchStart] = useState<{ x: number, y: number } | null>(null);
 
-    useEffect(() => {
-        const hasAccess = sessionStorage.getItem('guest_access_granted');
-        if (hasAccess === 'true') {
-            setTimeout(() => setIsLocked(false), 0);
-        }
-        setTimeout(() => setIsChecking(false), 0);
-    }, []);
+    // Gateway disabled - no sessionStorage check needed
+    // useEffect(() => {
+    //     const hasAccess = sessionStorage.getItem('guest_access_granted');
+    //     if (hasAccess === 'true') {
+    //         setTimeout(() => setIsLocked(false), 0);
+    //     }
+    //     setTimeout(() => setIsChecking(false), 0);
+    // }, []);
 
     // Lock body scroll on mobile when sidebar is open
     useEffect(() => {
@@ -84,22 +85,17 @@ function ShellContent({ children }: { children: React.ReactNode }) {
             <main
                 className={cn(
                     "pt-14 transition-all duration-300 min-h-screen",
-                    isOpen ? "sm:pl-64" : "sm:pl-[72px]"
+                    isOpen ? "pl-64" : "pl-[72px]"
                 )}
                 style={{
                     // Use CSS variable for consistent spacing with Navbar/Sidebar
                     paddingTop: 'var(--navbar-height)',
                     paddingRight: 'env(safe-area-inset-right)',
                     paddingBottom: 'env(safe-area-inset-bottom)',
-                    paddingLeft: 'env(safe-area-inset-left)'
                 }}
             >
                 <div
-                    className="max-w-[1600px] mx-auto"
-                    style={{
-                        paddingLeft: 'env(safe-area-inset-left)',
-                        paddingRight: 'env(safe-area-inset-right)',
-                    }}
+                    className="max-w-[1600px] mx-auto px-4"
                 >
                     {children}
                 </div>

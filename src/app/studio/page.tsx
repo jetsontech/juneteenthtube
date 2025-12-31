@@ -1,7 +1,7 @@
 "use client";
 
 import { useVideo } from "@/context/VideoContext";
-import { VideoCard } from "@/components/video/VideoCard";
+import { VideoGrid } from "@/components/video/VideoGrid";
 import { Upload, Video } from "lucide-react";
 
 export default function StudioPage() {
@@ -24,11 +24,7 @@ export default function StudioPage() {
                     <p className="text-gray-400">Upload your first video to get started!</p>
                 </div>
             ) : (
-                <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                    {videos.map((video) => (
-                        <VideoCard key={video.id} video={video} />
-                    ))}
-                </div>
+                <VideoGrid videos={videos} />
             )}
         </main>
     );

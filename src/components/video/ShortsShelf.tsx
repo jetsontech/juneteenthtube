@@ -17,15 +17,8 @@ interface ShortVideo {
     isPlaceholder?: boolean;
 }
 
-// Placeholder shorts (we'll use 5 or 6 based on sidebar state)
-const PLACEHOLDER_SHORTS: ShortVideo[] = [
-    { id: "p1", title: "Upload Your First Short", views: "0", thumbnail: "https://placehold.co/180x320/272727/666666?text=+", isPlaceholder: true },
-    { id: "p2", title: "Upload Your First Short", views: "0", thumbnail: "https://placehold.co/180x320/272727/666666?text=+", isPlaceholder: true },
-    { id: "p3", title: "Upload Your First Short", views: "0", thumbnail: "https://placehold.co/180x320/272727/666666?text=+", isPlaceholder: true },
-    { id: "p4", title: "Upload Your First Short", views: "0", thumbnail: "https://placehold.co/180x320/272727/666666?text=+", isPlaceholder: true },
-    { id: "p5", title: "Upload Your First Short", views: "0", thumbnail: "https://placehold.co/180x320/272727/666666?text=+", isPlaceholder: true },
-    { id: "p6", title: "Upload Your First Short", views: "0", thumbnail: "https://placehold.co/180x320/272727/666666?text=+", isPlaceholder: true },
-];
+// Placeholder shorts removed - user will upload their own content
+const PLACEHOLDER_SHORTS: ShortVideo[] = [];
 
 function ShortCard({ short, onDelete, onChangeThumbnail, onChangeVideo, onRename, landscapeMode = false }: {
     short: ShortVideo;

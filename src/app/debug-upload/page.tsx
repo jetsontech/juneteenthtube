@@ -15,102 +15,207 @@ export default function DebugUploadPage() {
 
         setLogs([]);
         addLog(`Started upload for: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`);
+        addLog(`File type: ${file.type || "Unknown"}`);
+
+        // MIME Type Detection
+        const isImage = file.type.startsWith("image/");
+        const isVideo = file.type.startsWith("video/");
+
+        if (!isImage && !isVideo) {
+            addLog(`❌ ERROR: Unsupported file type. Please upload an image or video.`);
+            return;
+        }
+
+        addLog(`Detected as: ${isImage ? "IMAGE" : "VIDEO"}`);
 
         try {
-            // STEP 1: API Route
-            addLog("Step 1: Fetching Signed URL from /api/upload...");
-            const apiRes = await fetch("/api/upload", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    filename: file.name,
-                    contentType: file.type || "video/mp4",
-                }),
-            });
+            if (isImage) {
+                // --- IMAGE UPLOAD PATH ---
+                addLog("📸 Using PHOTO upload path...");
 
-            if (!apiRes.ok) {
-                const text = await apiRes.text();
-                throw new Error(`API Endpoint Failed (${apiRes.status}): ${text}`);
-            }
-
-            const { signedUrl, publicUrl, error } = await apiRes.json();
-            if (error) throw new Error(`API Error: ${error}`);
-
-            addLog("✅ Step 1 Success. Got Signed URL.");
-            addLog(`   Public URL: ${publicUrl}`);
-
-            // STEP 2: R2 Upload
-            addLog("Step 2: Uploading to R2 (via XHR with 3 Retries)...");
-
-            const uploadWithRetry = async (retries = 3): Promise<void> => {
-                return new Promise((resolve, reject) => {
-                    const attempt = (n: number) => {
-                        addLog(`   Attempt ${retries - n + 1} of ${retries}...`);
-                        const xhr = new XMLHttpRequest();
-                        xhr.open("PUT", signedUrl);
-                        xhr.setRequestHeader("Content-Type", file.type || "video/mp4");
-
-                        xhr.upload.onprogress = (event) => {
-                            if (event.lengthComputable) {
-                                const percentComplete = ((event.loaded / event.total) * 100).toFixed(0);
-                                // Log every 10%
-                                if (+percentComplete % 10 === 0 && +percentComplete > 0) {
-                                    addLog(`   Upload Progress: ${percentComplete}%`);
-                                }
-                            }
-                        };
-
-                        xhr.onload = () => {
-                            if (xhr.status >= 200 && xhr.status < 300) {
-                                resolve();
-                            } else {
-                                if (n > 1) {
-                                    addLog(`   ⚠️ Failed (${xhr.status}). Retrying in 2s...`);
-                                    setTimeout(() => attempt(n - 1), 2000);
-                                } else {
-                                    reject(new Error(`R2 Upload Failed: ${xhr.status} ${xhr.statusText}`));
-                                }
-                            }
-                        };
-
-                        xhr.onerror = () => {
-                            if (n > 1) {
-                                addLog(`   ⚠️ Network Error. Retrying in 3s...`);
-                                setTimeout(() => attempt(n - 1), 3000);
-                            } else {
-                                reject(new Error("Network Error during upload (Final Attempt)"));
-                            }
-                        };
-
-                        xhr.timeout = 0; // No timeout
-                        xhr.send(file);
-                    };
-                    attempt(retries);
+                // STEP 1: API Route
+                addLog("Step 1: Fetching Signed URL from /api/upload...");
+                const apiRes = await fetch("/api/upload", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        filename: file.name,
+                        contentType: file.type || "image/jpeg",
+                    }),
                 });
-            };
 
-            await uploadWithRetry();
+                if (!apiRes.ok) {
+                    const text = await apiRes.text();
+                    throw new Error(`API Endpoint Failed (${apiRes.status}): ${text}`);
+                }
 
-            addLog("✅ Step 2 Success. File on R2.");
+                const { signedUrl, publicUrl, error } = await apiRes.json();
+                if (error) throw new Error(`API Error: ${error}`);
 
-            // STEP 3: Supabase Insert
-            addLog("Step 3: Inserting metadata to Supabase...");
-            const { error: dbError } = await supabase
-                .from('videos')
-                .insert([{
-                    title: `DEBUG: ${file.name}`,
-                    video_url: publicUrl,
-                    thumbnail_url: "https://placehold.co/600x400",
-                    category: "All"
-                }])
-                .select()
-                .single();
+                addLog("✅ Step 1 Success. Got Signed URL.");
+                addLog(`   Public URL: ${publicUrl}`);
 
-            if (dbError) {
-                throw new Error(`Supabase DB Error: ${JSON.stringify(dbError)}`);
+                // STEP 2: R2 Upload
+                addLog("Step 2: Uploading to R2...");
+
+                const uploadWithRetry = async (retries = 3): Promise<void> => {
+                    return new Promise((resolve, reject) => {
+                        const attempt = (n: number) => {
+                            addLog(`   Attempt ${retries - n + 1} of ${retries}...`);
+                            const xhr = new XMLHttpRequest();
+                            xhr.open("PUT", signedUrl);
+                            xhr.setRequestHeader("Content-Type", file.type || "image/jpeg");
+
+                            xhr.upload.onprogress = (event) => {
+                                if (event.lengthComputable) {
+                                    const percentComplete = ((event.loaded / event.total) * 100).toFixed(0);
+                                    if (+percentComplete % 10 === 0 && +percentComplete > 0) {
+                                        addLog(`   Upload Progress: ${percentComplete}%`);
+                                    }
+                                }
+                            };
+
+                            xhr.onload = () => {
+                                if (xhr.status >= 200 && xhr.status < 300) {
+                                    resolve();
+                                } else {
+                                    if (n > 1) {
+                                        addLog(`   ⚠️ Failed (${xhr.status}). Retrying in 2s...`);
+                                        setTimeout(() => attempt(n - 1), 2000);
+                                    } else reject(new Error(`R2 Upload Failed: ${xhr.status} ${xhr.statusText}`));
+                                }
+                            };
+
+                            xhr.onerror = () => {
+                                if (n > 1) {
+                                    addLog(`   ⚠️ Network Error. Retrying in 3s...`);
+                                    setTimeout(() => attempt(n - 1), 3000);
+                                } else reject(new Error("Network Error during upload (Final Attempt)"));
+                            };
+
+                            xhr.timeout = 0;
+                            xhr.send(file);
+                        };
+                        attempt(retries);
+                    });
+                };
+
+                await uploadWithRetry();
+                addLog("✅ Step 2 Success. File on R2.");
+
+                // STEP 3: Supabase Insert to PHOTOS table
+                addLog("Step 3: Inserting metadata to Supabase PHOTOS table...");
+                const { error: dbError } = await supabase
+                    .from('photos')
+                    .insert([{
+                        title: `DEBUG: ${file.name}`,
+                        photo_url: publicUrl,
+                        caption: "Uploaded via debug tool",
+                        state: "GLOBAL"
+                    }])
+                    .select()
+                    .single();
+
+                if (dbError) {
+                    throw new Error(`Supabase DB Error: ${JSON.stringify(dbError)}`);
+                }
+
+                addLog("✅ Step 3 Success. Saved to PHOTOS table.");
+
+            } else {
+                // --- VIDEO UPLOAD PATH (existing logic) ---
+                addLog("🎥 Using VIDEO upload path...");
+
+                // STEP 1: API Route
+                addLog("Step 1: Fetching Signed URL from /api/upload...");
+                const apiRes = await fetch("/api/upload", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        filename: file.name,
+                        contentType: file.type || "video/mp4",
+                    }),
+                });
+
+                if (!apiRes.ok) {
+                    const text = await apiRes.text();
+                    throw new Error(`API Endpoint Failed (${apiRes.status}): ${text}`);
+                }
+
+                const { signedUrl, publicUrl, error } = await apiRes.json();
+                if (error) throw new Error(`API Error: ${error}`);
+
+                addLog("✅ Step 1 Success. Got Signed URL.");
+                addLog(`   Public URL: ${publicUrl}`);
+
+                // STEP 2: R2 Upload
+                addLog("Step 2: Uploading to R2 (via XHR with 3 Retries)...");
+
+                const uploadWithRetry = async (retries = 3): Promise<void> => {
+                    return new Promise((resolve, reject) => {
+                        const attempt = (n: number) => {
+                            addLog(`   Attempt ${retries - n + 1} of ${retries}...`);
+                            const xhr = new XMLHttpRequest();
+                            xhr.open("PUT", signedUrl);
+                            xhr.setRequestHeader("Content-Type", file.type || "video/mp4");
+
+                            xhr.upload.onprogress = (event) => {
+                                if (event.lengthComputable) {
+                                    const percentComplete = ((event.loaded / event.total) * 100).toFixed(0);
+                                    if (+percentComplete % 10 === 0 && +percentComplete > 0) {
+                                        addLog(`   Upload Progress: ${percentComplete}%`);
+                                    }
+                                }
+                            };
+
+                            xhr.onload = () => {
+                                if (xhr.status >= 200 && xhr.status < 300) {
+                                    resolve();
+                                } else {
+                                    if (n > 1) {
+                                        addLog(`   ⚠️ Failed (${xhr.status}). Retrying in 2s...`);
+                                        setTimeout(() => attempt(n - 1), 2000);
+                                    } else reject(new Error(`R2 Upload Failed: ${xhr.status} ${xhr.statusText}`));
+                                }
+                            };
+
+                            xhr.onerror = () => {
+                                if (n > 1) {
+                                    addLog(`   ⚠️ Network Error. Retrying in 3s...`);
+                                    setTimeout(() => attempt(n - 1), 3000);
+                                } else reject(new Error("Network Error during upload (Final Attempt)"));
+                            };
+
+                            xhr.timeout = 0;
+                            xhr.send(file);
+                        };
+                        attempt(retries);
+                    });
+                };
+
+                await uploadWithRetry();
+                addLog("✅ Step 2 Success. File on R2.");
+
+                // STEP 3: Supabase Insert to VIDEOS table
+                addLog("Step 3: Inserting metadata to Supabase VIDEOS table...");
+                const { error: dbError } = await supabase
+                    .from('videos')
+                    .insert([{
+                        title: `DEBUG: ${file.name}`,
+                        video_url: publicUrl,
+                        thumbnail_url: "",
+                        category: "All"
+                    }])
+                    .select()
+                    .single();
+
+                if (dbError) {
+                    throw new Error(`Supabase DB Error: ${JSON.stringify(dbError)}`);
+                }
+
+                addLog("✅ Step 3 Success. Saved to VIDEOS table.");
             }
 
-            addLog("✅ Step 3 Success. Saved to DB.");
             addLog("🎉 FULL SUCCESS!");
             addLog("🎉 FULL SUCCESS!");
 
@@ -123,12 +228,13 @@ export default function DebugUploadPage() {
 
     return (
         <div className="min-h-screen bg-black text-white p-8 font-mono">
-            <h1 className="text-2xl font-bold mb-4 text-red-500">Video Upload Debugger</h1>
+            <h1 className="text-2xl font-bold mb-4 text-red-500">Photo & Video Upload Debugger</h1>
             <div className="mb-8 p-4 border border-white/20 rounded bg-white/5">
-                <label htmlFor="video-upload" className="block mb-2 font-bold">Select a Video File:</label>
+                <label htmlFor="video-upload" className="block mb-2 font-bold">Select an Image or Video File:</label>
                 <input
                     id="video-upload"
                     type="file"
+                    accept="image/*,video/*"
                     onChange={handleUpload}
                     className="block w-full text-sm text-gray-500
                         file:mr-4 file:py-2 file:px-4

@@ -34,6 +34,7 @@ export const LoginSplash: React.FC<LoginSplashProps> = ({ onUnlock }) => {
     const handleFinalEnter = () => {
         setIsExiting(true);
         setTimeout(() => {
+            sessionStorage.setItem('guest_access_granted', 'true');
             onUnlock();
         }, 800);
     };

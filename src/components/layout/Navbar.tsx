@@ -15,14 +15,14 @@ interface NavbarProps {
     onMenuClick: () => void;
 }
 
-const CATEGORIES = ["All", "Parade", "Music", "Food", "History", "Speeches", "Live", "2024"] as const;
+const CATEGORIES = ["All", "Parade", "Music", "Food", "History", "Speeches", "Live", "2024", "Photos"] as const;
 
 export function Navbar({ onMenuClick }: NavbarProps) {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [isUploadOpen, setIsUploadOpen] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState<string>("All");
     const [selectedUploadState, setSelectedUploadState] = useState<USState>(DEFAULT_STATE);
-    const { uploadVideo, isUploading, uploadProgress, cancelUpload } = useVideo();
+    const { uploadVideo, uploadPhoto, isUploading, uploadProgress, cancelUpload } = useVideo();
     const { user, signOut } = useAuth();
     const { selectedState, setSelectedState } = useStateFilter();
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -58,17 +58,35 @@ export function Navbar({ onMenuClick }: NavbarProps) {
             return;
         }
 
-        alert(`Selected: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)\nStarting Upload...`);
+        // Detect file type
+        const isImage = file.type.startsWith("image/");
+        const isVideo = file.type.startsWith("video/");
+
+        if (!isImage && !isVideo) {
+            alert("Please select an image or video file.");
+            input.value = "";
+            return;
+        }
+
+        alert(`Selected: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)\nType: ${isImage ? "Image" : "Video"}\nStarting Upload...`);
 
         try {
-            // CRITICAL: Await the upload so errors are caught here!
-            await uploadVideo(file, selectedCategory, selectedUploadState.code);
+            // Route to appropriate upload function based on file type
+            if (isImage) {
+                // For images, use uploadPhoto with optional caption
+                await uploadPhoto(file, selectedCategory, selectedUploadState.code);
+            } else {
+                // For videos, use uploadVideo
+                await uploadVideo(file, selectedCategory, selectedUploadState.code);
+            }
 
             setIsUploadOpen(false);
             setSelectedCategory("All"); // Reset category after upload
             setSelectedUploadState(DEFAULT_STATE); // Reset state after upload
             input.value = "";
-            if (confirm("Upload Successful! Press OK to refresh and see your video.")) {
+
+            const contentType = isImage ? "photo" : "video";
+            if (confirm(`Upload Successful! Press OK to refresh and see your ${contentType}.`)) {
                 window.location.reload();
             }
 
@@ -104,7 +122,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
     return (
         <>
             <nav
-                className="fixed top-0 left-0 right-0 z-50 flex flex-col bg-black/60 backdrop-blur-md transition-all duration-300"
+                className="fixed top-0 left-0 right-0 z-50 flex flex-col glass-heavy transition-all duration-300"
                 style={{
                     // Use robust CSS variables defined in globals.css
                     height: 'var(--navbar-height)',
@@ -124,10 +142,10 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                         >
                             <Menu className="w-6 h-6" />
                         </button>
-                        <Link href="/" className="flex items-center gap-1">
-                            <div className="w-8 h-8 bg-j-red rounded-lg flex items-center justify-center text-white font-bold">J</div>
+                        <Link href="/" className="flex items-center gap-1 group">
+                            <div className="w-8 h-8 bg-j-red rounded-lg flex items-center justify-center text-white font-bold shadow-[0_0_15px_rgba(227,28,35,0.4)] group-hover:scale-105 transition-transform">J</div>
                             <span className="text-xl font-bold tracking-tight text-white hidden sm:block">
-                                Juneteenth<span className="text-j-red">Tube</span>
+                                Juneteenth<span className="text-j-red glow-text-red">Tube</span>
                             </span>
                         </Link>
                         <StateSelector
@@ -144,7 +162,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                             }}
                             className="flex w-full"
                         >
-                            <div className="flex-1 flex items-center pl-4 bg-white/5 border border-white/10 rounded-l-full focus-within:border-j-gold/50 transition-colors">
+                            <div className="flex-1 flex items-center pl-4 glass rounded-l-full focus-within:border-j-gold/50 transition-colors">
                                 <Search className="w-5 h-5 text-gray-400" />
                                 <input
                                     type="text"
@@ -220,7 +238,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                                     </button>
 
                                     {isUserMenuOpen && (
-                                        <div className="absolute right-0 top-full mt-2 w-64 bg-[#282828] border border-white/10 rounded-xl shadow-2xl py-2 z-[70] animate-in fade-in slide-in-from-top-2 duration-200">
+                                        <div className="absolute right-0 top-full mt-2 w-64 glass-heavy rounded-xl shadow-2xl py-2 z-[70] animate-in fade-in slide-in-from-top-2 duration-200">
                                             <div className="px-4 py-3 border-b border-white/10 flex items-center gap-3">
                                                 <div className="w-10 h-10 bg-j-green rounded-full flex items-center justify-center text-white font-bold">
                                                     {user.email?.charAt(0).toUpperCase()}
@@ -271,7 +289,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
                         <div className="bg-[#1e1e1e] border border-white/10 rounded-2xl w-full max-w-2xl shadow-2xl animate-in fade-in zoom-in duration-200">
                             <div className="flex items-center justify-between p-4 border-b border-white/10">
-                                <h2 className="text-xl font-bold text-white">Upload videos</h2>
+                                <h2 className="text-xl font-bold text-white">Upload content</h2>
                                 <button
                                     onClick={handleClose}
                                     className="p-2 hover:bg-white/10 rounded-full transition-colors text-gray-400 hover:text-white"
@@ -288,8 +306,8 @@ export function Navbar({ onMenuClick }: NavbarProps) {
 
                                 {!isUploading ? (
                                     <div>
-                                        <p className="text-lg text-white mb-2">Drag and drop video files to upload</p>
-                                        <p className="text-sm text-gray-400">Your videos will be private until you publish them.</p>
+                                        <p className="text-lg text-white mb-2">Drag and drop files to upload</p>
+                                        <p className="text-sm text-gray-400">Photos and videos will be private until you publish them.</p>
                                     </div>
                                 ) : (
                                     <div className="w-full max-w-sm space-y-4">
@@ -304,7 +322,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                                             />
                                         </div>
                                         <p className="text-xs text-gray-400">
-                                            Please keep this tab open. Large videos may take time.
+                                            Please keep this tab open. Large files may take time.
                                         </p>
                                     </div>
                                 )}
@@ -319,7 +337,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                                         onChange={(e) => setSelectedCategory(e.target.value)}
                                         className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-j-gold/50 focus:border-j-gold/50 transition-all"
                                         disabled={isUploading}
-                                        aria-label="Select video category"
+                                        aria-label="Select content category"
                                     >
                                         {CATEGORIES.map((cat) => (
                                             <option key={cat} value={cat} className="bg-gray-900 text-white">
@@ -342,7 +360,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                                         }}
                                         className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-j-gold/50 focus:border-j-gold/50 transition-all"
                                         disabled={isUploading}
-                                        aria-label="Select video state/region"
+                                        aria-label="Select content state/region"
                                     >
                                         {US_STATES.map((state) => (
                                             <option key={state.code} value={state.code} className="bg-gray-900 text-white">
@@ -363,10 +381,10 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                                         <input
                                             ref={fileInputRef}
                                             type="file"
-                                            accept="video/*"
+                                            accept="image/*,video/*"
                                             className="absolute w-0 h-0 opacity-0 overflow-hidden"
                                             onChange={handleFileChange}
-                                            aria-label="Upload video file"
+                                            aria-label="Upload photo or video file"
                                         />
                                     </>
                                 ) : (

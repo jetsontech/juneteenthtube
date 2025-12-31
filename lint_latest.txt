@@ -1,0 +1,23 @@
+
+> juneteenthtube@0.1.0 lint
+> eslint
+
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\context\VideoContext.tsx
+  132:11  warning  The 'cancelUpload' function makes the dependencies of useMemo Hook (at line 676) change on every render. Move it inside the useMemo callback. Alternatively, wrap the definition of 'cancelUpload' in its own useCallback() Hook                  react-hooks/exhaustive-deps
+  155:11  warning  The 'getVideoComments' function makes the dependencies of useMemo Hook (at line 676) change on every render. Move it inside the useMemo callback. Alternatively, wrap the definition of 'getVideoComments' in its own useCallback() Hook          react-hooks/exhaustive-deps
+  162:11  warning  The 'postComment' function makes the dependencies of useMemo Hook (at line 676) change on every render. Move it inside the useMemo callback. Alternatively, wrap the definition of 'postComment' in its own useCallback() Hook                    react-hooks/exhaustive-deps
+  176:11  warning  The 'getLikes' function makes the dependencies of useMemo Hook (at line 676) change on every render. Move it inside the useMemo callback. Alternatively, wrap the definition of 'getLikes' in its own useCallback() Hook                          react-hooks/exhaustive-deps
+  185:11  warning  The 'toggleLike' function makes the dependencies of useMemo Hook (at line 676) change on every render. Move it inside the useMemo callback. Alternatively, wrap the definition of 'toggleLike' in its own useCallback() Hook                      react-hooks/exhaustive-deps
+  199:11  warning  The 'getSubscription' function makes the dependencies of useMemo Hook (at line 676) change on every render. Move it inside the useMemo callback. Alternatively, wrap the definition of 'getSubscription' in its own useCallback() Hook            react-hooks/exhaustive-deps
+  209:11  warning  The 'toggleSubscription' function makes the dependencies of useMemo Hook (at line 676) change on every render. Move it inside the useMemo callback. Alternatively, wrap the definition of 'toggleSubscription' in its own useCallback() Hook      react-hooks/exhaustive-deps
+  229:11  warning  The 'deleteVideo' function makes the dependencies of useMemo Hook (at line 676) change on every render. Move it inside the useMemo callback. Alternatively, wrap the definition of 'deleteVideo' in its own useCallback() Hook                    react-hooks/exhaustive-deps
+  250:11  warning  The 'updateVideoTitle' function makes the dependencies of useMemo Hook (at line 676) change on every render. Move it inside the useMemo callback. Alternatively, wrap the definition of 'updateVideoTitle' in its own useCallback() Hook          react-hooks/exhaustive-deps
+  267:11  warning  The 'updateVideoThumbnail' function makes the dependencies of useMemo Hook (at line 676) change on every render. Move it inside the useMemo callback. Alternatively, wrap the definition of 'updateVideoThumbnail' in its own useCallback() Hook  react-hooks/exhaustive-deps
+  311:11  warning  The 'updateVideoFile' function makes the dependencies of useMemo Hook (at line 676) change on every render. Move it inside the useMemo callback. Alternatively, wrap the definition of 'updateVideoFile' in its own useCallback() Hook            react-hooks/exhaustive-deps
+  399:11  warning  The 'incrementView' function makes the dependencies of useMemo Hook (at line 676) change on every render. Move it inside the useMemo callback. Alternatively, wrap the definition of 'incrementView' in its own useCallback() Hook                react-hooks/exhaustive-deps
+  545:11  warning  The 'uploadVideo' function makes the dependencies of useMemo Hook (at line 676) change on every render. Move it inside the useMemo callback. Alternatively, wrap the definition of 'uploadVideo' in its own useCallback() Hook                    react-hooks/exhaustive-deps
+  666:11  warning  The 'getVideoById' function makes the dependencies of useMemo Hook (at line 676) change on every render. Move it inside the useMemo callback. Alternatively, wrap the definition of 'getVideoById' in its own useCallback() Hook                  react-hooks/exhaustive-deps
+
+Ô£û 14 problems (0 errors, 14 warnings)
+

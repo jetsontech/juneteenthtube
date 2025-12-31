@@ -2,7 +2,7 @@
 
 import { useParams } from "next/navigation";
 import { useVideo } from "@/context/VideoContext";
-import { VideoCard } from "@/components/video/VideoCard";
+import { VideoGrid } from "@/components/video/VideoGrid";
 import { User } from "lucide-react";
 
 export default function ChannelPage() {
@@ -36,11 +36,7 @@ export default function ChannelPage() {
                     <p className="text-gray-400">No videos from this channel yet.</p>
                 </div>
             ) : (
-                <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                    {channelVideos.map((video) => (
-                        <VideoCard key={video.id} video={video} />
-                    ))}
-                </div>
+                <VideoGrid videos={channelVideos} />
             )}
         </main>
     );

@@ -357,18 +357,27 @@ export function VideoCard({ video }: { video: VideoProps }) {
                     </>
                 ) : null}
 
-                {/* Thumbnail Image */}
-                <Image
-                    src={video.thumbnail}
-                    alt={video.title}
-                    fill
-                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                    className={cn(
-                        "object-cover group-hover:scale-105 transition-transform duration-300",
-                        shouldShowVideoPreview ? "opacity-0" : "opacity-100",
-                        isUploadingThumb && "opacity-50 blur-sm"
-                    )}
-                />
+                {/* Thumbnail Image - only render if from allowed domain */}
+                {video.thumbnail && video.thumbnail.includes('pub-efcc4aa0b3b24e3d97760577b0ec20bd.r2.dev') ? (
+                    <Image
+                        src={video.thumbnail}
+                        alt={video.title}
+                        fill
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                        className={cn(
+                            "object-cover group-hover:scale-105 transition-transform duration-300",
+                            shouldShowVideoPreview ? "opacity-0" : "opacity-100",
+                            isUploadingThumb && "opacity-50 blur-sm"
+                        )}
+                    />
+                ) : (
+                    <div className="absolute inset-0 bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center">
+                        <div className="text-center p-4">
+                            <ImageIcon className="w-12 h-12 text-gray-600 mx-auto mb-2" />
+                            <p className="text-gray-500 text-sm">No Thumbnail</p>
+                        </div>
+                    </div>
+                )}
 
                 {isUploadingThumb && (
                     <div className="absolute inset-0 flex items-center justify-center z-20">
@@ -430,7 +439,13 @@ export function VideoCard({ video }: { video: VideoProps }) {
                 {/* Avatar */}
                 <div className="flex-shrink-0">
                     <Link href={`/channel/${video.channelName}`} className="w-9 h-9 rounded-full bg-j-green overflow-hidden block relative">
-                        <Image src={video.channelAvatar || '/default-avatar.png'} alt={video.channelName} fill sizes="36px" className="object-cover" />
+                        {video.channelAvatar && video.channelAvatar.includes('pub-efcc4aa0b3b24e3d97760577b0ec20bd.r2.dev') ? (
+                            <Image src={video.channelAvatar} alt={video.channelName} fill sizes="36px" className="object-cover" />
+                        ) : (
+                            <div className="w-full h-full bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center text-white text-sm font-bold">
+                                {video.channelName.charAt(0).toUpperCase()}
+                            </div>
+                        )}
                     </Link>
                 </div>
 

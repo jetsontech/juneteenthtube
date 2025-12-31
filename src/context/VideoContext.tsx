@@ -1,27 +1,17 @@
 "use client";
 
-import React, { createContext, useContext, useState, ReactNode, useEffect, useRef, useMemo } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect, useRef, useMemo, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { VideoProps } from '@/components/video/VideoCard';
 import pLimit from 'p-limit';
 
-// Initial Mock Data (Fallback)
-const MOCK_VIDEOS: VideoProps[] = [
-    {
-        id: "1",
-        title: "Juneteenth Atlanta Parade 2024 Highlights - Official Footage",
-        thumbnail: "https://juneteenthatl.com/wp-content/uploads/2024/02/DSC02251.jpg",
-        channelName: "Juneteenth Atlanta",
-        channelAvatar: "https://juneteenthatl.com/wp-content/uploads/2024/01/Juneteenth-Atlanta-Logo.png",
-        views: "12K",
-        postedAt: "2 days ago",
-        duration: "14:20"
-    },
-];
+// Initial Mock Data (Fallback) - Empty, user will upload their own content
+const MOCK_VIDEOS: VideoProps[] = [];
 
 interface VideoContextType {
     videos: VideoProps[];
     uploadVideo: (file: File, category?: string, state?: string) => Promise<void>;
+    uploadPhoto: (file: File, caption?: string, state?: string) => Promise<void>;
     getVideoById: (id: string) => VideoProps | undefined;
     isUploading: boolean;
     uploadProgress: number;
@@ -32,6 +22,9 @@ interface VideoContextType {
     updateVideoThumbnail: (id: string, file: File) => Promise<void>;
     updateVideoFile: (id: string, file: File) => Promise<void>;
     incrementView: (id: string) => Promise<void>;
+    // Photo Management Functions
+    deletePhoto: (id: string) => Promise<void>;
+    updatePhotoImage: (id: string, file: File) => Promise<void>;
     // Engagement
     getVideoComments: (videoId: string) => Promise<unknown[]>;
     postComment: (videoId: string, text: string, userName: string) => Promise<unknown>;
@@ -63,12 +56,12 @@ const VideoContext = createContext<VideoContextType | undefined>(undefined);
 // Helper to simulate rich data if DB columns are missing
 const getMockChannelData = (title: string) => {
     const t = title.toLowerCase();
-    if (t.includes('parade') || t.includes('juneteenth')) return { name: 'Juneteenth ATL', avatar: 'https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=100', views: '14K', duration: '12:30' };
-    if (t.includes('food') || t.includes('bbq') || t.includes('vegan')) return { name: 'ATL Eats', avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100', views: '5K', duration: '8:15' };
-    if (t.includes('music') || t.includes('jazz') || t.includes('drum')) return { name: 'Music City', avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100', views: '22K', duration: '4:20' };
-    if (t.includes('history')) return { name: 'History Buffs', avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=100', views: '120K', duration: '25:00' };
-    if (t.includes('speech') || t.includes('mayor')) return { name: 'City of Atlanta', avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100', views: '8K', duration: '15:45' };
-    return { name: 'Community User', avatar: 'https://i.pravatar.cc/150', views: '1.5K', duration: '3:00' };
+    if (t.includes('parade') || t.includes('juneteenth')) return { name: 'Juneteenth ATL', avatar: '', views: '14K', duration: '12:30' };
+    if (t.includes('food') || t.includes('bbq') || t.includes('vegan')) return { name: 'ATL Eats', avatar: '', views: '5K', duration: '8:15' };
+    if (t.includes('music') || t.includes('jazz') || t.includes('drum')) return { name: 'Music City', avatar: '', views: '22K', duration: '4:20' };
+    if (t.includes('history')) return { name: 'History Buffs', avatar: '', views: '120K', duration: '25:00' };
+    if (t.includes('speech') || t.includes('mayor')) return { name: 'City of Atlanta', avatar: '', views: '8K', duration: '15:45' };
+    return { name: 'Community User', avatar: '', views: '1.5K', duration: '3:00' };
 };
 
 export function VideoProvider({ children }: { children: ReactNode }) {
@@ -100,10 +93,10 @@ export function VideoProvider({ children }: { children: ReactNode }) {
                     return {
                         id: video.id,
                         title: video.title,
-                        thumbnail: video.thumbnail_url || "https://images.unsplash.com/photo-1610483145520-412708686f94?q=80&w=600&auto=format&fit=crop",
+                        thumbnail: video.thumbnail_url || "",
                         // Prioritize DB columns -> Fallback to smart mock -> Fallback to generic default
                         channelName: video.channel_name || video.category === 'Food' ? 'ATL Foodie' : (mockChannel.name || "JuneteenthTV"),
-                        channelAvatar: video.channel_avatar || mockChannel.avatar || "https://i.pravatar.cc/150?u=jtube",
+                        channelAvatar: video.channel_avatar || mockChannel.avatar || "",
                         views: video.views?.toString() || mockChannel.views || "1.2K",
                         postedAt: video.posted_at || (video.created_at ? new Date(video.created_at).toLocaleDateString() : "Recently"),
                         duration: video.duration || mockChannel.duration || "5:00",
@@ -129,7 +122,7 @@ export function VideoProvider({ children }: { children: ReactNode }) {
         fetchVideos();
     }, []);
 
-    const cancelUpload = () => {
+    const cancelUpload = useCallback(() => {
         if (abortControllerRef.current) {
             abortControllerRef.current.abort();
             abortControllerRef.current = null;
@@ -137,7 +130,7 @@ export function VideoProvider({ children }: { children: ReactNode }) {
             setUploadProgress(0);
             console.log("Upload cancelled by user");
         }
-    };
+    }, []);
 
     // Helper for Guest ID (Persistent non-login user tracking)
     const getGuestId = () => {
@@ -152,14 +145,14 @@ export function VideoProvider({ children }: { children: ReactNode }) {
     // --- MANAGEMENT FUNCTIONS ---
 
     // Engagement API Wrappers
-    const getVideoComments = async (videoId: string) => {
+    const getVideoComments = useCallback(async (videoId: string) => {
         const res = await fetch(`/api/comments?videoId=${videoId}`);
         if (!res.ok) return [];
         const { comments } = await res.json();
         return comments || [];
-    };
+    }, []);
 
-    const postComment = async (videoId: string, text: string, userName: string) => {
+    const postComment = useCallback(async (videoId: string, text: string, userName: string) => {
         const guestId = getGuestId();
         const res = await fetch('/api/comments', {
             method: 'POST',
@@ -171,18 +164,18 @@ export function VideoProvider({ children }: { children: ReactNode }) {
         });
         if (!res.ok) throw new Error("Failed to post comment");
         return await res.json();
-    };
+    }, []);
 
-    const getLikes = async (videoId: string) => {
+    const getLikes = useCallback(async (videoId: string) => {
         const guestId = getGuestId();
         const res = await fetch(`/api/likes?videoId=${videoId}`, {
             headers: { 'x-guest-id': guestId }
         });
         if (!res.ok) return { likes: 0, userStatus: null };
         return await res.json();
-    };
+    }, []);
 
-    const toggleLike = async (videoId: string, type: 'like' | 'dislike') => {
+    const toggleLike = useCallback(async (videoId: string, type: 'like' | 'dislike') => {
         const guestId = getGuestId();
         const res = await fetch('/api/likes', {
             method: 'POST',
@@ -194,9 +187,9 @@ export function VideoProvider({ children }: { children: ReactNode }) {
         });
         if (!res.ok) throw new Error("Failed to toggle like");
         return await res.json();
-    };
+    }, []);
 
-    const getSubscription = async (channelName: string) => {
+    const getSubscription = useCallback(async (channelName: string) => {
         const guestId = getGuestId();
         const res = await fetch(`/api/subscribe?channelName=${encodeURIComponent(channelName)}`, {
             headers: { 'x-guest-id': guestId }
@@ -204,9 +197,9 @@ export function VideoProvider({ children }: { children: ReactNode }) {
         if (!res.ok) return false;
         const { subscribed } = await res.json();
         return subscribed;
-    };
+    }, []);
 
-    const toggleSubscription = async (channelName: string) => {
+    const toggleSubscription = useCallback(async (channelName: string) => {
         const guestId = getGuestId();
         const res = await fetch('/api/subscribe', {
             method: 'POST',
@@ -219,14 +212,14 @@ export function VideoProvider({ children }: { children: ReactNode }) {
         if (!res.ok) throw new Error("Failed to toggle subscription");
         const { subscribed } = await res.json();
         return subscribed;
-    };
+    }, []);
 
     // --- EXISTING MANAGEMENT FUNCTIONS ---
 
     // --- MANAGEMENT FUNCTIONS ---
     // UPDATED: Now using Server-Side API to bypass RLS issues
 
-    const deleteVideo = async (id: string) => {
+    const deleteVideo = useCallback(async (id: string) => {
         try {
             // Using existing delete route or admin route? 
             // For now, let's also move this to an API if RLS blocks delete, 
@@ -245,9 +238,9 @@ export function VideoProvider({ children }: { children: ReactNode }) {
             console.error("Error deleting video:", error);
             throw error;
         }
-    };
+    }, []);
 
-    const updateVideoTitle = async (id: string, newTitle: string) => {
+    const updateVideoTitle = useCallback(async (id: string, newTitle: string) => {
         try {
             const response = await fetch('/api/videos/update', {
                 method: 'PATCH',
@@ -262,9 +255,9 @@ export function VideoProvider({ children }: { children: ReactNode }) {
             console.error("Error updating title:", error);
             throw error;
         }
-    };
+    }, []);
 
-    const updateVideoThumbnail = async (id: string, file: File) => {
+    const updateVideoThumbnail = useCallback(async (id: string, file: File) => {
         try {
             // 1. Upload Thumbnail Image using existing API
             const response = await fetch("/api/upload", {
@@ -305,10 +298,10 @@ export function VideoProvider({ children }: { children: ReactNode }) {
             console.error("Error updating thumbnail:", error);
             throw error;
         }
-    };
+    }, []);
 
     // Update video file (replace with new video)
-    const updateVideoFile = async (id: string, file: File) => {
+    const updateVideoFile = useCallback(async (id: string, file: File) => {
         try {
             setIsUploading(true);
             setUploadProgress(0);
@@ -394,9 +387,9 @@ export function VideoProvider({ children }: { children: ReactNode }) {
             setIsUploading(false);
             setUploadProgress(0);
         }
-    };
+    }, []);
 
-    const incrementView = async (id: string) => {
+    const incrementView = useCallback(async (id: string) => {
         try {
             // Optimistic UI update
             setVideos(prev => prev.map(v => {
@@ -420,7 +413,76 @@ export function VideoProvider({ children }: { children: ReactNode }) {
         } catch (error) {
             console.error("Error incrementing view:", error);
         }
-    };
+    }, []);
+
+    // --- PHOTO MANAGEMENT FUNCTIONS ---
+
+    const deletePhoto = useCallback(async (id: string) => {
+        try {
+            const response = await fetch(`/api/photos?id=${id}`, { method: 'DELETE' });
+            if (!response.ok) {
+                const { error } = await response.json();
+                throw new Error(error || 'Delete failed');
+            }
+            console.log(`Photo ${id} deleted`);
+        } catch (error) {
+            console.error("Error deleting photo:", error);
+            throw error;
+        }
+    }, []);
+
+    const updatePhotoImage = useCallback(async (id: string, file: File) => {
+        try {
+            setIsUploading(true);
+            setUploadProgress(0);
+
+            // 1. Upload new image to storage
+            const response = await fetch("/api/upload", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    filename: `photo_${id}_${Date.now()}_${file.name}`,
+                    contentType: file.type || "image/jpeg",
+                }),
+            });
+
+            if (!response.ok) throw new Error("Failed to sign image upload");
+            const { signedUrl, publicUrl } = await response.json();
+
+            // 2. Upload to Storage
+            await new Promise<void>((resolve, reject) => {
+                const xhr = new XMLHttpRequest();
+                xhr.open("PUT", signedUrl);
+                xhr.setRequestHeader("Content-Type", file.type || "image/jpeg");
+                xhr.upload.onprogress = (event) => {
+                    if (event.lengthComputable) {
+                        setUploadProgress(Math.round((event.loaded / event.total) * 100));
+                    }
+                };
+                xhr.onload = () => (xhr.status >= 200 && xhr.status < 300) ? resolve() : reject(new Error("Image upload failed"));
+                xhr.onerror = () => reject(new Error("Network Error during upload"));
+                xhr.send(file);
+            });
+
+            // 3. Update DB via API
+            const updateRes = await fetch('/api/photos/update', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id, photo_url: publicUrl })
+            });
+
+            if (!updateRes.ok) throw new Error('Failed to update photo record');
+
+            console.log(`Photo ${id} image updated`);
+
+        } catch (error) {
+            console.error("Error updating photo image:", error);
+            throw error;
+        } finally {
+            setIsUploading(false);
+            setUploadProgress(0);
+        }
+    }, []);
 
     // --- UPLOAD LOGIC ---
     const uploadMultipart = async (file: File, _category: string): Promise<string> => {
@@ -542,7 +604,7 @@ export function VideoProvider({ children }: { children: ReactNode }) {
     };
 
 
-    const uploadVideo = async (file: File, category: string = "All", state: string = "GLOBAL") => {
+    const uploadVideo = useCallback(async (file: File, category: string = "All", state: string = "GLOBAL") => {
         setIsUploading(true);
         setUploadProgress(0);
 
@@ -635,7 +697,7 @@ export function VideoProvider({ children }: { children: ReactNode }) {
                     {
                         title: file.name.replace(/\.[^/.]+$/, ""),
                         video_url: publicUrl,
-                        thumbnail_url: "https://images.unsplash.com/photo-1610483145520-412708686f94?q=80&w=600&auto=format&fit=crop",
+                        thumbnail_url: "",
                         category: category,
                         duration: duration,
                         state: state
@@ -661,19 +723,115 @@ export function VideoProvider({ children }: { children: ReactNode }) {
             setUploadProgress(0);
             abortControllerRef.current = null;
         }
-    };
+    }, []);
 
-    const getVideoById = (id: string) => {
+    const uploadPhoto = useCallback(async (file: File, caption: string = "", state: string = "GLOBAL") => {
+        setIsUploading(true);
+        setUploadProgress(0);
+
+        if (abortControllerRef.current) {
+            abortControllerRef.current.abort();
+        }
+        abortControllerRef.current = new AbortController();
+        const signal = abortControllerRef.current.signal;
+
+        try {
+            let publicUrl = "";
+
+            // Photos are typically smaller, but we'll use the same 50MB threshold
+            if (file.size > 50 * 1024 * 1024) {
+                publicUrl = await uploadMultipart(file, "");
+            } else {
+                console.log("Uploading photo (<50MB)...");
+                const response = await fetch("/api/upload", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        filename: file.name,
+                        contentType: file.type || "image/jpeg",
+                    }),
+                    signal
+                });
+
+                if (!response.ok) throw new Error(`API Sign Error: ${response.status} ${response.statusText}`);
+                const { signedUrl, publicUrl: simplePublicUrl, error } = await response.json();
+                if (error) throw new Error(`Sign Error: ${error}`);
+
+                if (signal.aborted) throw new Error("Upload cancelled");
+
+                await new Promise<void>((resolve, reject) => {
+                    const xhr = new XMLHttpRequest();
+                    xhr.open("PUT", signedUrl);
+                    xhr.setRequestHeader("Content-Type", file.type || "image/jpeg");
+                    if (signal) {
+                        signal.onabort = () => {
+                            xhr.abort();
+                            reject(new Error("Upload cancelled"));
+                        };
+                    }
+                    xhr.upload.onprogress = (event) => {
+                        if (event.lengthComputable) {
+                            const percent = Math.round((event.loaded / event.total) * 100);
+                            setUploadProgress(percent);
+                        }
+                    };
+                    xhr.onload = () => (xhr.status >= 200 && xhr.status < 300) ? resolve() : reject(new Error(`Upload Failed`));
+                    xhr.onerror = () => reject(new Error("Network Error"));
+                    xhr.send(file);
+                });
+                publicUrl = simplePublicUrl;
+            }
+
+            if (signal.aborted) throw new Error("Upload cancelled");
+
+            console.log("Saving photo to DB...");
+
+            // Extract title from filename
+            const title = file.name.replace(/\.[^/.]+$/, "");
+
+            const { error: dbError } = await supabase
+                .from('photos')
+                .insert([
+                    {
+                        title: title,
+                        photo_url: publicUrl,
+                        caption: caption || "",
+                        state: state
+                    }
+                ])
+                .select()
+                .single();
+
+            if (dbError) throw new Error(`DB Insert Failed: ${dbError.message}`);
+
+            console.log("Photo Upload Complete!");
+
+        } catch (err: unknown) {
+            if (abortControllerRef.current?.signal.aborted || (err instanceof Error && err.message === 'Upload cancelled')) {
+                console.log('Upload was cancelled');
+            } else {
+                console.error("Photo upload failed", err);
+                throw err;
+            }
+        } finally {
+            setIsUploading(false);
+            setUploadProgress(0);
+            abortControllerRef.current = null;
+        }
+    }, []);
+
+    const getVideoById = useCallback((id: string) => {
         return videos.find(v => v.id === id);
-    };
+    }, [videos]);
 
     // Memoize context value to prevent unnecessary re-renders
     const contextValue = useMemo(() => ({
-        videos, uploadVideo, getVideoById, isUploading, uploadProgress, cancelUpload,
+        videos, uploadVideo, uploadPhoto, getVideoById, isUploading, uploadProgress, cancelUpload,
         deleteVideo, updateVideoTitle, updateVideoThumbnail, updateVideoFile, incrementView,
+        deletePhoto, updatePhotoImage,
         getVideoComments, postComment, getLikes, toggleLike, getSubscription, toggleSubscription,
         isLoading
-    }), [videos, isUploading, uploadProgress, isLoading, uploadVideo, getVideoById, cancelUpload, deleteVideo, updateVideoTitle, updateVideoThumbnail, updateVideoFile, incrementView, getVideoComments, postComment, getLikes, toggleLike, getSubscription, toggleSubscription]);
+    }), [videos, isUploading, uploadProgress, isLoading, uploadVideo, uploadPhoto, getVideoById, cancelUpload, deleteVideo, updateVideoTitle, updateVideoThumbnail, updateVideoFile, incrementView, deletePhoto, updatePhotoImage, getVideoComments, postComment, getLikes, toggleLike, getSubscription, toggleSubscription]);
 
     return (
         <VideoContext.Provider value={contextValue}>

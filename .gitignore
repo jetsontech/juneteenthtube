@@ -46,3 +46,6 @@ next-env.d.ts
 # media
 *.mp4
 *.mov
+
+# Allow example video for review
+!example_video.mp4
