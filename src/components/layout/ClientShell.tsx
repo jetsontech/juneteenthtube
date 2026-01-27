@@ -12,18 +12,18 @@ import { useState, useEffect } from "react";
 
 function ShellContent({ children }: { children: React.ReactNode }) {
     const { isOpen, toggle, setIsOpen } = useSidebar();
-    const [isLocked, setIsLocked] = useState(false); // Disabled gateway for public access
-    const [isChecking, setIsChecking] = useState(false); // Skip checking animation
+    const [isLocked, setIsLocked] = useState(true); // Default to LOCKED
+    const [isChecking, setIsChecking] = useState(true); // Default to CHECKING
     const [touchStart, setTouchStart] = useState<{ x: number, y: number } | null>(null);
 
-    // Gateway disabled - no sessionStorage check needed
-    // useEffect(() => {
-    //     const hasAccess = sessionStorage.getItem('guest_access_granted');
-    //     if (hasAccess === 'true') {
-    //         setTimeout(() => setIsLocked(false), 0);
-    //     }
-    //     setTimeout(() => setIsChecking(false), 0);
-    // }, []);
+    // Gateway enabled - check sessionStorage
+    useEffect(() => {
+        const hasAccess = sessionStorage.getItem('guest_access_granted');
+        if (hasAccess === 'true') {
+            setTimeout(() => setIsLocked(false), 0);
+        }
+        setTimeout(() => setIsChecking(false), 0);
+    }, []);
 
     // Lock body scroll on mobile when sidebar is open
     useEffect(() => {
@@ -85,7 +85,8 @@ function ShellContent({ children }: { children: React.ReactNode }) {
             <main
                 className={cn(
                     "pt-14 transition-all duration-300 min-h-screen",
-                    isOpen ? "pl-64" : "pl-[72px]"
+                    isOpen ? "sm:pl-64" : "sm:pl-[72px]", // Desktop: Fixed sidebar space
+                    "pl-0" // Mobile: No sidebar space (it's an overlay)
                 )}
                 style={{
                     // Use CSS variable for consistent spacing with Navbar/Sidebar

@@ -13,8 +13,8 @@ interface SidebarProps {
 const mainLinks = [
     { icon: Home, label: "Home", href: "/" },
     { icon: Film, label: "Shorts", href: "/shorts" }, // Lucide doesn't have exact Shorts logo, Film is close enough for icon
-    { icon: PlaySquare, label: "Gallery", href: "/gallery" },
-    { icon: Image, label: "Photos", href: "/photos" },
+    { icon: PlaySquare, label: "Video Gallery", href: "/gallery" },
+    { icon: Image, label: "Photo Gallery", href: "/photos" },
     { icon: Flag, label: "Georgia United", href: "/georgia-united" },
     { icon: Users, label: "Subscriptions", href: "/subscriptions" },
 ];

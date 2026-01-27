@@ -12,6 +12,7 @@ import { useDominantColor } from "@/hooks/useDominantColor";
 declare global {
     interface Window {
         __juneteenthActiveVideoId: string | null;
+        MSStream: unknown;
     }
 }
 
@@ -43,6 +44,7 @@ export function VideoCard({ video }: { video: VideoProps }) {
     const [isCardHovered, setIsCardHovered] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
     const [isVisible, setIsVisible] = useState(false);
+    const [hasUnsupportedFormat, setHasUnsupportedFormat] = useState(false);
     const hoverTimeout = useRef<NodeJS.Timeout | null>(null);
 
     // Check if this is an ad video
@@ -189,11 +191,12 @@ export function VideoCard({ video }: { video: VideoProps }) {
     // Explicit cleanup for the video element when the component unmounts
     // This ensures the browser stops buffering and releases the file handle
     useEffect(() => {
+        const videoEl = videoPreviewRef.current;
         return () => {
-            if (videoPreviewRef.current) {
-                videoPreviewRef.current.pause();
-                videoPreviewRef.current.src = "";
-                videoPreviewRef.current.load();
+            if (videoEl) {
+                videoEl.pause();
+                videoEl.src = "";
+                videoEl.load();
             }
         };
     }, []);
@@ -339,17 +342,40 @@ export function VideoCard({ video }: { video: VideoProps }) {
                         <video
                             ref={videoPreviewRef}
                             src={video.videoUrl}
-                            className="w-full h-full object-cover absolute inset-0 z-10"
+                            className="w-full h-full object-cover absolute inset-0 z-20 opacity-100"
                             autoPlay
                             muted={isMuted}
                             loop
                             playsInline
                             webkit-playsinline="true"
                             onLoadedData={(e) => {
-                                // Ensure it plays even if low power mode tries to stop it
                                 e.currentTarget.play().catch(() => { });
                             }}
+                            onLoadedMetadata={(e) => {
+                                // Detect if video has no visual track (audio-only or unsupported codec)
+                                const vid = e.currentTarget;
+                                if (vid.videoWidth === 0 || vid.videoHeight === 0) {
+                                    console.warn(`⚠️ Video "${vid.src}" has no visual track. May be HEVC or unsupported format.`);
+                                    setHasUnsupportedFormat(true);
+                                } else {
+                                    setHasUnsupportedFormat(false);
+                                }
+                            }}
+                            onError={(e) => {
+                                console.error("Video Error:", e);
+                            }}
                         />
+
+                        {/* Unsupported Format Warning */}
+                        {hasUnsupportedFormat && (
+                            <div className="absolute inset-0 z-25 flex items-center justify-center bg-black/80 pointer-events-none">
+                                <div className="text-center p-4">
+                                    <p className="text-yellow-400 text-sm font-medium">⚠️ Format Not Supported</p>
+                                    <p className="text-gray-400 text-xs mt-1">This video uses HEVC. Watch on iOS/Safari.</p>
+                                </div>
+                            </div>
+                        )}
+
                         {/* Mute Toggle Button */}
                         <button
                             onClick={(e) => {
@@ -360,7 +386,7 @@ export function VideoCard({ video }: { video: VideoProps }) {
                                     videoPreviewRef.current.muted = !isMuted;
                                 }
                             }}
-                            className="absolute bottom-2 left-2 z-20 p-2 rounded-full bg-black/70 hover:bg-black/90 transition-colors"
+                            className="absolute bottom-2 left-2 z-30 p-2 rounded-full bg-black/70 hover:bg-black/90 transition-colors"
                             aria-label={isMuted ? "Unmute" : "Mute"}
                         >
                             {isMuted ? (
@@ -380,8 +406,8 @@ export function VideoCard({ video }: { video: VideoProps }) {
                         fill
                         sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                         className={cn(
-                            "object-cover group-hover:scale-105 transition-transform duration-300",
-                            shouldShowVideoPreview ? "opacity-0" : "opacity-100",
+                            "object-cover group-hover:scale-105 transition-transform duration-300 z-10",
+                            shouldShowVideoPreview ? "opacity-0 pointer-events-none" : "opacity-100",
                             isUploadingThumb && "opacity-50 blur-sm"
                         )}
                     />

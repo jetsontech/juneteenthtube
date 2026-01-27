@@ -46,6 +46,7 @@ export function CustomPlayer({ src, poster }: CustomPlayerProps) {
 
     // NEW: Custom CSS Fullscreen state for Mobile
     const [isCssFullscreen, setIsCssFullscreen] = useState(false);
+    const [windowHeight, setWindowHeight] = useState(0); // Track window height for safe scaling
 
     // NEW: Audio & Video Quality State
     const [qualityBadge, setQualityBadge] = useState<string | null>(null);
@@ -72,7 +73,18 @@ export function CustomPlayer({ src, poster }: CustomPlayerProps) {
         };
     }, []);
 
-    // Ensure body scroll is restored when exiting CSS fullscreen
+    // Handle Window Resize (for orientation changes)
+    useEffect(() => {
+        const handleResize = () => {
+            if (isCssFullscreen) {
+                setWindowHeight(window.innerHeight);
+            }
+        };
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, [isCssFullscreen]);
+
+    // Update body scroll lock
     useEffect(() => {
         if (!isCssFullscreen) {
             document.body.style.overflow = '';
@@ -297,14 +309,16 @@ export function CustomPlayer({ src, poster }: CustomPlayerProps) {
         if (!containerRef.current || !videoRef.current) return;
 
         const video = videoRef.current as unknown as HTMLVideoElementWithWebKit;
-        const isMobile = /iPhone|iPad|iPod|Android|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 1024;
+        // Detect iOS specifically (needs CSS workaround)
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as unknown as { MSStream: unknown }).MSStream;
 
-        // Mobile: Use CSS Overlay "Pseudo-Fullscreen" to allow force-zoom/cover
-        if (isMobile) {
+        // iOS: Use CSS Overlay "Pseudo-Fullscreen" to allow force-zoom/cover
+        if (isIOS) {
             const willEnter = !isCssFullscreen;
             setIsCssFullscreen(willEnter);
             // Force zoom/cover when entering mobile fullscreen
             if (willEnter) {
+                setWindowHeight(window.innerHeight); // Set initial height
                 setIsZoomed(true);
                 // Lock body scroll
                 document.body.style.overflow = 'hidden';
@@ -314,14 +328,15 @@ export function CustomPlayer({ src, poster }: CustomPlayerProps) {
             return;
         }
 
-        // Desktop: Standard Fullscreen API
+        // Android / Desktop: Standard Fullscreen API
         if (!document.fullscreenElement) {
             containerRef.current.requestFullscreen().catch(err => {
                 console.error(`Error attempting to enable fullscreen: ${err.message}`);
-                // Fallback
-                if (video.webkitEnterFullscreen) {
-                    video.webkitEnterFullscreen();
-                }
+                // Fallback to CSS Fullscreen if native fails
+                setIsCssFullscreen(true);
+                setWindowHeight(window.innerHeight);
+                setIsZoomed(true);
+                document.body.style.overflow = 'hidden';
             });
         } else {
             document.exitFullscreen();
@@ -380,6 +395,7 @@ export function CustomPlayer({ src, poster }: CustomPlayerProps) {
                 "group relative bg-black overflow-hidden flex flex-col",
                 isCssFullscreen ? "fixed inset-0 z-[9999] w-full" : "w-full h-full"
             )}
+            style={isCssFullscreen ? { height: `${windowHeight}px` } : undefined}
             onMouseMove={handleMouseMove}
             onClick={resetControlsTimeout}
             onMouseLeave={resetControlsTimeout}
@@ -410,11 +426,9 @@ export function CustomPlayer({ src, poster }: CustomPlayerProps) {
                 // @ts-ignore
                 x5-playsinline="true"
                 disablePictureInPicture={false}
-                disableRemotePlayback={false} // Explicitly allow casting
-                crossOrigin="anonymous" // CRITICAL for Web Audio API
-                style={{
-                    filter: "contrast(1.08) saturate(1.12)" // SMART ENHANCE: Subtle pop for "Cinema" look
-                }}
+                disableRemotePlayback={false}
+            // NOTE: crossOrigin removed - was causing CORS issues with some R2 videos
+            // NOTE: CSS filter removed - was potentially breaking video decode on mobile
             />
 
             {/* High-Quality Poster Overlay - Only shows before first play or after video ends */}
@@ -465,7 +479,8 @@ export function CustomPlayer({ src, poster }: CustomPlayerProps) {
                 <div
                     className="
                         w-full 
-                        px-[max(1rem,env(safe-area-inset-left),env(safe-area-inset-right))]
+                        px-[max(1rem,env(safe-area-inset-left))] 
+                        pr-[max(1rem,env(safe-area-inset-right))]
                         pb-[max(1rem,env(safe-area-inset-bottom))] 
                         pt-12 
                         bg-gradient-to-t from-black/90 via-black/40 to-transparent

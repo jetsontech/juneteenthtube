@@ -3,16 +3,18 @@
 > eslint
 
 
-C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\app\shorts\[id]\page.tsx
-  101:18  warning  '_e' is defined but never used  @typescript-eslint/no-unused-vars
-  116:18  warning  '_e' is defined but never used  @typescript-eslint/no-unused-vars
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\scripts\setup_photos.ts
+  12:19  warning  'existingPhotos' is assigned a value but never used  @typescript-eslint/no-unused-vars
 
-C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\app\watch\[id]\page.tsx
-  109:18  warning  '_e' is defined but never used  @typescript-eslint/no-unused-vars
-  126:18  warning  '_e' is defined but never used  @typescript-eslint/no-unused-vars
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\app\photos\page.tsx
+  20:12  warning  'showManageMenu' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  24:57  warning  'uploadProgress' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\components\layout\ClientShell.tsx
+  16:24  warning  'setIsChecking' is assigned a value but never used  @typescript-eslint/no-unused-vars
 
 C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\components\video\VideoCard.tsx
-  276:14  warning  '_e' is defined but never used  @typescript-eslint/no-unused-vars
+  196:33  warning  The ref value 'videoPreviewRef.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'videoPreviewRef.current' to a variable inside the effect, and use that variable in the cleanup function  react-hooks/exhaustive-deps
 
 Ô£û 5 problems (0 errors, 5 warnings)
 

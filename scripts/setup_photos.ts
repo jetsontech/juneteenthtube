@@ -9,7 +9,7 @@ async function setupPhotosTable() {
 
     // Step 1: Check if photos table exists
     console.log('1. Checking if photos table exists...');
-    const { data: existingPhotos, error: checkError } = await supabase
+    const { error: checkError } = await supabase
         .from('photos')
         .select('*')
         .limit(1);

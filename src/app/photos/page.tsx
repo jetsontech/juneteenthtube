@@ -17,11 +17,10 @@ export default function PhotosPage() {
     const [photos, setPhotos] = useState<Photo[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
-    const [showManageMenu, setShowManageMenu] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [currentPhotoId, setCurrentPhotoId] = useState<string | null>(null);
 
-    const { deletePhoto, updatePhotoImage, isUploading, uploadProgress } = useVideo();
+    const { deletePhoto, updatePhotoImage, isUploading } = useVideo();
 
     // Fetch photos from API
     const fetchPhotos = async () => {
@@ -63,7 +62,6 @@ export default function PhotosPage() {
         try {
             await deletePhoto(id);
             setPhotos(prev => prev.filter(p => p.id !== id));
-            setShowManageMenu(null);
             if (selectedIndex !== null) {
                 closeLightbox();
             }
@@ -90,7 +88,6 @@ export default function PhotosPage() {
         try {
             await updatePhotoImage(currentPhotoId, file);
             await fetchPhotos(); // Refresh photos
-            setShowManageMenu(null);
             if (fileInputRef.current) fileInputRef.current.value = '';
         } catch (error) {
             alert("Failed to update photo. Please try again.");
@@ -107,6 +104,8 @@ export default function PhotosPage() {
                 accept="image/*"
                 className="hidden"
                 onChange={handleFileChange}
+                aria-label="Upload photo"
+                title="Upload photo"
             />
 
             {/* Header */}
