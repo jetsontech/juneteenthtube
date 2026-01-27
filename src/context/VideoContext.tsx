@@ -122,6 +122,7 @@ export function VideoProvider({ children }: { children: ReactNode }) {
         fetchVideos();
     }, []);
 
+    // Stable callback with no dependencies
     const cancelUpload = useCallback(() => {
         if (abortControllerRef.current) {
             abortControllerRef.current.abort();
@@ -824,7 +825,6 @@ export function VideoProvider({ children }: { children: ReactNode }) {
         return videos.find(v => v.id === id);
     }, [videos]);
 
-    // Memoize context value to prevent unnecessary re-renders
     const contextValue = useMemo(() => ({
         videos, uploadVideo, uploadPhoto, getVideoById, isUploading, uploadProgress, cancelUpload,
         deleteVideo, updateVideoTitle, updateVideoThumbnail, updateVideoFile, incrementView,

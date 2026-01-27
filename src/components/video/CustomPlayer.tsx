@@ -104,7 +104,7 @@ export function CustomPlayer({ src, poster }: CustomPlayerProps) {
             if (audioContextRef.current) return;
 
             try {
-                const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+                const AudioContextClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
                 if (!AudioContextClass) throw new Error("AudioContext not supported");
 
                 const ctx = new AudioContextClass();
@@ -274,12 +274,12 @@ export function CustomPlayer({ src, poster }: CustomPlayerProps) {
 
         if (!videoRef.current) return;
 
-        const video = videoRef.current as unknown as HTMLVideoElementWithWebKit;
+        const videoElement = videoRef.current as unknown as HTMLVideoElementWithWebKit;
 
         // 1. Try Safari/iOS AirPlay (webkitShowPlaybackTargetPicker)
-        if (video.webkitShowPlaybackTargetPicker) {
+        if (videoElement.webkitShowPlaybackTargetPicker) {
             try {
-                video.webkitShowPlaybackTargetPicker();
+                videoElement.webkitShowPlaybackTargetPicker();
                 return;
             } catch (error) {
                 console.error("AirPlay failed:", error);
@@ -287,14 +287,14 @@ export function CustomPlayer({ src, poster }: CustomPlayerProps) {
         }
 
         // 2. Try Chrome/Standard Remote Playback API
-        if (video.remote) {
+        if (videoElement.remote) {
             try {
-                if (video.remote.state === 'disconnected') {
-                    await video.remote.prompt();
+                if (videoElement.remote.state === 'disconnected') {
+                    await videoElement.remote.prompt();
                 } else {
                     // If connected, maybe prompt to disconnect? Or just prompt universally.
                     // Standard behavior is prompt() handles the toggle or selection.
-                    await video.remote.prompt();
+                    await videoElement.remote.prompt();
                 }
             } catch (error) {
                 if (error instanceof Error && (error.name === 'AbortError' || error.name === 'NotAllowedError' || error.message?.includes('dismissed'))) {
@@ -314,7 +314,6 @@ export function CustomPlayer({ src, poster }: CustomPlayerProps) {
         e?.stopPropagation();
         if (!containerRef.current || !videoRef.current) return;
 
-        const video = videoRef.current as unknown as HTMLVideoElementWithWebKit;
         // Detect iOS specifically (needs CSS workaround)
         const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as unknown as { MSStream: unknown }).MSStream;
 
@@ -399,7 +398,7 @@ export function CustomPlayer({ src, poster }: CustomPlayerProps) {
             ref={containerRef}
             className={cn(
                 "group relative bg-black overflow-hidden flex flex-col",
-                isCssFullscreen ? "fixed inset-0 z-[9999] w-full" : "w-full h-full"
+                isCssFullscreen ? "fixed inset-0 z-[10000] w-full" : "w-full h-full"
             )}
             style={isCssFullscreen ? { height: `${windowHeight}px` } : undefined}
             onMouseMove={handleMouseMove}
@@ -447,8 +446,7 @@ export function CustomPlayer({ src, poster }: CustomPlayerProps) {
                 x5-playsinline="true"
                 disablePictureInPicture={false}
                 disableRemotePlayback={false}
-            // NOTE: crossOrigin removed - was causing CORS issues with some R2 videos
-            // NOTE: CSS filter removed - was potentially breaking video decode on mobile
+                crossOrigin="anonymous" // REQUIRED for AudioContext/Mastering to work with R2/external URLs
             />
 
             {/* High-Quality Poster Overlay - Only shows before first play or after video ends */}

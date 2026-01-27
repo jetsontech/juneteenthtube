@@ -3,9 +3,18 @@
 import { useVideo } from "@/context/VideoContext";
 import { VideoGrid } from "@/components/video/VideoGrid";
 import { Film, Loader2 } from "lucide-react";
+import { CategoryBar } from "@/components/video/CategoryBar";
+import { useState, useMemo } from "react";
+
+const CATEGORIES = ["All", "Parade", "Music", "Food", "History", "Speeches", "Live", "2024"] as const;
 
 export default function GalleryPage() {
     const { videos, isLoading } = useVideo();
+    const [selectedCategory, setSelectedCategory] = useState<string>("All");
+
+    const filteredVideos = useMemo(() => {
+        return videos.filter(v => selectedCategory === "All" || v.category === selectedCategory);
+    }, [videos, selectedCategory]);
 
     return (
         <div className="min-h-screen p-4 sm:p-6 lg:p-8">
@@ -21,17 +30,25 @@ export default function GalleryPage() {
                 <p className="text-gray-400 mt-3">Browse our complete collection of videos</p>
             </header>
 
+            {/* Filters */}
+            <CategoryBar
+                categories={CATEGORIES}
+                selectedCategory={selectedCategory}
+                onCategoryChange={setSelectedCategory}
+                className="mb-8"
+            />
+
             {/* Content */}
             {isLoading ? (
                 <div className="flex items-center justify-center h-64">
                     <Loader2 className="w-8 h-8 text-j-gold animate-spin" />
                 </div>
-            ) : videos.length > 0 ? (
-                <VideoGrid videos={videos} />
+            ) : filteredVideos.length > 0 ? (
+                <VideoGrid videos={filteredVideos} />
             ) : (
                 <div className="flex flex-col items-center justify-center h-64 text-gray-500">
                     <Film className="w-12 h-12 mb-4 opacity-50" />
-                    <p>No videos found yet.</p>
+                    <p>No videos matching &quot;{selectedCategory}&quot; found.</p>
                 </div>
             )}
         </div>

@@ -3,6 +3,7 @@
 import { use, useEffect, useState, useMemo } from "react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
+import { CategoryBar } from "@/components/video/CategoryBar";
 import { ThumbsUp, ThumbsDown, Share2, MoreHorizontal } from "lucide-react";
 import { useVideo } from "@/context/VideoContext";
 
@@ -22,6 +23,8 @@ const CustomPlayer = dynamic(
     { ssr: false, loading: () => <div className="w-full h-full bg-gray-900 animate-pulse" /> }
 );
 
+const CATEGORIES = ["All", "Parade", "Music", "Food", "History", "Speeches", "Live", "2024"] as const;
+
 export default function WatchPage({
     params,
 }: {
@@ -29,6 +32,16 @@ export default function WatchPage({
 }) {
     const resolvedParams = use(params);
     const { getVideoById, videos, getVideoComments, postComment, getLikes, toggleLike, getSubscription, toggleSubscription } = useVideo();
+    const [sidebarCategory, setSidebarCategory] = useState<string>("All");
+
+    // Derived Recommendations logic
+    const filteredSidebarVideos = useMemo(() => {
+        return videos
+            .filter(v => v.id !== resolvedParams.id)
+            .filter(v => sidebarCategory === "All" || v.category === sidebarCategory);
+    }, [videos, resolvedParams.id, sidebarCategory]);
+
+
     // Derived State (No side effects)
     const video = useMemo(() => {
         if (!resolvedParams.id || videos.length === 0) return undefined;
@@ -142,7 +155,7 @@ export default function WatchPage({
     }
 
     return (
-        <div className="flex flex-col lg:flex-row gap-0 md:gap-6 mx-auto md:px-6 md:pt-6 max-w-[1700px]">
+        <div className="flex flex-col lg:flex-row gap-0 md:gap-6 mx-auto px-0 md:px-6 pt-2 md:pt-6 max-w-[1700px]">
             {/* Primary Column - Player & Info */}
             <div className="flex-1 min-w-0">
                 {/* Player Container - Full width on mobile, no gap */}
@@ -348,14 +361,15 @@ export default function WatchPage({
 
             {/* Secondary Column - Recommendations */}
             <div className="lg:w-[400px] xl:w-[420px] flex-shrink-0 space-y-2 hidden lg:block">
-                {/* Filters potentially? */}
-                <div className="flex gap-2 pb-4">
-                    <button className="bg-white text-black px-3 py-1.5 rounded-lg text-sm font-medium">All</button>
-                    <button className="bg-[#272727] text-white hover:bg-[#3f3f3f] px-3 py-1.5 rounded-lg text-sm font-medium transition-colors">From {video.channelName}</button>
-                    <button className="bg-[#272727] text-white hover:bg-[#3f3f3f] px-3 py-1.5 rounded-lg text-sm font-medium transition-colors">Related</button>
-                </div>
+                {/* Mastered Category Filters */}
+                <CategoryBar
+                    categories={CATEGORIES}
+                    selectedCategory={sidebarCategory}
+                    onCategoryChange={setSidebarCategory}
+                    className="mb-4 bg-transparent border-none sticky-0 px-0"
+                />
 
-                {videos.filter(v => v.id !== video?.id).map((v) => (
+                {filteredSidebarVideos.map((v) => (
                     <a href={`/watch/${v.id}`} key={v.id} className="flex gap-2 cursor-pointer group hover:bg-[#272727] p-2 rounded-xl transition-colors">
                         <div className="w-[168px] aspect-video bg-gray-800 rounded-lg overflow-hidden flex-shrink-0 relative">
                             {v.thumbnail && v.thumbnail.includes('pub-efcc4aa0b3b24e3d97760577b0ec20bd.r2.dev') ? (

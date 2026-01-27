@@ -144,7 +144,7 @@ export default function ShortsPlayerPage({
     }
 
     return (
-        <div className="fixed inset-0 bg-black z-50 flex items-center justify-center">
+        <div className="fixed inset-0 bg-black z-[100] flex items-center justify-center">
             {/* Close button */}
             <Link href="/" className="absolute top-4 left-4 z-50 p-2 hover:bg-white/10 rounded-full transition-colors">
                 <X className="w-6 h-6 text-white" />

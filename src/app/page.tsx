@@ -7,6 +7,7 @@ import { ShortsShelf } from "@/components/video/ShortsShelf";
 import { useVideo } from "@/context/VideoContext";
 import { useStateFilter } from "@/context/StateContext";
 import { useSearchParams } from "next/navigation";
+import { CategoryBar } from "@/components/video/CategoryBar";
 import { cn } from "@/lib/utils";
 
 const CATEGORIES = ["All", "Parade", "Music", "Food", "History", "Speeches", "Live", "2024"] as const;
@@ -86,28 +87,14 @@ function HomeContent() {
 
   return (
     <>
-      {/* YouTube-style sticky category tabs */}
-      <div className="sticky top-14 z-40 bg-transparent backdrop-blur-sm border-b border-white/5">
-        <div className="px-3 sm:px-6 lg:px-8 py-2 sm:py-3">
-          <div className="flex gap-2 sm:gap-3 overflow-x-auto scrollbar-none">
-            {CATEGORIES.map((tag) => (
-              <button
-                key={tag}
-                onClick={() => setSelectedCategory(tag)}
-                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${selectedCategory === tag
-                  ? "bg-white text-black"
-                  : "bg-[#272727] text-white hover:bg-[#3f3f3f]"
-                  }`}
-              >
-                {tag}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
+      <CategoryBar
+        categories={CATEGORIES}
+        selectedCategory={selectedCategory}
+        onCategoryChange={setSelectedCategory}
+      />
 
       {/* Main content area - YouTube mobile: minimal horizontal padding */}
-      <main className="px-3 sm:px-6 lg:px-8 py-3 sm:py-6">
+      <div className="px-3 sm:px-6 lg:px-8 py-3 sm:py-6">
         {/* First row of videos */}
         <div className={videoGridClass}>
           {filteredVideos.slice(0, 3).map(video => (
@@ -147,7 +134,7 @@ function HomeContent() {
             <VideoGrid videos={filteredVideos.slice(6)} />
           </div>
         )}
-      </main>
+      </div>
     </>
   );
 }

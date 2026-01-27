@@ -21,13 +21,12 @@ export const BackgroundSystem = () => {
                 <div className="absolute bottom-[-10%] left-[20%] w-[60%] h-[40%] bg-green-900/15 rounded-full blur-[50px]" />
             </div>
 
-            {/* 3. Subtle Noise Overlay - SAFE STATIC VERSION */}
             <div
-                className="absolute inset-0 opacity-[0.04] mix-blend-overlay pointer-events-none"
+                className="absolute inset-0 opacity-[0.05] mix-blend-overlay pointer-events-none"
                 style={{
-                    backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.5'/%3E%3C/svg%3E")`,
-                    // Optimization: Use a smaller pattern size and repeat it to reduce GPU load compared to full-screen filter
-                    backgroundSize: '128px 128px',
+                    // High-quality Fractal Noise with Contrast Boost
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncR type='linear' slope='1.5' intercept='-0.2'/%3E%3CfeFuncG type='linear' slope='1.5' intercept='-0.2'/%3E%3CfeFuncB type='linear' slope='1.5' intercept='-0.2'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
+                    backgroundSize: '256px 256px',
                     backgroundRepeat: 'repeat',
                 }}
             />

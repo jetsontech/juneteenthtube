@@ -84,16 +84,10 @@ function ShellContent({ children }: { children: React.ReactNode }) {
 
             <main
                 className={cn(
-                    "pt-14 transition-all duration-300 min-h-screen",
+                    "transition-all duration-300 min-h-[calc(100vh-var(--navbar-height))] main-content",
                     isOpen ? "sm:pl-64" : "sm:pl-[72px]", // Desktop: Fixed sidebar space
                     "pl-0" // Mobile: No sidebar space (it's an overlay)
                 )}
-                style={{
-                    // Use CSS variable for consistent spacing with Navbar/Sidebar
-                    paddingTop: 'var(--navbar-height)',
-                    paddingRight: 'env(safe-area-inset-right)',
-                    paddingBottom: 'env(safe-area-inset-bottom)',
-                }}
             >
                 <div
                     className="w-full max-w-[1600px] mx-auto px-4 overflow-x-hidden"
