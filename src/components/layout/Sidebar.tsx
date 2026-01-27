@@ -60,11 +60,17 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 onMouseLeave={() => setIsHovered(false)}
                 className={cn(
                     "fixed left-0 bottom-0 z-[100] glass-heavy overflow-y-auto transition-all duration-300 scrollbar-none",
-                    // Mobile: Slide in/out, always w-64 when visible/animating
+                    // Current page detection
+                    pathname?.startsWith('/watch/') || pathname?.startsWith('/shorts/') ? "is-watch-page" : "",
+
+                    // Mobile: Slide in/out
                     isOpen ? "translate-x-0 w-64" : "-translate-x-full w-64",
-                    // Desktop: Always visible (translate-0), toggle width
+
+                    // Desktop: 
+                    // On Watch pages, sidebar is ALWAYS hidden unless explicitly opened (overlay)
+                    // On Home/Browse pages, we follow the user's "collapsed doesn't push" so we hide it when closed
                     "sm:translate-x-0",
-                    isExpanded ? "sm:w-64 border-r border-white/5" : "sm:w-[72px]",
+                    isOpen ? "sm:w-64 border-r border-white/5" : "sm:w-0 sm:-translate-x-full",
                     (isHovered && !isOpen) && "shadow-2xl shadow-black/50 border-r border-white/5"
                 )}
                 style={{

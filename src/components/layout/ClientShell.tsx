@@ -9,9 +9,13 @@ import { AuthProvider } from "@/context/AuthContext";
 import { StateProvider } from "@/context/StateContext";
 import { LoginSplash } from "./LoginSplash";
 import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 
 function ShellContent({ children }: { children: React.ReactNode }) {
     const { isOpen, toggle, setIsOpen } = useSidebar();
+    const pathname = usePathname();
+    const isWatchPage = pathname?.startsWith('/watch/') || pathname?.startsWith('/shorts/');
+
     const [isLocked, setIsLocked] = useState(true); // Default to LOCKED
     const [isChecking, setIsChecking] = useState(true); // Default to CHECKING
     const [touchStart, setTouchStart] = useState<{ x: number, y: number } | null>(null);
@@ -85,8 +89,11 @@ function ShellContent({ children }: { children: React.ReactNode }) {
             <main
                 className={cn(
                     "transition-all duration-300 min-h-[calc(100vh-var(--navbar-height))] main-content",
-                    isOpen ? "sm:pl-64" : "sm:pl-[72px]", // Desktop: Fixed sidebar space
-                    "pl-0" // Mobile: No sidebar space (it's an overlay)
+                    // Desktop: 
+                    // 1. Browsing pages: Push if open (64), 0 push if collapsed (per user request)
+                    // 2. Watch/Shorts pages: Always 0 push (it's an overlay)
+                    !isWatchPage && isOpen ? "sm:pl-64" : "sm:pl-0",
+                    "pl-0" // Mobile: Always 0 push
                 )}
             >
                 <div
