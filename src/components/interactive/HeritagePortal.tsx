@@ -18,11 +18,20 @@ const ARCHIVE_DATA: ArchiveRecord[] = [
     {
         id: "db-1",
         title: "The Freedmen's Bureau Search",
-        source: "National Archives / Smithsonian",
+        source: "Smithsonian (SOVA)",
         type: "Database",
         description: "Search millions of records from the Bureau of Refugees, Freedmen, and Abandoned Lands (1865-1872).",
-        url: "https://www.si.edu/unit/freedmens-bureau",
+        url: "https://sova.si.edu/record/nmaahc.fb",
         tags: ["Genealogy", "Reconstruction", "Records"]
+    },
+    {
+        id: "db-smith-oa",
+        title: "Smithsonian Open Access",
+        source: "Smithsonian Institution",
+        type: "Manuscript",
+        description: "Explore millions of 2D and 3D images and metadata from the Smithsonian's digital repository.",
+        url: "https://www.si.edu/openaccess",
+        tags: ["Open Access", "CC0", "Collections"]
     },
     {
         id: "db-2",
@@ -36,7 +45,7 @@ const ARCHIVE_DATA: ArchiveRecord[] = [
     {
         id: "db-3",
         title: "NMAAHC Digital Collection",
-        source: "Smithsonian Institution",
+        source: "National Museum (NMAAHC)",
         type: "Manuscript",
         description: "Explore the digital archives of the National Museum of African American History and Culture.",
         url: "https://nmaahc.si.edu/explore/collection",
@@ -44,10 +53,10 @@ const ARCHIVE_DATA: ArchiveRecord[] = [
     },
     {
         id: "db-4",
-        title: "National Archives: African American Research",
+        title: "National Archives: African American History",
         source: "National Archives (NARA)",
         type: "Database",
-        description: "Access primary source records, research guides, and finding aids related to African American history and genealogy.",
+        description: "Access primary source records, research guides, and finding aids related to African American history.",
         url: "https://www.archives.gov/research/african-americans",
         tags: ["Research", "Primary Sources", "NARA"]
     },
@@ -56,7 +65,7 @@ const ARCHIVE_DATA: ArchiveRecord[] = [
         title: "Library of Congress: Digital Collections",
         source: "Library of Congress",
         type: "Manuscript",
-        description: "Access thousands of digitized primary sources, records, and manuscripts documenting African American history.",
+        description: "Access thousands of digitized primary sources documenting African American history.",
         url: "https://www.loc.gov/collections/?fa=subject:african+american+history",
         tags: ["Primary Sources", "Manuscripts", "LOC"]
     }

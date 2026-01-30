@@ -31,6 +31,23 @@ const nextConfig = {
   experimental: {
     optimizePackageImports: ['lucide-react', 'date-fns'],
   },
+
+  async rewrites() {
+    return [
+      {
+        source: '/external-archive/smithsonian/:path*',
+        destination: 'https://www.si.edu/:path*',
+      },
+      {
+        source: '/external-archive/archives-gov/:path*',
+        destination: 'https://www.archives.gov/:path*',
+      },
+      {
+        source: '/external-archive/sova/:path*',
+        destination: 'https://sova.si.edu/:path*',
+      },
+    ];
+  },
 };
 
 export default nextConfig;
