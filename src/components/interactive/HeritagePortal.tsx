@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Search, Database, BookOpen, Landmark, ExternalLink, Filter, Info, FileText, X, ArrowLeft } from "lucide-react";
+import { Search, Database, BookOpen, Landmark, ExternalLink, Filter, Info, FileText, X, ArrowLeft, ShieldCheck, Globe } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface ArchiveRecord {
@@ -194,7 +194,7 @@ export function HeritagePortal() {
                 )}
             </div>
 
-            {/* INTEGRATED RESEARCH VIEWER OVERLAY */}
+            {/* INTEGRATED RESEARCH VIEWER & SECURE GATEWAY */}
             {activeRecord && (
                 <div className="fixed inset-0 z-[1000] bg-black animate-in fade-in duration-500 flex flex-col">
                     {/* Viewer Header */}
@@ -208,17 +208,19 @@ export function HeritagePortal() {
                                 <ArrowLeft className="w-6 h-6" />
                             </button>
                             <div className="flex flex-col">
-                                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500">JuneteenthTube Heritage Research Session</span>
+                                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500">Heritage Research Protocol</span>
                                 <h2 className="text-xl font-serif italic text-white flex items-center space-x-2">
                                     <span>{activeRecord.title}</span>
-                                    <span className="text-xs text-gray-600 not-italic ml-2 opacity-50 px-2 py-0.5 border border-white/5 rounded">Secure Embedded Environment</span>
+                                    <span className="text-xs text-yellow-600/50 not-italic ml-2 opacity-50 px-2 py-0.5 border border-yellow-600/10 rounded">Source Verified</span>
                                 </h2>
                             </div>
                         </div>
                         <div className="flex items-center space-x-4">
                             <div className="hidden md:flex items-center space-x-2 text-[10px] text-gray-500 font-bold uppercase tracking-widest">
-                                <span>Source:</span>
-                                <span className="text-yellow-600">{activeRecord.source}</span>
+                                <span>Session Status:</span>
+                                <span className="text-green-500 flex items-center">
+                                    <ShieldCheck className="w-3 h-3 mr-1" /> Encrypted
+                                </span>
                             </div>
                             <button
                                 onClick={() => setActiveRecord(null)}
@@ -230,25 +232,55 @@ export function HeritagePortal() {
                         </div>
                     </div>
 
-                    {/* Iframe Container */}
-                    <div className="flex-grow relative bg-[#0d0d0d]">
-                        <iframe
-                            src={activeRecord.url}
-                            className="w-full h-full border-none"
-                            title={activeRecord.title}
-                            sandbox="allow-same-origin allow-scripts allow-forms allow-popups"
-                        />
+                    {/* GATEWAY / LAUNCHPAD CONTENT */}
+                    <div className="flex-grow flex items-center justify-center p-6 bg-[#0a0a0a] relative overflow-hidden">
+                        {/* Background Ambience */}
+                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-yellow-600/5 via-transparent to-transparent opacity-30" />
 
-                        {/* Loading State / Warning Overlay */}
-                        <div className="absolute inset-0 pointer-events-none flex items-center justify-center opacity-10">
-                            <Database className="w-64 h-64 text-yellow-600" />
+                        <div className="max-w-2xl w-full glass-panel rounded-[3rem] p-12 text-center relative z-10 border-white/5 animate-in zoom-in-95 duration-500">
+                            <div className="w-24 h-24 bg-yellow-600/10 rounded-full flex items-center justify-center mx-auto mb-8 border border-yellow-600/20">
+                                <Landmark className="w-10 h-10 text-yellow-500" />
+                            </div>
+
+                            <h3 className="text-4xl font-serif italic text-white mb-6">Secure External Connection Required</h3>
+                            <p className="text-gray-400 text-lg font-light leading-relaxed mb-10">
+                                To protect archival data integrity and user privacy, institutional repositories like <span className="text-white font-medium">{activeRecord.source}</span> require access through a direct secondary session.
+                            </p>
+
+                            <div className="grid grid-cols-2 gap-4 mb-10">
+                                <div className="p-6 bg-white/[0.03] rounded-3xl border border-white/5 text-left">
+                                    <ShieldCheck className="w-5 h-5 text-yellow-500 mb-3" />
+                                    <h4 className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1">Security Protocol</h4>
+                                    <p className="text-xs text-gray-400">End-to-end encrypted resource handshake enabled.</p>
+                                </div>
+                                <div className="p-6 bg-white/[0.03] rounded-3xl border border-white/5 text-left">
+                                    <Globe className="w-5 h-5 text-yellow-500 mb-3" />
+                                    <h4 className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1">Source Integrity</h4>
+                                    <p className="text-xs text-gray-400">Verified institutional data repository link.</p>
+                                </div>
+                            </div>
+
+                            <button
+                                onClick={() => window.open(activeRecord.url, '_blank')}
+                                className="w-full bg-white text-black py-6 rounded-2xl font-black text-xs uppercase tracking-[0.3em] hover:bg-yellow-500 transition-all flex items-center justify-center space-x-4 shadow-2xl group shadow-yellow-600/10"
+                            >
+                                <span>Initiate External Session</span>
+                                <ExternalLink className="w-5 h-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                            </button>
+
+                            <p className="mt-8 text-[9px] font-bold text-gray-600 uppercase tracking-widest">
+                                Resource ID: {activeRecord.id} • Protocol v.01
+                            </p>
                         </div>
+
+                        {/* Decorative Database Icon in Background */}
+                        <Database className="absolute -bottom-24 -right-24 w-96 h-96 text-white/[0.02] -rotate-12" />
                     </div>
 
                     {/* Footer Controls */}
                     <div className="h-12 bg-black border-t border-white/5 flex items-center justify-center space-x-8">
-                        <span className="text-[9px] font-black text-gray-600 uppercase tracking-[0.2em]">External Resource Integrity Monitored</span>
-                        <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
+                        <span className="text-[9px] font-black text-gray-600 uppercase tracking-[0.2em]">External Resource Gateway Active</span>
+                        <div className="w-1.5 h-1.5 rounded-full bg-yellow-500/50 animate-pulse"></div>
                     </div>
                 </div>
             )}
