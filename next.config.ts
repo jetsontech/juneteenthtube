@@ -1,7 +1,7 @@
 const nextConfig = {
   /* config options here */
   turbopack: {
-    root: __dirname,
+    root: process.cwd(),
   },
 
   typescript: {

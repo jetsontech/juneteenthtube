@@ -1,6 +1,6 @@
 "use client";
 
-import { Home, Library, History, PlaySquare, Clock, Users, Film, Image, Flag } from "lucide-react";
+import { Home, Library, History, PlaySquare, Clock, Users, Film, Image, Flag, Map, Database } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -12,7 +12,10 @@ interface SidebarProps {
 
 const mainLinks = [
     { icon: Home, label: "Home", href: "/" },
-    { icon: Film, label: "Shorts", href: "/shorts" }, // Lucide doesn't have exact Shorts logo, Film is close enough for icon
+    { icon: Film, label: "Shorts", href: "/shorts" },
+    { icon: Map, label: "Freedom Map", href: "/freedom-map" },
+    { icon: Library, label: "Legacy Vault", href: "/vault" },
+    { icon: Database, label: "Archives", href: "/research" },
     { icon: PlaySquare, label: "Video Gallery", href: "/gallery" },
     { icon: Image, label: "Photo Gallery", href: "/photos" },
     { icon: Flag, label: "Georgia United", href: "/georgia-united" },

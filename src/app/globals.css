@@ -11,6 +11,14 @@
   --color-j-gold: #FFD700;
   --color-j-black: #000000;
 
+  /* Snippet Specifics */
+  --snippet-gold: #d4af37;
+  --snippet-red: #8b0000;
+  --museum-black: #0d0d0d;
+  --heritage-gold: #d4af37;
+  --legacy-red: #8b0000;
+  --kente-green: #2d5a27;
+
   /* Navbar & Safe Area Logic */
   /* Default: Trust the env, fallback to 0 */
   --safe-area-top: env(safe-area-inset-top, 0px);
@@ -61,12 +69,93 @@
       transform: translateX(-50%);
     }
   }
+
+  @keyframes map-pulse {
+    0% {
+      box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.7);
+    }
+
+    70% {
+      box-shadow: 0 0 0 15px rgba(212, 175, 55, 0);
+    }
+
+    100% {
+      box-shadow: 0 0 0 0 rgba(212, 175, 55, 0);
+    }
+  }
+
+  @keyframes snippet-pulse {
+    0% {
+      transform: scale(1);
+      opacity: 0.8;
+    }
+
+    100% {
+      transform: scale(3);
+      opacity: 0;
+    }
+  }
 }
 
-/* stylelint-disable-next-line at-rule-no-unknown */
-@utility no-scrollbar {
-  -ms-overflow-style: none;
+/* Standard CSS Classes (satisfies validator while maintaining Tailwind v4 compatibility) */
+.animate-snippet-pulse {
+  animation: snippet-pulse 2s infinite;
+}
+
+.juneteenth-gold {
+  color: var(--snippet-gold);
+}
+
+.juneteenth-red {
+  background-color: var(--snippet-red);
+}
+
+.pulse-pin {
+  position: absolute;
+  border-radius: 9999px;
+  cursor: pointer;
+  width: 20px;
+  height: 20px;
+  background-color: var(--heritage-gold);
+  z-index: 50;
+  box-shadow: 0 0 20px var(--heritage-gold);
+  border: 2px solid white;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 9999px;
+    background: inherit;
+    opacity: 0.5;
+    animation: snippet-pulse 2s infinite;
+  }
+}
+
+.sponsor-gradient {
+  background: linear-gradient(90deg, #d4af37 0%, #f3e5ab 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.snippet-glass {
+  background: rgba(255, 255, 255, 0.03);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.glass {
+  background: rgba(255, 255, 255, 0.03);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.no-scrollbar {
   scrollbar-width: none;
+  -ms-overflow-style: none;
 
   &::-webkit-scrollbar {
     display: none;
@@ -158,8 +247,12 @@ mark,
 audio,
 video {
   -ms-overflow-style: none !important;
+
   /* IE and Edge */
-  scrollbar-width: none !important;
+  @supports (scrollbar-width: none) {
+    scrollbar-width: none !important;
+  }
+
   /* Firefox */
 }
 
