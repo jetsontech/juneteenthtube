@@ -1,0 +1,45 @@
+ /* video-thumbnails.css
+    - Appended accessibility and interaction improvements
+    - Add to your global CSS or component-level imports
+ */
+
+ /* ===== Base rules (preserve your original styles here) ===== */
+ /* You can replace the block below with your actual CSS if needed. */
+ .video-thumb { display:inline-block; position:relative; cursor:pointer; }
+ .video-thumb img { display:block; width:100%; height:auto; }
+
+ /* ===== Accessibility & Interaction Enhancements ===== */
+
+ /* Active state */
+ .video-thumb.is-active {
+   outline: 3px solid rgba(59,130,246,0.6); /* blue focus ring */
+   box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+   transform: translateY(-2px);
+ }
+
+ /* Reduced motion: remove transforms */
+ @media (prefers-reduced-motion: reduce) {
+   .video-thumb.is-active { transform: none; transition: none; }
+ }
+
+ /* Visually-hidden helper for screenreader-only text */
+ .sr-only {
+   position: absolute !important;
+   width: 1px; height: 1px;
+   padding: 0; margin: -1px;
+   overflow: hidden; clip: rect(0,0,0,0);
+   white-space: nowrap; border: 0;
+ }
+
+ /* Make thumbnail focusable when not an anchor/button */
+ .video-thumb[tabindex] { outline: none; }
+
+ /* Pressed state for aria-pressed support */
+ .video-thumb[aria-pressed="true"] .thumb-play-icon {
+   transform: scale(1.05);
+   transition: transform 160ms ease;
+ }
+
+ /* Optional: ensure images don't get a weird border on focus for some browsers */
+ .video-thumb img { border: 0; }
+
