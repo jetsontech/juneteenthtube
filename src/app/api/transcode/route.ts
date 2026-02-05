@@ -95,20 +95,24 @@ async function streamToBuffer(stream: Readable): Promise<Buffer> {
     return Buffer.concat(chunks);
 }
 
+// Configure Max Duration (try 60s, Vercel limit depends on plan)
+export const maxDuration = 60;
+export const dynamic = 'force-dynamic';
+
 // Helper: Run FFmpeg transcoding
 async function transcodeToH264(inputPath: string, outputPath: string): Promise<void> {
     return new Promise((resolve, reject) => {
         // FFmpeg command for HEVC to H.264 conversion
         // -c:v libx264: Use H.264 codec
-        // -crf 23: Good quality/size balance
-        // -preset fast: Reasonable speed for serverless
-        // -c:a aac: Convert audio to AAC (widely compatible)
+        // -crf 26: Slightly lower quality for speed (default 23)
+        // -preset ultrafast: Maximum transcoding speed
+        // -c:a aac: Convert audio (fast)
         // -movflags +faststart: Enable progressive download
-        const ffmpeg = spawn('ffmpeg', [
+        const ffmpeg = spawn(ffmpegInstaller || 'ffmpeg', [
             '-i', inputPath,
             '-c:v', 'libx264',
-            '-crf', '23',
-            '-preset', 'fast',
+            '-crf', '26',
+            '-preset', 'ultrafast',
             '-c:a', 'aac',
             '-b:a', '128k',
             '-movflags', '+faststart',
