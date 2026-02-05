@@ -161,7 +161,11 @@ export default function WatchPage({
                 {/* Player Container - Full width on mobile, no gap */}
                 <div className="relative aspect-video bg-black sm:rounded-xl overflow-hidden sm:shadow-lg sm:ring-1 sm:ring-white/10">
                     {video.videoUrl ? (
-                        <CustomPlayer src={video.videoUrl} poster={video.thumbnail} />
+                        <CustomPlayer
+                            src={video.videoUrl}
+                            srcH264={video.videoUrlH264}
+                            poster={video.thumbnail}
+                        />
                     ) : (
                         <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
                             <div className="text-center">

@@ -49,6 +49,9 @@ interface DBVideo {
     channel_name?: string;
     channel_avatar?: string;
     posted_at?: string;
+    // HEVC Transcoding Support
+    video_url_h264?: string;
+    transcode_status?: 'pending' | 'processing' | 'completed' | 'failed' | null;
 }
 
 const VideoContext = createContext<VideoContextType | undefined>(undefined);
@@ -62,6 +65,17 @@ const getMockChannelData = (title: string) => {
     if (t.includes('history')) return { name: 'History Buffs', avatar: '', views: '120K', duration: '25:00' };
     if (t.includes('speech') || t.includes('mayor')) return { name: 'City of Atlanta', avatar: '', views: '8K', duration: '15:45' };
     return { name: 'Community User', avatar: '', views: '1.5K', duration: '3:00' };
+};
+
+// Helper: Check if file is likely HEVC/H.265 (iPhone videos)
+const isLikelyHEVC = (filename: string, mimeType?: string): boolean => {
+    const hevcExtensions = ['.hevc', '.heic', '.mov'];
+    const hevcMimeTypes = ['video/hevc', 'video/x-hevc', 'video/quicktime'];
+    const ext = filename.toLowerCase().substring(filename.lastIndexOf('.'));
+    const isHevcExt = hevcExtensions.includes(ext);
+    const isHevcMime = mimeType ? hevcMimeTypes.some(t => mimeType.includes(t)) : false;
+    // .mov files from iPhone are typically HEVC
+    return isHevcExt || isHevcMime;
 };
 
 export function VideoProvider({ children }: { children: ReactNode }) {
@@ -103,7 +117,10 @@ export function VideoProvider({ children }: { children: ReactNode }) {
                         videoUrl: video.video_url,
                         category: video.category || "All",
                         createdAt: video.created_at,
-                        state: video.state || "GLOBAL"
+                        state: video.state || "GLOBAL",
+                        // HEVC Transcoding Support
+                        videoUrlH264: video.video_url_h264,
+                        transcodeStatus: video.transcode_status
                     };
                 });
                 setVideos(dbVideos);
@@ -692,7 +709,10 @@ export function VideoProvider({ children }: { children: ReactNode }) {
                 console.warn("Could not capture duration", e);
             }
 
-            const { error: dbError } = await supabase
+            // CHECK: Is this an HEVC video (likely from iPhone)?
+            const needsTranscoding = isLikelyHEVC(file.name, file.type);
+
+            const { data: insertedVideo, error: dbError } = await supabase
                 .from('videos')
                 .insert([
                     {
@@ -701,7 +721,9 @@ export function VideoProvider({ children }: { children: ReactNode }) {
                         thumbnail_url: "",
                         category: category,
                         duration: duration,
-                        state: state
+                        state: state,
+                        // Mark for transcoding if HEVC
+                        transcode_status: needsTranscoding ? 'pending' : null
                     }
                 ])
                 .select()
@@ -711,6 +733,48 @@ export function VideoProvider({ children }: { children: ReactNode }) {
 
             console.log("Upload Sequence Complete!");
             await fetchVideos();
+
+            // TRIGGER TRANSCODING: If HEVC, start background transcoding
+            if (needsTranscoding && insertedVideo) {
+                console.log("🔄 HEVC detected - Starting transcoding for Android compatibility...");
+
+                // Extract R2 key from publicUrl
+                const urlParts = publicUrl.split('/');
+                const sourceKey = urlParts[urlParts.length - 1];
+
+                // Fire-and-forget transcoding (runs in background)
+                fetch('/api/transcode', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        sourceKey: sourceKey,
+                        videoId: insertedVideo.id
+                    })
+                }).then(async (res) => {
+                    if (res.ok) {
+                        const { h264Url } = await res.json();
+                        // Update DB with H.264 URL
+                        await supabase.from('videos').update({
+                            video_url_h264: h264Url,
+                            transcode_status: 'completed'
+                        }).eq('id', insertedVideo.id);
+                        console.log("✅ Transcoding complete:", h264Url);
+                        // Refresh videos to show updated status
+                        fetchVideos();
+                    } else {
+                        // Mark as failed
+                        await supabase.from('videos').update({
+                            transcode_status: 'failed'
+                        }).eq('id', insertedVideo.id);
+                        console.error("❌ Transcoding failed");
+                    }
+                }).catch((err) => {
+                    console.error("❌ Transcoding error:", err);
+                    supabase.from('videos').update({
+                        transcode_status: 'failed'
+                    }).eq('id', insertedVideo.id);
+                });
+            }
 
         } catch (err: unknown) {
             if (abortControllerRef.current?.signal.aborted || (err instanceof Error && err.message === 'Upload cancelled')) {

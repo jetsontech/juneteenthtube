@@ -17,16 +17,38 @@ import { cn } from "@/lib/utils";
 
 interface CustomPlayerProps {
     src: string;
+    srcH264?: string; // Transcoded H.264 version for Android/non-HEVC devices
     poster?: string;
 }
 
+// Helper: Detect if device supports HEVC natively
+const supportsHEVC = (): boolean => {
+    if (typeof window === 'undefined') return false;
+
+    const ua = navigator.userAgent.toLowerCase();
+
+    // iOS Safari supports HEVC
+    const isIOS = /iphone|ipad|ipod/.test(ua);
+
+    // macOS Safari supports HEVC
+    const isMacSafari = /macintosh/.test(ua) && /safari/.test(ua) && !/chrome/.test(ua);
+
+    // Some newer Android devices support HEVC, but it's unreliable
+    // For safety, assume Android doesn't support HEVC
+    const isAndroid = /android/.test(ua);
+
+    return (isIOS || isMacSafari) && !isAndroid;
+};
 
 interface HTMLVideoElementWithWebKit extends HTMLVideoElement {
     webkitShowPlaybackTargetPicker?: () => void;
     webkitEnterFullscreen?: () => void;
 }
 
-export function CustomPlayer({ src, poster }: CustomPlayerProps) {
+export function CustomPlayer({ src, srcH264, poster }: CustomPlayerProps) {
+    // Automatic codec selection: Use H.264 on non-HEVC devices if available
+    const effectiveSrc = (srcH264 && !supportsHEVC()) ? srcH264 : src;
+
     const videoRef = useRef<HTMLVideoElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
 
@@ -410,7 +432,7 @@ export function CustomPlayer({ src, poster }: CustomPlayerProps) {
         >
             <video
                 ref={videoRef}
-                src={src}
+                src={effectiveSrc}
                 preload="auto"
                 className={cn(
                     "w-full h-full flex-grow pointer-events-none",

@@ -30,6 +30,9 @@ export interface VideoProps {
     likes?: number;
     createdAt?: string; // ISO String for better date formatting
     state?: string; // US state code (e.g., "TX", "GA") or "GLOBAL"
+    // HEVC Transcoding Support
+    videoUrlH264?: string; // Transcoded H.264 version for Android devices
+    transcodeStatus?: 'pending' | 'processing' | 'completed' | 'failed' | null;
 }
 
 export function VideoCard({ video }: { video: VideoProps }) {
