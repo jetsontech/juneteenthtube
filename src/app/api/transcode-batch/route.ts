@@ -58,12 +58,20 @@ export async function POST() {
             .update({ transcode_status: 'pending' })
             .in('id', videoIds);
 
-        // 4. Trigger transcoding for each video (fire-and-forget)
+        // 4. Trigger transcoding sequentially (to avoid resource limits)
         const baseUrl = process.env.VERCEL_URL
             ? `https://${process.env.VERCEL_URL}`
             : 'http://localhost:3000';
 
-        const transcodePromises = hevcVideos.map(async (video) => {
+        const results = [];
+        let completed = 0;
+        let failed = 0;
+
+        // Limit to first 5 per batch run to allow incremental processing without timeout
+        const batchSize = 5;
+        const processingBatch = hevcVideos.slice(0, batchSize);
+
+        for (const video of processingBatch) {
             // Extract R2 key from publicUrl
             const urlParts = video.video_url.split('/');
             const sourceKey = urlParts[urlParts.length - 1];
@@ -85,33 +93,33 @@ export async function POST() {
                         video_url_h264: h264Url,
                         transcode_status: 'completed'
                     }).eq('id', video.id);
-                    return { id: video.id, status: 'completed', h264Url };
+                    results.push({ id: video.id, status: 'completed', h264Url });
+                    completed++;
                 } else {
+                    const errorText = await response.text();
                     await supabase.from('videos').update({
                         transcode_status: 'failed'
                     }).eq('id', video.id);
-                    return { id: video.id, status: 'failed' };
+                    results.push({ id: video.id, status: 'failed', error: errorText });
+                    failed++;
                 }
             } catch (err) {
                 await supabase.from('videos').update({
                     transcode_status: 'failed'
                 }).eq('id', video.id);
-                return { id: video.id, status: 'error', error: String(err) };
+                results.push({ id: video.id, status: 'error', error: String(err) });
+                failed++;
             }
-        });
-
-        // Wait for all to complete (or fail)
-        const results = await Promise.allSettled(transcodePromises);
-        const completed = results.filter(r => r.status === 'fulfilled' && (r.value as { status: string }).status === 'completed').length;
-        const failed = results.filter(r => r.status === 'rejected' || (r.status === 'fulfilled' && (r.value as { status: string }).status !== 'completed')).length;
+        }
 
         return NextResponse.json({
-            message: 'Batch transcoding completed',
+            message: `Batch run complete (processed ${processingBatch.length} of ${hevcVideos.length} pending)`,
+            remaining: hevcVideos.length - processingBatch.length,
             total: videos.length,
             hevcFound: hevcVideos.length,
             completed,
             failed,
-            results: results.map(r => r.status === 'fulfilled' ? r.value : { error: 'Promise rejected' })
+            results
         });
 
     } catch (error) {

@@ -7,6 +7,13 @@ import { createWriteStream, createReadStream } from "fs";
 import { join } from "path";
 import { tmpdir } from "os";
 import { randomUUID } from "crypto";
+import ffmpeg from "fluent-ffmpeg";
+import ffmpegInstaller from "ffmpeg-static";
+
+// Configure FFmpeg path
+if (ffmpegInstaller) {
+    ffmpeg.setFfmpegPath(ffmpegInstaller);
+}
 
 // S3/R2 Client Configuration (reuse from upload routes)
 const sanitizeEnv = (val: string | undefined) => val ? val.replace(/^['"]+|['"]+$/g, '').trim().replace(/[\n\r]/g, '') : undefined;
