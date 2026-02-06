@@ -22,7 +22,8 @@ const req = https.request(options, (res) => {
     res.on('end', () => {
         try {
             if (data) {
-                console.log('Response:', data);
+                const json = JSON.parse(data);
+                console.log('Stats:', JSON.stringify(json.stats, null, 2));
             } else {
                 console.log('No data received');
             }

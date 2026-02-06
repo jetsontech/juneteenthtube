@@ -34,6 +34,8 @@ export const viewport = {
   themeColor: '#050505',
 };
 
+import { Analytics } from "@vercel/analytics/react"
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -49,6 +51,7 @@ export default function RootLayout({
         <ClientShell>
           {children}
         </ClientShell>
+        <Analytics />
       </body>
     </html>
   );
