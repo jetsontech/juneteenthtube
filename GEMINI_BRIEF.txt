@@ -1,0 +1,7 @@
+--- JUNETEENTHTUBE SYSTEM SNAPSHOT ---
+Disk Space Available: 130GB (Healthy)
+Current Issue: FFmpeg process terminates without updating Supabase "completed" status.
+Node Version: ' + (node -v) + '
+Next.js Version: 16.1.6
+Last Server Logs:
+    return NextResponse.json({ success: true });   } catch (e) {     console.error("--- ERROR:", e.message);     return NextResponse.json({ error: String(e) }, { status: 500 });   } finally {     setTimeout(async () => {       await rm(tempDir, { recursive: true, force: true }).catch(() => {});     }, 60000);   } }

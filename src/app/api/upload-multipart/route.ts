@@ -59,6 +59,8 @@ export async function POST(req: NextRequest) {
     try {
         const body = await req.json() as MultipartRequestBody;
         const { action } = body;
+        console.log(`API/Upload-Multipart Request: Action=${action}, Filename=${body.filename}, Key=${body.key}`);
+
 
         if (!process.env.S3_ENDPOINT) {
             console.warn("Warning: S3_ENDPOINT is not defined. Multipart uploads may fail if not using standard AWS.");

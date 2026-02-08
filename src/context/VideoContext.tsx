@@ -518,6 +518,8 @@ export function VideoProvider({ children }: { children: ReactNode }) {
         const limit = pLimit(2); // Reduced from 3 to 2 concurrent uploads for stability
 
         console.log(`Starting Multipart Upload: ${file.name} (${totalChunks} chunks)`);
+        console.trace("Multipart Upload Triggered");
+
         if (signal?.aborted) throw new Error("Upload cancelled");
 
         const initRes = await fetch("/api/upload-multipart", {
@@ -623,7 +625,10 @@ export function VideoProvider({ children }: { children: ReactNode }) {
 
 
     const uploadVideo = useCallback(async (file: File, category: string = "All", state: string = "GLOBAL") => {
+        console.log("uploadVideo called for:", file.name);
+        console.trace("uploadVideo Call Stack");
         setIsUploading(true);
+
         setUploadProgress(0);
 
         if (abortControllerRef.current) {
@@ -712,22 +717,28 @@ export function VideoProvider({ children }: { children: ReactNode }) {
             // CHECK: Is this an HEVC video (likely from iPhone)?
             const needsTranscoding = isLikelyHEVC(file.name, file.type);
 
-            const { data: insertedVideo, error: dbError } = await supabase
-                .from('videos')
-                .insert([
-                    {
-                        title: file.name.replace(/\.[^/.]+$/, ""),
-                        video_url: publicUrl,
-                        thumbnail_url: "",
-                        category: category,
-                        duration: duration,
-                        state: state,
-                        // Mark for transcoding if HEVC
-                        transcode_status: needsTranscoding ? 'pending' : null
-                    }
-                ])
-                .select()
-                .single();
+            // FIX: Call the API instead of direct DB insert
+            console.log('Calling API to create video record...');
+            const response = await fetch('/api/videos/create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    title: file.name.replace(/\.[^/.]+$/, ""),
+                    video_url: publicUrl,
+                    thumbnail_url: "",
+                    category: category,
+                    duration: duration,
+                    state: state,
+                    transcode_status: needsTranscoding ? 'pending' : null
+                })
+            });
+
+            if (!response.ok) {
+                 const errData = await response.json();
+ throw new Error("DB Insert Failed: " + errData.error);
+            }
+            const insertedVideo = await response.json();
+            const dbError = null;
 
             if (dbError) throw new Error(`DB Insert Failed: ${dbError.message}`);
 

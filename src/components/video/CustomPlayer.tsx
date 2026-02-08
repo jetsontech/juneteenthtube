@@ -19,6 +19,7 @@ interface CustomPlayerProps {
     src: string;
     srcH264?: string; // Transcoded H.264 version for Android/non-HEVC devices
     poster?: string;
+    transcodeStatus?: 'pending' | 'processing' | 'completed' | 'failed' | null;
 }
 
 // Helper: Detect if device supports HEVC natively
@@ -45,9 +46,13 @@ interface HTMLVideoElementWithWebKit extends HTMLVideoElement {
     webkitEnterFullscreen?: () => void;
 }
 
-export function CustomPlayer({ src, srcH264, poster }: CustomPlayerProps) {
+export function CustomPlayer({ src, srcH264, poster, transcodeStatus }: CustomPlayerProps) {
     // Automatic codec selection: Use H.264 on non-HEVC devices if available
-    const effectiveSrc = (srcH264 && !supportsHEVC()) ? srcH264 : src;
+    const isHEVCSupported = supportsHEVC();
+    const effectiveSrc = (srcH264 && !isHEVCSupported) ? srcH264 : src;
+
+    // Check if we are waiting for transcoding
+    const isProcessing = !isHEVCSupported && !srcH264 && (transcodeStatus === 'pending' || transcodeStatus === 'processing');
 
     const videoRef = useRef<HTMLVideoElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
@@ -485,6 +490,23 @@ export function CustomPlayer({ src, srcH264, poster }: CustomPlayerProps) {
                             isZoomed && "object-cover"
                         )}
                     />
+                </div>
+            )}
+
+            {/* Processing / Transcoding Overlay */}
+            {isProcessing && (
+                <div className="absolute inset-0 z-[50] bg-black/80 flex flex-col items-center justify-center text-center p-6 backdrop-blur-sm">
+                    <div className="w-12 h-12 border-4 border-j-gold border-t-transparent rounded-full animate-spin mb-4" />
+                    <h3 className="text-white text-lg font-bold mb-2">Processing Video...</h3>
+                    <p className="text-gray-400 text-sm max-w-md">
+                        Optimizing for your device (Android/PC). This usually takes 30-60 seconds.
+                    </p>
+                    <button
+                        onClick={() => window.location.reload()}
+                        className="mt-6 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-full text-sm text-white transition-colors"
+                    >
+                        Check Status
+                    </button>
                 </div>
             )}
 

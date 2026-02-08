@@ -1,89 +1,60 @@
-import { createClient } from "@supabase/supabase-js";
-import { NextRequest, NextResponse } from "next/server";
-
-const supabaseAdmin = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL || "https://example.com",
-    process.env.SUPABASE_SERVICE_ROLE_KEY || "placeholder"
-);
+import { NextRequest, NextResponse } from 'next/server';
+import { supabaseAdmin } from '@/lib/supabase-admin';
 
 export async function GET(req: NextRequest) {
-    const { searchParams } = new URL(req.url);
-    const videoId = searchParams.get("videoId");
-    const guestId = req.headers.get("x-guest-id");
+  const { searchParams } = new URL(req.url);
+  const videoId = searchParams.get('videoId');
 
-    if (!videoId) {
-        return NextResponse.json({ error: "Missing videoId" }, { status: 400 });
-    }
+  if (!videoId) {
+    return NextResponse.json({ error: 'Missing videoId' }, { status: 400 });
+  }
 
-    // 1. Get total likes text='like'
-    const { count: likesCount, error: likesError } = await supabaseAdmin
-        .from("likes")
-        .select("*", { count: "exact", head: true })
-        .eq("video_id", videoId)
-        .eq("type", "like");
+  // Check if the current user (if any) liked the video
+  // For now, just getting the count
+  const { count, error } = await supabaseAdmin
+    .from('likes')
+    .select('*', { count: 'exact', head: true })
+    .eq('video_id', videoId);
 
-    // 2. Get user status if guestId is present
-    let userStatus = null; // 'like' | 'dislike' | null
-    if (guestId) {
-        const { data } = await supabaseAdmin
-            .from("likes")
-            .select("type")
-            .eq("video_id", videoId)
-            .eq("guest_id", guestId)
-            .single();
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
 
-        if (data) userStatus = data.type;
-    }
-
-    if (likesError) {
-        return NextResponse.json({ error: likesError.message }, { status: 500 });
-    }
-
-    return NextResponse.json({
-        likes: likesCount || 0,
-        userStatus
-    });
+  return NextResponse.json({ count: count || 0, hasLiked: false });
 }
 
 export async function POST(req: NextRequest) {
-    try {
-        const body = await req.json();
-        const { videoId, type } = body; // type: 'like' | 'dislike'
-        const guestId = req.headers.get("x-guest-id");
+  try {
+    const body = await req.json();
+    const { videoId, userId } = body;
 
-        if (!videoId || !type || !guestId) {
-            return NextResponse.json({ error: "Missing fields" }, { status: 400 });
-        }
-
-        // Check if exists
-        const { data: existing } = await supabaseAdmin
-            .from("likes")
-            .select("id, type")
-            .eq("video_id", videoId)
-            .eq("guest_id", guestId)
-            .single();
-
-        if (existing) {
-            if (existing.type === type) {
-                // Toggle OFF (Remove like)
-                await supabaseAdmin.from("likes").delete().eq("id", existing.id);
-                return NextResponse.json({ status: "removed" });
-            } else {
-                // Change status (Like -> Dislike or vice versa)
-                await supabaseAdmin.from("likes").update({ type }).eq("id", existing.id);
-                return NextResponse.json({ status: "updated", type });
-            }
-        } else {
-            // Insert new
-            await supabaseAdmin.from("likes").insert({
-                video_id: videoId,
-                guest_id: guestId,
-                type: type
-            });
-            return NextResponse.json({ status: "added", type });
-        }
-
-    } catch {
-        return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    if (!videoId) {
+      return NextResponse.json({ error: 'Missing videoId' }, { status: 400 });
     }
+
+    // Toggle like (simple implementation)
+    // First check if it exists
+    const { data: existing } = await supabaseAdmin
+      .from('likes')
+      .select('id')
+      .eq('video_id', videoId)
+      .eq('user_id', userId || 'guest')
+      .single();
+
+    if (existing) {
+      // Unlike
+      await supabaseAdmin.from('likes').delete().eq('id', existing.id);
+      return NextResponse.json({ liked: false });
+    } else {
+      // Like
+      await supabaseAdmin.from('likes').insert({ 
+        video_id: videoId, 
+        user_id: userId || 'guest' 
+      });
+      return NextResponse.json({ liked: true });
+    }
+
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message }, { status: 500 });
+  }
 }
