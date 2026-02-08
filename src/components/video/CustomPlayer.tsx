@@ -511,23 +511,22 @@ export function CustomPlayer({ src, srcH264, poster, transcodeStatus }: CustomPl
 
             {/* Big Play/Replay Overlay - REMOVED per user request */}
 
-            {/* Quality & Enhancement Badges (Top Right) */}
-            <div className="absolute top-4 right-4 z-10 flex flex-col items-end gap-2 pointer-events-none">
-                {qualityBadge && (
-                    <div className="px-2 py-1 bg-black/60 backdrop-blur-md rounded text-[10px] font-bold text-white/90 border border-white/10 shadow-sm">
-                        {qualityBadge}
-                    </div>
-                )}
-                {isEnhanced && hasStartedPlaying && (
+            {/* Unified Quality & Mastering Badge (Top Right) */}
+            {(qualityBadge || isMastered) && hasStartedPlaying && (
+                <div className="absolute top-4 right-4 z-10 pointer-events-none">
                     <div className={cn(
-                        "px-2 py-1 backdrop-blur-md rounded text-[9px] font-black text-white uppercase tracking-tighter border border-white/20 shadow-lg flex items-center gap-1.5 animate-in fade-in slide-in-from-right-2 duration-500",
-                        isMastered ? "bg-j-gold/80" : "bg-j-red/80"
+                        "px-2.5 py-1 backdrop-blur-md rounded-md text-[11px] font-black tracking-tighter border shadow-2xl flex items-center gap-1.5 animate-in fade-in slide-in-from-right-4 duration-700",
+                        isMastered
+                            ? "bg-white/5 border-white/20 text-white/90"
+                            : "bg-black/40 border-white/10 text-white/70"
                     )}>
-                        <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
-                        {isMastered ? "Mastering Active" : "Smart Enhanced"}
+                        {isMastered && <div className="w-1 h-1 bg-j-gold rounded-full animate-pulse shadow-[0_0_8px_#FFD700]" />}
+                        <span className="drop-shadow-sm">
+                            {qualityBadge || ""}{isMastered ? "M" : ""}
+                        </span>
                     </div>
-                )}
-            </div>
+                </div>
+            )}
 
             {/* SVG Filter for Video Sharpening (Upscaling Standard) */}
             <svg width="0" height="0" className="absolute invisible pointer-events-none overflow-hidden">
