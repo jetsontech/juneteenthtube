@@ -11,17 +11,20 @@ import path from "path";
 import { createClient } from "@supabase/supabase-js";
 import os from "os";
 
-const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 export const maxDuration = 900;
 
 const S3 = new S3Client({
   region: process.env.S3_REGION || "us-east-1",
   endpoint: process.env.S3_ENDPOINT,
   credentials: {
-    accessKeyId: process.env.S3_ACCESS_KEY_ID as string,
-    secretAccessKey: process.env.S3_SECRET_ACCESS_KEY as string
+    accessKeyId: process.env.S3_ACCESS_KEY_ID!,
+    secretAccessKey: process.env.S3_SECRET_ACCESS_KEY!
   }
-} as any);
+} as any); // eslint-disable-line @typescript-eslint/no-explicit-any
 
 export async function POST(req: NextRequest) {
   const { sourceKey, videoId } = await req.json();
@@ -42,9 +45,9 @@ export async function POST(req: NextRequest) {
       const response = await S3.send(new GetObjectCommand({ Bucket: process.env.S3_BUCKET_NAME, Key: sourceKey }));
       if (!response.Body) throw new Error("S3 response body is empty");
 
-      await new Promise((res, rej) => {
+      await new Promise<void>((res, rej) => {
         const ws = createWriteStream(inputPath);
-        (response.Body as Readable).pipe(ws).on("finish", res).on("error", rej);
+        (response.Body as Readable).pipe(ws).on("finish", () => res()).on("error", rej);
       });
 
       // 2. Transcode with Exit Code Capture
@@ -57,7 +60,7 @@ export async function POST(req: NextRequest) {
         console.warn("Could not set process priority:", e.message);
       }
 
-      const exitCode = await new Promise((res) => {
+      const exitCode = await new Promise<number | null>((res) => {
         // detached: true and unref() allow the process to survive if the parent is killed
         // Redirecting stdio to 'ignore' is often needed when detaching
         const ffmpeg = spawn(ffmpegPath,

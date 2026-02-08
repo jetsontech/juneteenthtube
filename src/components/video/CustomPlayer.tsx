@@ -568,7 +568,7 @@ export function CustomPlayer({ src, srcH264, poster, transcodeStatus }: CustomPl
                     {/* Progress Bar */}
                     <div
                         className="relative group/progress h-2 mb-4 cursor-pointer w-full"
-                        style={{ '--progress-percent': `${duration > 0 ? (currentTime / duration) * 100 : 0}%` } as React.CSSProperties}
+                        style={{ "--progress-percent": `${duration > 0 ? (currentTime / duration) * 100 : 0}%` } as React.CSSProperties}
                     >
                         {/* Background Track */}
                         <div className="absolute top-0 left-0 right-0 bottom-0 bg-white/30 rounded-full overflow-hidden">
@@ -669,8 +669,7 @@ export function CustomPlayer({ src, srcH264, poster, transcodeStatus }: CustomPl
                             </button>
                             <button
                                 onClick={toggleFullscreen}
-                                className="text-white hover:text-white/80 transition-colors focus:outline-none p-4 -m-4 relative z-50 pointer-events-auto"
-                                style={{ touchAction: 'manipulation' }}
+                                className="text-white hover:text-white/80 transition-colors focus:outline-none p-4 -m-4 relative z-50 pointer-events-auto touch-manipulation"
                             >
                                 {isFullscreen || isCssFullscreen ? <Minimize className="w-7 h-7" /> : <Maximize className="w-7 h-7" />}
                             </button>
