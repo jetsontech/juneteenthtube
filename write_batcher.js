@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 const fs = require("fs");
 const code = `import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";

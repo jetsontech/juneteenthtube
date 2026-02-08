@@ -1,1 +1,42 @@
-﻿import Image from "next/image"; import Link from "next/link"; import { cn } from "@/lib/utils"; export function VideoCard({ video }: { video: any }) { const thumb = video.thumbnail_url || "/placeholder-thumb.jpg"; return ( <Link href={/watch/${video.id}} className="group cursor-pointer"> <div className="flex flex-col gap-3"> <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-zinc-900"> <Image src={thumb} alt={video.title || "Video"} fill className="object-cover transition-transform duration-300 group-hover:scale-105" sizes="(max-width: 768px) 100vw, 33vw" /> <div className="absolute bottom-2 right-2 rounded bg-black/80 px-1.5 py-0.5 text-[11px] font-medium text-white">4:15</div> </div> <div className="flex gap-3 px-1"> <div className="h-9 w-9 flex-shrink-0 rounded-full bg-zinc-800" /> <div className="flex flex-col overflow-hidden"> <h3 className="line-clamp-2 text-sm font-semibold text-white leading-snug">{video.title}</h3> <p className="mt-1 text-xs text-zinc-400">{video.user_name || "Creator"}</p> <div className="flex items-center text-xs text-zinc-400"><span>1.2K views</span><span className="mx-1">•</span><span>2 days ago</span></div> </div> </div> </div> </Link> ); }
+﻿import Image from "next/image";
+import Link from "next/link";
+import { Video } from "@/types"; // Use proper Video type
+
+export function VideoCard({ video }: { video: Video }) {
+    const thumb = video.thumbnail_url || "/placeholder-thumb.jpg";
+
+    return (
+        <Link href={`/watch/${video.id}`} className="group cursor-pointer">
+            <div className="flex flex-col gap-3">
+                <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-zinc-900">
+                    <Image
+                        src={thumb}
+                        alt={video.title || "Video"}
+                        fill
+                        className="object-cover transition-transform duration-300 group-hover:scale-105"
+                        sizes="(max-width: 768px) 100vw, 33vw"
+                    />
+                    <div className="absolute bottom-2 right-2 rounded bg-black/80 px-1.5 py-0.5 text-[11px] font-medium text-white">
+                        4:15
+                    </div>
+                </div>
+                <div className="flex gap-3 px-1">
+                    <div className="h-9 w-9 flex-shrink-0 rounded-full bg-zinc-800" />
+                    <div className="flex flex-col overflow-hidden">
+                        <h3 className="line-clamp-2 text-sm font-semibold text-white leading-snug">
+                            {video.title}
+                        </h3>
+                        <p className="mt-1 text-xs text-zinc-400">
+                            {video.user_name || "Creator"}
+                        </p>
+                        <div className="flex items-center text-xs text-zinc-400">
+                            <span>1.2K views</span>
+                            <span className="mx-1">•</span>
+                            <span>2 days ago</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </Link>
+    );
+}

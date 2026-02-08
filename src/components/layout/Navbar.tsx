@@ -122,14 +122,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
     return (
         <>
             <nav
-                className="fixed top-0 left-0 right-0 z-50 flex flex-col glass-heavy transition-all duration-300"
-                style={{
-                    // Use robust CSS variables defined in globals.css
-                    height: 'var(--navbar-height)',
-                    paddingTop: 'var(--safe-area-top)',
-                    paddingLeft: 'env(safe-area-inset-left)',
-                    paddingRight: 'env(safe-area-inset-right)'
-                }}
+                className="fixed top-0 left-0 right-0 z-50 flex flex-col glass-heavy transition-all duration-300 navbar-layout"
             >
                 {/* Navbar Content - Exactly 3.5rem (h-14) */}
                 <div className="h-14 w-full flex items-center justify-between pl-4 pr-4 sm:pl-6 sm:pr-8">
@@ -318,7 +311,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                                         <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
                                             <div
                                                 className={cn("h-full bg-j-red transition-all duration-300 ease-out w-[var(--progress)]")}
-                                                style={{ "--progress": `${uploadProgress}%` } as React.CSSProperties}
+                                                style={{ "--get-progress": `${uploadProgress}%` } as React.CSSProperties}
                                             />
                                         </div>
                                         <p className="text-xs text-gray-400">

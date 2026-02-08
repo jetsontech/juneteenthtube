@@ -47,14 +47,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ liked: false });
     } else {
       // Like
-      await supabaseAdmin.from('likes').insert({ 
-        video_id: videoId, 
-        user_id: userId || 'guest' 
+      await supabaseAdmin.from('likes').insert({
+        video_id: videoId,
+        user_id: userId || 'guest'
       });
       return NextResponse.json({ liked: true });
     }
 
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    const errorMsg = err instanceof Error ? err.message : String(err);
+    return NextResponse.json({ error: errorMsg }, { status: 500 });
   }
 }

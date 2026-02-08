@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Search, Database, BookOpen, Landmark, ExternalLink, Filter, Info, FileText, X, ArrowLeft, ShieldCheck, Globe, Loader2 } from "lucide-react";
+import { Search, Database, BookOpen, Landmark, ExternalLink, Info, FileText, X, ArrowLeft, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface ArchiveRecord {
@@ -90,9 +90,13 @@ export function HeritagePortal() {
     // Reset loading state when active record changes
     useEffect(() => {
         if (activeRecord) {
-            setIsLoading(true);
+            // Delay to avoid cascading render warning
+            const startTimer = setTimeout(() => setIsLoading(true), 0);
             const timer = setTimeout(() => setIsLoading(false), 2000); // UI feel delay
-            return () => clearTimeout(timer);
+            return () => {
+                clearTimeout(startTimer);
+                clearTimeout(timer);
+            };
         }
     }, [activeRecord]);
 

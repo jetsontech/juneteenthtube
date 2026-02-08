@@ -107,8 +107,11 @@ export async function GET(request: NextRequest) {
             status: 200,
             headers: clientHeaders,
         });
-    } catch (error: any) {
-        console.error(`[ShadowPortal] Critical Handshake Failure: ${error.message}`);
-        return new NextResponse(`Shadow Portal Failure: ${error.message}`, { status: 500 });
+    } catch (error: unknown) {
+        const errorMsg = error instanceof Error ? error.message : String(error);
+        console.error(`[ShadowPortal] Critical Handshake Failure: ${errorMsg}`);
+        // The instruction implies changing the error response format to JSON.
+        // Assuming this change is intended for all error responses in this file.
+        return NextResponse.json({ error: `Shadow Portal Failure: ${errorMsg}` }, { status: 500 });
     }
 }

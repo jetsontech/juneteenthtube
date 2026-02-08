@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { ShieldCheck, Search, Filter, Play, Info, Clock, UserCheck } from "lucide-react";
+import { ShieldCheck, Search, Play, Info, Clock, UserCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface LegacyItem {
