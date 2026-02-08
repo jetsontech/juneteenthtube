@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
       // Increase process priority to prevent Windows throttling
       try {
         os.setPriority(os.constants.priority.PRIORITY_ABOVE_NORMAL);
-      } catch (e) {
+      } catch (e: any) {
         console.warn("Could not set process priority:", e.message);
       }
 
