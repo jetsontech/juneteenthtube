@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { User, Bell, LogOut, ChevronRight } from "lucide-react";
+import { User, Bell, LogOut, ChevronRight, Shield } from "lucide-react";
 
 export default function SettingsPage() {
     const [notifications, setNotifications] = useState(true);
@@ -66,10 +66,13 @@ export default function SettingsPage() {
                                 </span>
                             </div>
 
-                            <div className="p-4 flex items-center justify-between hover:bg-white/5 transition-colors cursor-pointer">
-                                <div>
-                                    <h3 className="text-white font-medium">Privacy</h3>
-                                    <p className="text-gray-400 text-sm">Manage your data and visibility</p>
+                            <div className="p-4 flex items-center justify-between hover:bg-white/5 transition-colors cursor-pointer text-j-gold" onClick={() => window.location.href = '/admin'}>
+                                <div className="flex items-center gap-3">
+                                    <Shield className="w-5 h-5" />
+                                    <div>
+                                        <h3 className="text-white font-medium">Admin Panel</h3>
+                                        <p className="text-gray-400 text-sm">Manage platform content and transcoders</p>
+                                    </div>
                                 </div>
                                 <ChevronRight className="w-5 h-5 text-gray-500" />
                             </div>

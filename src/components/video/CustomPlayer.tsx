@@ -425,9 +425,9 @@ export function CustomPlayer({ src, srcH264, poster, transcodeStatus }: CustomPl
             ref={containerRef}
             className={cn(
                 "group relative bg-black overflow-hidden flex flex-col",
-                isCssFullscreen ? "fixed inset-0 z-[10000] w-full" : "w-full h-full"
+                isCssFullscreen ? "fixed inset-0 z-[10000] w-full dynamic-height" : "w-full h-full"
             )}
-            style={isCssFullscreen ? { height: `${windowHeight}px` } : undefined}
+            style={isCssFullscreen ? { "--window-height": `${windowHeight}px` } as React.CSSProperties : undefined}
             onMouseMove={handleMouseMove}
             onClick={resetControlsTimeout}
             onMouseLeave={resetControlsTimeout}
@@ -441,22 +441,14 @@ export function CustomPlayer({ src, srcH264, poster, transcodeStatus }: CustomPl
                 preload="auto"
                 className={cn(
                     "w-full h-full flex-grow pointer-events-none",
-                    (isZoomed || isCssFullscreen) ? "object-cover" : "object-contain"
+                    (isZoomed || isCssFullscreen) ? "object-cover" : "object-contain",
+                    hasStartedPlaying && "video-enhanced"
                 )}
                 // YOUTUBE-LEVEL VIDEO ENHANCEMENT via CSS Filters
                 // Applied after playback starts to enhance user-uploaded content
                 // These subtle enhancements improve perceived quality without heavy processing
                 // YOUTUBE-LEVEL MASTERING & VISUAL CONSISTENCY
                 // Uses a multi-pass filter stack to unify the look across all uploads
-                style={hasStartedPlaying ? {
-                    filter: cn(
-                        'contrast(1.05) saturate(1.1) brightness(1.02)', // Base Enhancement
-                        'sepia(0.05) hue-rotate(-2deg)', // The "Juneteenth Glow" warmth
-                        'blur(0.4px)', // Denoising (smoothes out compression artifacts)
-                        'url(#video-sharpen)' // Restoration (re-adds edge clarity)
-                    ),
-                    imageRendering: 'high-quality' as React.CSSProperties['imageRendering']
-                } : undefined}
                 onTimeUpdate={onTimeUpdate}
                 onLoadedMetadata={onLoadedMetadata}
                 onEnded={onEnded}
@@ -615,8 +607,7 @@ export function CustomPlayer({ src, srcH264, poster, transcodeStatus }: CustomPl
                             {/* Play/Pause */}
                             <button
                                 onClick={togglePlay}
-                                className="text-white hover:text-j-red transition-colors focus:outline-none p-4 -m-4 relative z-50 pointer-events-auto touch-action-manipulation"
-                                style={{ touchAction: 'manipulation' }}
+                                className="text-white hover:text-j-red transition-colors focus:outline-none p-4 -m-4 relative z-50 pointer-events-auto touch-manipulation"
                                 aria-label={isPlaying ? "Pause" : "Play"}
                             >
                                 {isPlaying ? <Pause className="w-8 h-8" /> : <Play className="w-8 h-8" />}
@@ -657,27 +648,21 @@ export function CustomPlayer({ src, srcH264, poster, transcodeStatus }: CustomPl
                                     e.stopPropagation();
                                     setIsZoomed(!isZoomed);
                                 }}
-                                className={cn(
-                                    "text-white hover:text-j-gold transition-colors focus:outline-none p-4 -m-4 relative z-50 pointer-events-auto",
-                                    isZoomed && "text-j-gold"
-                                )}
-                                style={{ touchAction: 'manipulation' }}
+                                className="text-white hover:text-j-gold transition-colors focus:outline-none p-4 -m-4 relative z-50 pointer-events-auto touch-manipulation"
                                 title={isZoomed ? "Original Aspect" : "Zoom to Fill"}
                             >
                                 <Maximize2 className="w-6 h-6" />
                             </button>
                             <button
                                 onClick={handleCast}
-                                className="text-white hover:text-white/80 transition-colors focus:outline-none p-4 -m-4 relative z-50 pointer-events-auto"
-                                style={{ touchAction: 'manipulation' }}
+                                className="text-white hover:text-white/80 transition-colors focus:outline-none p-4 -m-4 relative z-50 pointer-events-auto touch-manipulation"
                                 title="Cast to Device"
                             >
                                 <Cast className="w-6 h-6" />
                             </button>
                             <button
                                 onClick={togglePip}
-                                className="text-white hover:text-white/80 transition-colors focus:outline-none p-4 -m-4 relative z-50 pointer-events-auto"
-                                style={{ touchAction: 'manipulation' }}
+                                className="text-white hover:text-white/80 transition-colors focus:outline-none p-4 -m-4 relative z-50 pointer-events-auto touch-manipulation"
                                 title="Picture-in-Picture"
                             >
                                 <PictureInPicture className="w-6 h-6" />

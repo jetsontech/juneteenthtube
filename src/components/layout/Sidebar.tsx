@@ -1,6 +1,6 @@
 "use client";
 
-import { Home, Library, History, PlaySquare, Clock, Users, Film, Image, Flag, Map, Database } from "lucide-react";
+import { Home, Library, History, PlaySquare, Clock, Users, Film, Image, Flag, Map, Database, Shield } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -27,6 +27,7 @@ const secondaryLinks = [
     { icon: History, label: "History", href: "/history" },
     { icon: PlaySquare, label: "Your Videos", href: "/studio" },
     { icon: Clock, label: "Watch Later", href: "/playlist/watch-later" },
+    { icon: Shield, label: "Admin Panel", href: "/admin" },
 ];
 
 import { useState } from "react";
@@ -62,7 +63,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 onMouseEnter={() => setIsHovered(true)}
                 onMouseLeave={() => setIsHovered(false)}
                 className={cn(
-                    "fixed left-0 bottom-0 z-[100] glass-heavy overflow-y-auto transition-all duration-300 scrollbar-none",
+                    "fixed left-0 bottom-0 z-[100] glass-heavy overflow-y-auto transition-all duration-300 scrollbar-none sidebar-layout",
                     // Current page detection
                     pathname?.startsWith('/watch/') || pathname?.startsWith('/shorts/') ? "is-watch-page" : "",
 
@@ -76,13 +77,12 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                     isOpen ? "sm:w-64 border-r border-white/5" : "sm:w-0 sm:-translate-x-full",
                     (isHovered && !isOpen) && "shadow-2xl shadow-black/50 border-r border-white/5"
                 )}
-                style={{
-                    top: 'var(--navbar-height)',
-                    paddingLeft: 'env(safe-area-inset-left)',
-                    paddingBottom: 'env(safe-area-inset-bottom)'
-                }}
             >
-                <div className="p-2 space-y-2">
+                <div className={cn(
+                    "sticky z-40 bg-[#0f0f0f] border-b border-white/5 sticky-nav-offset",
+                    "p-2 space-y-2" // Retain original padding and spacing
+                )}
+                >
                     {mainLinks.map((link) => {
                         const isActive = pathname === link.href;
                         return (

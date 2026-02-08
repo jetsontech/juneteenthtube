@@ -17,10 +17,9 @@ export function CategoryBar({
 }: CategoryBarProps) {
     return (
         <div className={cn(
-            "sticky z-40 bg-[#0f0f0f] border-b border-white/5",
+            "sticky z-40 bg-[#0f0f0f] border-b border-white/5 sticky-nav-offset",
             className
         )}
-            style={{ top: 'var(--navbar-height)' }}
         >
             <div className="px-3 sm:px-6 lg:px-8 py-3">
                 <div className="flex gap-3 overflow-x-auto no-scrollbar scroll-smooth">
