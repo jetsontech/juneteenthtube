@@ -2,8 +2,24 @@
 
 import React, { createContext, useContext, useState, ReactNode, useEffect, useRef, useMemo, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
-import { VideoProps } from '@/components/video/VideoCard';
 import pLimit from 'p-limit';
+
+export interface VideoProps {
+    id: string;
+    title: string;
+    thumbnail: string;
+    channelName: string;
+    channelAvatar: string;
+    views: string;
+    postedAt: string;
+    duration: string;
+    videoUrl: string;
+    category: string;
+    createdAt?: string;
+    state?: string;
+    videoUrlH264?: string;
+    transcodeStatus?: 'pending' | 'processing' | 'completed' | 'failed' | null;
+}
 
 // Initial Mock Data (Fallback) - Empty, user will upload their own content
 const MOCK_VIDEOS: VideoProps[] = [];
@@ -137,6 +153,27 @@ export function VideoProvider({ children }: { children: ReactNode }) {
     // Initial Fetch
     useEffect(() => {
         fetchVideos();
+
+        // Realtime Listener for transcoding status updates
+        const channel = supabase
+            .channel('video_updates')
+            .on(
+                'postgres_changes',
+                { event: 'UPDATE', schema: 'public', table: 'videos' },
+                (payload) => {
+                    const video = payload.new as DBVideo;
+                    setVideos(prev => prev.map(v => v.id === video.id ? {
+                        ...v,
+                        videoUrlH264: video.video_url_h264,
+                        transcodeStatus: video.transcode_status
+                    } : v));
+                }
+            )
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel).catch(() => { });
+        };
     }, []);
 
     // Stable callback with no dependencies
@@ -734,13 +771,10 @@ export function VideoProvider({ children }: { children: ReactNode }) {
             });
 
             if (!response.ok) {
-                 const errData = await response.json();
- throw new Error("DB Insert Failed: " + errData.error);
+                const errData = await response.json();
+                throw new Error("DB Insert Failed: " + (errData.error || response.statusText));
             }
             const insertedVideo = await response.json();
-            const dbError = null;
-
-            if (dbError) throw new Error(`DB Insert Failed: ${dbError.message}`);
 
             console.log("Upload Sequence Complete!");
             await fetchVideos();

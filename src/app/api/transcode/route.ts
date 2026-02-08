@@ -35,7 +35,8 @@ export async function POST(req: NextRequest) {
     try {
       console.log("--- BACKGROUND WORKER START:", videoId);
 
-      const ffmpegPath = path.join(process.cwd(), "node_modules", "ffmpeg-static", "ffmpeg.exe");
+      // Cross-platform ffmpeg path (supports Linux/Vercel and Windows)
+      const ffmpegPath = require('ffmpeg-static');
       await mkdir(tempDir, { recursive: true });
       const inputPath = join(tempDir, "input");
       const outputPath = join(tempDir, "output.mp4");
