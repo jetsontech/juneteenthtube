@@ -159,7 +159,10 @@
 }
 
 .no-scrollbar {
-  scrollbar-width: none;
+  @supports (scrollbar-width: none) {
+    scrollbar-width: none;
+  }
+
   -ms-overflow-style: none;
 
   &::-webkit-scrollbar {
@@ -301,7 +304,11 @@ body {
   font-family: var(--font-sans), sans-serif;
   position: relative;
   -ms-overflow-style: none;
-  scrollbar-width: none;
+
+  @supports (scrollbar-width: none) {
+    scrollbar-width: none;
+  }
+
   touch-action: manipulation;
 }
 
