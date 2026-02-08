@@ -10,6 +10,7 @@ export const GlossOverlay = ({ className, style }: GlossOverlayProps) => {
     return (
         <div
             className={cn("fixed inset-0 z-[-2] pointer-events-none gloss-overlay", className)}
+            /* eslint-disable-next-line react/no-unknown-property */
             style={style}
         />
     );

@@ -427,6 +427,7 @@ export function CustomPlayer({ src, srcH264, poster, transcodeStatus }: CustomPl
                 "group relative bg-black overflow-hidden flex flex-col",
                 isCssFullscreen ? "fixed inset-0 z-[10000] w-full dynamic-height" : "w-full h-full"
             )}
+            /* eslint-disable-next-line react/no-unknown-property */
             style={isCssFullscreen ? { "--window-height": `${windowHeight}px` } as React.CSSProperties : undefined}
             onMouseMove={handleMouseMove}
             onClick={resetControlsTimeout}
@@ -568,6 +569,7 @@ export function CustomPlayer({ src, srcH264, poster, transcodeStatus }: CustomPl
                     {/* Progress Bar */}
                     <div
                         className="relative group/progress h-2 mb-4 cursor-pointer w-full"
+                        /* eslint-disable-next-line react/no-unknown-property */
                         style={{ "--progress-percent": `${duration > 0 ? (currentTime / duration) * 100 : 0}%` } as React.CSSProperties}
                     >
                         {/* Background Track */}
