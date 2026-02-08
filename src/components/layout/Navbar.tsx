@@ -311,7 +311,6 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                                         <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
                                             <div
                                                 className={cn("h-full bg-j-red transition-all duration-300 ease-out w-[var(--progress)]")}
-                                                /* eslint-disable-next-line react/no-unknown-property, react/no-inline-styles */
                                                 style={{ "--progress": `${uploadProgress}%` } as React.CSSProperties}
                                             />
                                         </div>

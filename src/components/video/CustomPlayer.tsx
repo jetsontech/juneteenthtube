@@ -77,7 +77,6 @@ export function CustomPlayer({ src, srcH264, poster, transcodeStatus }: CustomPl
 
     // NEW: Audio & Video Quality State
     const [qualityBadge, setQualityBadge] = useState<string | null>(null);
-    const [isEnhanced, setIsEnhanced] = useState(false); // Track if basic enhancements are active
     const [isMastered, setIsMastered] = useState(false); // Track if professional mastering is active
     const audioContextRef = useRef<AudioContext | null>(null);
     const sourceNodeRef = useRef<MediaElementAudioSourceNode | null>(null);
@@ -155,13 +154,11 @@ export function CustomPlayer({ src, srcH264, poster, transcodeStatus }: CustomPl
                 compressor.connect(ctx.destination);
 
                 setIsMastered(true);
-                setIsEnhanced(true);
                 console.log("💎 Professional Audio Mastering Active (Broadcast Level)");
             } catch (e) {
                 // FALLBACK: If CORS blocks Mastering, use our safe Volume Boost
                 console.warn("⚠️ Audio Mastering blocked by CORS. Falling back to Native Volume Normalization.", e);
                 video.volume = 0.85; // Reliable boost
-                setIsEnhanced(true);
                 setIsMastered(false);
             }
         };
@@ -427,7 +424,6 @@ export function CustomPlayer({ src, srcH264, poster, transcodeStatus }: CustomPl
                 "group relative bg-black overflow-hidden flex flex-col",
                 isCssFullscreen ? "fixed inset-0 z-[10000] w-full dynamic-height" : "w-full h-full"
             )}
-            /* eslint-disable-next-line react/no-unknown-property, react/no-inline-styles */
             style={isCssFullscreen ? { "--window-height": `${windowHeight}px` } as React.CSSProperties : undefined}
             onMouseMove={handleMouseMove}
             onClick={resetControlsTimeout}
@@ -568,7 +564,6 @@ export function CustomPlayer({ src, srcH264, poster, transcodeStatus }: CustomPl
                     {/* Progress Bar */}
                     <div
                         className="relative group/progress h-2 mb-4 cursor-pointer w-full"
-                        /* eslint-disable-next-line react/no-unknown-property, react/no-inline-styles */
                         style={{ "--progress-percent": `${duration > 0 ? (currentTime / duration) * 100 : 0}%` } as React.CSSProperties}
                     >
                         {/* Background Track */}

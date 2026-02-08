@@ -5,7 +5,7 @@ const { S3Client, GetObjectCommand, PutObjectCommand } = require('@aws-sdk/clien
 const { createWriteStream, createReadStream, unlinkSync, existsSync, mkdirSync } = require('fs');
 const { pipeline } = require('stream/promises');
 const { join } = require('path');
-const { tmpdir } = require('os');
+// tmpdir removed
 const { spawn } = require('child_process');
 const ffmpegPath = require('ffmpeg-static');
 

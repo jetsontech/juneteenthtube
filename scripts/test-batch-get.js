@@ -28,7 +28,7 @@ const req = https.request(options, (res) => {
             } else {
                 console.log('No data received');
             }
-        } catch (e) {
+        } catch {
             console.log('Raw Response:', data);
         }
     });

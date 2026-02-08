@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Image from "next/image";
 import { useVideo } from "@/context/VideoContext";
 import {
     LayoutDashboard,
@@ -141,7 +142,12 @@ export default function AdminDashboard() {
                                             <div className="flex items-center gap-4">
                                                 <div className="w-24 aspect-video rounded-lg bg-white/5 border border-white/10 overflow-hidden relative group">
                                                     {video.thumbnail_url ? (
-                                                        <img src={video.thumbnail_url} alt="" className="w-full h-full object-cover" />
+                                                        <Image
+                                                            src={video.thumbnail_url}
+                                                            alt=""
+                                                            fill
+                                                            className="object-cover"
+                                                        />
                                                     ) : (
                                                         <div className="w-full h-full flex items-center justify-center">
                                                             <Video className="w-6 h-6 text-white/20" />

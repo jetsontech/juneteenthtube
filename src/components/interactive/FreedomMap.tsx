@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { X, Settings, Plus, MapPin } from "lucide-react";
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 
 interface Pin {
@@ -123,7 +124,6 @@ export function FreedomMap() {
                     <div
                         key={pin.id}
                         className="absolute group cursor-pointer z-10"
-                        /* eslint-disable-next-line react/no-unknown-property, react/no-inline-styles */
                         style={{ "--pin-top": pin.top, "--pin-left": pin.left } as React.CSSProperties}
                         onClick={() => setActivePin(pin)}
                         role="button"
@@ -211,7 +211,12 @@ export function FreedomMap() {
                 <div className="fixed inset-0 bg-black/90 backdrop-blur-xl z-[400] flex items-center justify-center p-6 animate-in fade-in duration-300">
                     <div className="max-w-2xl w-full glass rounded-[3rem] overflow-hidden shadow-2xl border-white/10 animate-in zoom-in-95 duration-300">
                         <div className="relative aspect-video">
-                            <img src={activePin.image} className="w-full h-full object-cover" alt={activePin.brand} />
+                            <Image
+                                src={activePin.image || ""}
+                                fill
+                                className="object-cover"
+                                alt={activePin.brand || "Pin details"}
+                            />
                             <button
                                 onClick={() => setActivePin(null)}
                                 className="absolute top-6 right-6 w-10 h-10 rounded-full bg-black/50 flex items-center justify-center text-white hover:bg-black/70 transition"

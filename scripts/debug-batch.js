@@ -23,7 +23,7 @@ const req = https.request(options, (res) => {
             if (json.results && json.results.length > 0) {
                 console.log('First Error:', JSON.stringify(json.results.find(r => r.status === 'failed'), null, 2));
             }
-        } catch (e) {
+        } catch {
             console.log('Raw:', data);
         }
     });

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Image from "next/image";
 import { ShieldCheck, Search, Play, Info, Clock, UserCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -122,10 +123,11 @@ export function LegacyVault() {
                     >
                         {/* Thumbnail Wrap */}
                         <div className="relative aspect-[4/3] overflow-hidden">
-                            <img
+                            <Image
                                 src={item.thumbnail}
                                 alt={item.title}
-                                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 grayscale group-hover:grayscale-0"
+                                fill
+                                className="object-cover transition-transform duration-700 group-hover:scale-110 grayscale group-hover:grayscale-0"
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-[#0d0d0d] via-transparent to-transparent opacity-80" />
 

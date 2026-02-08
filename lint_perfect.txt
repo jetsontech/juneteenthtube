@@ -1,0 +1,18 @@
+
+> juneteenthtube@0.1.0 lint
+> eslint
+
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\components\interactive\FreedomMap.tsx
+  4:37   warning  'Search' is defined but never used     @typescript-eslint/no-unused-vars
+  4:45   warning  'Play' is defined but never used       @typescript-eslint/no-unused-vars
+  4:51   warning  'Info' is defined but never used       @typescript-eslint/no-unused-vars
+  4:57   warning  'Video' is defined but never used      @typescript-eslint/no-unused-vars
+  4:64   warning  'Layers' is defined but never used     @typescript-eslint/no-unused-vars
+  4:72   warning  'Filter' is defined but never used     @typescript-eslint/no-unused-vars
+  4:80   warning  'Globe' is defined but never used      @typescript-eslint/no-unused-vars
+  4:87   warning  'Loader2' is defined but never used    @typescript-eslint/no-unused-vars
+  4:105  warning  'ImageIcon' is defined but never used  @typescript-eslint/no-unused-vars
+
+Ô£û 9 problems (0 errors, 9 warnings)
+

@@ -1,6 +1,7 @@
 "use client";
 
 import { FreedomMap } from "@/components/interactive/FreedomMap";
+import Image from "next/image";
 import { PlayCircle, Vault } from "lucide-react";
 
 export default function FreedomMapPage() {
@@ -24,9 +25,10 @@ export default function FreedomMapPage() {
                             {/* Vault Item 1 */}
                             <div className="snippet-glass p-5 rounded-3xl group cursor-pointer hover:border-yellow-600/30 transition duration-500">
                                 <div className="relative rounded-2xl overflow-hidden aspect-video bg-black mb-5">
-                                    <img
+                                    <Image
                                         src="https://images.unsplash.com/photo-1571330735066-03aaa9429d89?q=80&w=600"
-                                        className="w-full h-full object-cover opacity-60 group-hover:scale-110 transition duration-700"
+                                        fill
+                                        className="object-cover opacity-60 group-hover:scale-110 transition duration-700"
                                         alt="The Tulsa Chronicles"
                                     />
                                     <div className="absolute inset-0 flex items-center justify-center">
@@ -45,9 +47,10 @@ export default function FreedomMapPage() {
                             {/* Vault Item 2 */}
                             <div className="snippet-glass p-5 rounded-3xl group cursor-pointer hover:border-yellow-600/30 transition duration-500">
                                 <div className="relative rounded-2xl overflow-hidden aspect-video bg-black mb-5">
-                                    <img
+                                    <Image
                                         src="https://images.unsplash.com/photo-1523438885200-e635ba2c371e?q=80&w=600"
-                                        className="w-full h-full object-cover opacity-60 group-hover:scale-110 transition duration-700"
+                                        fill
+                                        className="object-cover opacity-60 group-hover:scale-110 transition duration-700"
                                         alt="Harlem Fest Architecture"
                                     />
                                     <div className="absolute inset-0 flex items-center justify-center">
