@@ -173,8 +173,36 @@ export function CustomPlayer({ src, srcH264, poster, transcodeStatus }: CustomPl
 
         video.addEventListener('play', handlePlay);
 
+        const handleVideoError = () => {
+            const error = video.error;
+            let errorMessage = "An unknown video error occurred.";
+
+            if (error) {
+                switch (error.code) {
+                    case 1: errorMessage = "Video loading aborted by user."; break;
+                    case 2: errorMessage = "Network error while loading video. Check your connection or R2/Supabase permissions."; break;
+                    case 3: errorMessage = "Video decoding failed. The format might be unsupported or the file corrupted."; break;
+                    case 4: errorMessage = "Video source not supported or URL is invalid. Check signed URL expiry."; break;
+                }
+            }
+
+            console.error(`❌ [JuneteenthTube] Video Error: ${errorMessage}`, {
+                code: error?.code,
+                message: error?.message,
+                src: effectiveSrc,
+                readyState: video.readyState,
+                networkState: video.networkState
+            });
+
+            // Set error state if needed (using isBuffering as proxy for now or could add dedicated error UI)
+            setIsBuffering(false);
+        };
+
+        video.addEventListener('error', handleVideoError);
+
         return () => {
             video.removeEventListener('play', handlePlay);
+            video.removeEventListener('error', handleVideoError);
             if (audioContextRef.current) {
                 audioContextRef.current.close().catch(e => console.warn("Error closing AudioContext:", e));
                 audioContextRef.current = null;
