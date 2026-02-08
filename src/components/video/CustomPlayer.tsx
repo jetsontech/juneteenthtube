@@ -208,7 +208,7 @@ export function CustomPlayer({ src, srcH264, poster, transcodeStatus }: CustomPl
                 audioContextRef.current = null;
             }
         };
-    }, []);
+    }, [effectiveSrc]);
 
     // Format time helper
     const formatTime = (time: number) => {
@@ -591,7 +591,7 @@ export function CustomPlayer({ src, srcH264, poster, transcodeStatus }: CustomPl
                 >
                     {/* Progress Bar */}
                     <div
-                        className="relative group/progress h-2 mb-4 cursor-pointer w-full"
+                        className="relative group/progress h-2 mb-4 cursor-pointer w-full progress-fill"
                         style={{ "--progress-percent": `${duration > 0 ? (currentTime / duration) * 100 : 0}%` } as React.CSSProperties}
                     >
                         {/* Background Track */}

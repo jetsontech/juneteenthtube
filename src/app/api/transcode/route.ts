@@ -57,14 +57,14 @@ export async function POST(req: NextRequest) {
       // Increase process priority to prevent Windows throttling
       try {
         os.setPriority(os.constants.priority.PRIORITY_ABOVE_NORMAL);
-      } catch (e: any) {
-        console.warn("Could not set process priority:", e.message);
+      } catch (e: unknown) {
+        console.warn("Could not set process priority:", e instanceof Error ? e.message : String(e));
       }
 
       const exitCode = await new Promise<number | null>((res) => {
         // detached: true and unref() allow the process to survive if the parent is killed
         // Redirecting stdio to 'ignore' is often needed when detaching
-        const ffmpeg: any = spawn(ffmpegPath,
+        const ffmpeg = spawn(ffmpegPath,
           ["-i", inputPath, "-c:v", "libx264", "-pix_fmt", "yuv420p", "-preset", "ultrafast", "-crf", "28", "-y", outputPath],
           {
             detached: true,

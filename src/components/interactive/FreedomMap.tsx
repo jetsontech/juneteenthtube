@@ -123,7 +123,7 @@ export function FreedomMap() {
                 {pins.map((pin) => (
                     <div
                         key={pin.id}
-                        className="absolute group cursor-pointer z-10"
+                        className="absolute group cursor-pointer z-10 pin-position"
                         style={{ "--pin-top": pin.top, "--pin-left": pin.left } as React.CSSProperties}
                         onClick={() => setActivePin(pin)}
                         role="button"

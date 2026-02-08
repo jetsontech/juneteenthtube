@@ -7,7 +7,7 @@ import { useState, useMemo } from "react";
 
 const CATEGORIES = ["All", "Parade", "Music", "Food", "History", "Speeches", "Live", "2024"] as const;
 
-import { VideoProps } from "@/components/video/VideoCard";
+import { type VideoProps } from "@/context/VideoContext";
 
 interface SectionPageProps {
     title: string;
@@ -39,7 +39,6 @@ export function SectionPage({ title, filter, emptyMessage = "No videos found in 
                 categories={CATEGORIES}
                 selectedCategory={selectedCategory}
                 onCategoryChange={setSelectedCategory}
-                className="bg-transparent border-none"
             />
 
             <div className="px-4 sm:px-6 pb-6">

@@ -2,9 +2,9 @@
 
 import { useState, useEffect, Suspense, useMemo } from "react";
 import { VideoGrid } from "@/components/video/VideoGrid";
-import { VideoCard, type VideoProps } from "@/components/video/VideoCard";
+import { VideoCard } from "@/components/video/VideoCard";
+import { type VideoProps, useVideo } from "@/context/VideoContext";
 import { ShortsShelf } from "@/components/video/ShortsShelf";
-import { useVideo } from "@/context/VideoContext";
 import { useStateFilter } from "@/context/StateContext";
 import { useSearchParams } from "next/navigation";
 import { CategoryBar } from "@/components/video/CategoryBar";
@@ -94,7 +94,7 @@ function HomeContent() {
       />
 
       {/* Main content area - YouTube mobile: minimal horizontal padding */}
-      <div className="px-3 sm:px-6 lg:px-8 py-3 sm:py-6">
+      <div className="px-3 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-10">
         {/* First row of videos */}
         <div className={videoGridClass}>
           {filteredVideos.slice(0, 3).map(video => (
