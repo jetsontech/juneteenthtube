@@ -15,7 +15,7 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
-export const maxDuration = 900;
+export const maxDuration = 300;
 
 const S3 = new S3Client({
   region: process.env.S3_REGION || "us-east-1",
