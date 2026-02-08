@@ -7,9 +7,9 @@ import { createWriteStream, createReadStream, existsSync } from "fs";
 import { join } from "path";
 import { tmpdir } from "os";
 import { randomUUID } from "crypto";
-import path from "path";
 import { createClient } from "@supabase/supabase-js";
 import os from "os";
+import ffmpegStatic from "ffmpeg-static";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -36,14 +36,14 @@ export async function POST(req: NextRequest) {
       console.log("--- BACKGROUND WORKER START:", videoId);
 
       // Cross-platform ffmpeg path (supports Linux/Vercel and Windows)
-      const ffmpegPath = require('ffmpeg-static');
+      const ffmpegPath = ffmpegStatic || 'ffmpeg';
       await mkdir(tempDir, { recursive: true });
       const inputPath = join(tempDir, "input");
       const outputPath = join(tempDir, "output.mp4");
 
       // 1. Download
       console.log(`--- DOWNLOADING ${sourceKey} FOR ${videoId}`);
-      const response = await S3.send(new GetObjectCommand({ Bucket: process.env.S3_BUCKET_NAME, Key: sourceKey }));
+      const response = await S3.send(new GetObjectCommand({ Bucket: process.env.S3_BUCKET_NAME!, Key: sourceKey }));
       if (!response.Body) throw new Error("S3 response body is empty");
 
       await new Promise<void>((res, rej) => {
@@ -64,18 +64,17 @@ export async function POST(req: NextRequest) {
       const exitCode = await new Promise<number | null>((res) => {
         // detached: true and unref() allow the process to survive if the parent is killed
         // Redirecting stdio to 'ignore' is often needed when detaching
-        const ffmpeg = spawn(ffmpegPath,
+        const ffmpeg: any = spawn(ffmpegPath,
           ["-i", inputPath, "-c:v", "libx264", "-pix_fmt", "yuv420p", "-preset", "ultrafast", "-crf", "28", "-y", outputPath],
           {
             detached: true,
-            stdio: 'ignore',
-            windowsHide: true
+            stdio: 'ignore'
           }
         );
 
         ffmpeg.unref();
 
-        ffmpeg.on("close", (code) => {
+        ffmpeg.on("close", (code: number | null) => {
           console.log("--- FFMPEG FINISHED WITH EXIT CODE:", code);
           res(code);
         });
