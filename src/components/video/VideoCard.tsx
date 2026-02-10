@@ -28,8 +28,10 @@ export function VideoCard({ video }: { video: VideoProps }) {
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
         >
-            <div className="flex flex-col gap-3">
-                <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-zinc-900 border border-white/5">
+            {/* Card Container — glass background, edge-to-edge on mobile */}
+            <div className="flex flex-col bg-white/[0.03] sm:bg-white/[0.04] backdrop-blur-sm sm:rounded-2xl sm:border sm:border-white/[0.06] overflow-hidden transition-colors duration-300 group-hover:bg-white/[0.06]">
+                {/* Thumbnail */}
+                <div className="relative aspect-video w-full overflow-hidden bg-zinc-900">
                     <Image
                         src={thumb}
                         alt={video.title}
@@ -51,7 +53,8 @@ export function VideoCard({ video }: { video: VideoProps }) {
                         {video.duration}
                     </div>
                 </div>
-                <div className="flex gap-3 px-1">
+                {/* Info */}
+                <div className="flex gap-3 p-3 sm:p-4">
                     <div className="h-10 w-10 flex-shrink-0 rounded-full bg-zinc-800 overflow-hidden relative border border-white/5">
                         {video.channelAvatar ? (
                             <Image src={video.channelAvatar} alt={video.channelName} fill className="object-cover" />

@@ -93,8 +93,8 @@ function HomeContent() {
         onCategoryChange={setSelectedCategory}
       />
 
-      {/* Main content area - YouTube mobile: minimal horizontal padding */}
-      <div className="px-3 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-10">
+      {/* Main content area - Edge-to-edge on mobile, padded on desktop */}
+      <div className="px-0 sm:px-6 lg:px-8 py-4 sm:py-8 lg:py-10">
         {/* First row of videos */}
         <div className={videoGridClass}>
           {filteredVideos.slice(0, 3).map(video => (
