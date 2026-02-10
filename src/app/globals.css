@@ -293,9 +293,9 @@ body {
   padding: 0;
   overflow-x: hidden !important;
   max-width: 100%;
-  /* Prevent elastic bounce which reveals browser UI */
-  overscroll-behavior: none;
-  overscroll-behavior-y: none;
+  /* Prevent elastic bounce which reveals browser UI - RELAXED for better feel */
+  /* overscroll-behavior: none; */
+  /* overscroll-behavior-y: none; */
   background-color: #0f0f0f;
   /* Prevent white bars */
   color: var(--foreground);
