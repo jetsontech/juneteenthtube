@@ -26,7 +26,11 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
     // Detect mobile on mount and window resize
     useEffect(() => {
         const checkMobile = () => {
-            const mobile = window.innerWidth < 640; // sm breakpoint
+            // Mobile if: width < 640 OR device has coarse pointer (touch) OR no hover capability
+            const isTouch = window.matchMedia("(pointer: coarse)").matches || window.matchMedia("(hover: none)").matches;
+            const isSmallScreen = window.innerWidth < 640; // sm breakpoint
+            const mobile = isSmallScreen || isTouch;
+
             setIsMobile(mobile);
             // On mobile, always start closed
             // On desktop, open by default on browse pages, closed on watch/shorts

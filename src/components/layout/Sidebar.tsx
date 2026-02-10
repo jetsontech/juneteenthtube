@@ -30,7 +30,7 @@ const secondaryLinks = [
     { icon: Shield, label: "Admin Panel", href: "/admin" },
 ];
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSidebar } from "@/context/SidebarContext";
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
@@ -38,8 +38,14 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     const { isMobile, setIsOpen } = useSidebar();
     const [isHovered, setIsHovered] = useState(false);
 
-    // Visual state: Open if pinned (isOpen) OR hovered
-    const isExpanded = isOpen || isHovered;
+    const [isHoverSupported, setIsHoverSupported] = useState(false);
+
+    useEffect(() => {
+        setIsHoverSupported(window.matchMedia('(hover: hover)').matches);
+    }, []);
+
+    // Visual state: Open if pinned (isOpen) OR (hovered AND hover is supported)
+    const isExpanded = isOpen || (isHovered && isHoverSupported);
 
     const handleMobileClose = () => {
         if (isMobile) {
