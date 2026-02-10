@@ -8,6 +8,7 @@ import { SidebarProvider, useSidebar } from "@/context/SidebarContext";
 import { AuthProvider } from "@/context/AuthContext";
 import { StateProvider } from "@/context/StateContext";
 import { LoginSplash } from "./LoginSplash";
+import { BackgroundSystem } from "./BackgroundSystem";
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 
@@ -82,6 +83,7 @@ function ShellContent({ children }: { children: React.ReactNode }) {
             onTouchEnd={handleTouchEnd}
         >
             {isLocked && <LoginSplash onUnlock={() => setIsLocked(false)} />}
+            {!isLocked && <BackgroundSystem />}
 
             <Navbar onMenuClick={toggle} />
             <Sidebar isOpen={isOpen} onClose={toggle} />
@@ -97,7 +99,7 @@ function ShellContent({ children }: { children: React.ReactNode }) {
                 )}
             >
                 <div
-                    className="w-full max-w-[1600px] mx-auto px-4 overflow-x-hidden"
+                    className="w-full max-w-[1600px] mx-auto px-4"
                 >
                     {children}
                 </div>
