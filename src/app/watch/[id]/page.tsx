@@ -201,7 +201,7 @@ export default function WatchPage({
                                 className="flex items-center gap-1.5 pl-4 pr-3 py-2 rounded-l-full hover:bg-[#3f3f3f] transition-colors"
                                 aria-label="Like video"
                             >
-                                <ThumbsUp className={`w - 5 h - 5 ${liked ? "fill-white" : ""} `} />
+                                <ThumbsUp className={`w-5 h-5 ${liked ? "fill-white" : ""}`} />
                                 <span className="text-[13px] font-medium">{likesCount}</span>
                             </button>
                             <div className="w-px h-6 bg-white/20"></div>
@@ -210,7 +210,7 @@ export default function WatchPage({
                                 className="pl-3 pr-4 py-2 rounded-r-full hover:bg-[#3f3f3f] transition-colors"
                                 aria-label="Dislike video"
                             >
-                                <ThumbsDown className={`w - 5 h - 5 ${disliked ? "fill-white" : ""} `} />
+                                <ThumbsDown className={`w-5 h-5 ${disliked ? "fill-white" : ""}`} />
                             </button>
                         </div>
 
@@ -253,10 +253,10 @@ export default function WatchPage({
                         </div>
                         <button
                             onClick={handleSubscribe}
-                            className={`px - 4 py - 2 rounded - full text - [14px] font - semibold transition - all flex - shrink - 0 ${isSubscribed
+                            className={`px-4 py-2 rounded-full text-[14px] font-semibold transition-all flex-shrink-0 ${isSubscribed
                                 ? "bg-[#272727] text-white hover:bg-[#3f3f3f]"
                                 : "bg-white text-black hover:bg-gray-200"
-                                } `}
+                                }`}
                         >
                             {isSubscribed ? "Subscribed" : "Subscribe"}
                         </button>
@@ -310,10 +310,10 @@ export default function WatchPage({
                                 <button
                                     onClick={handleComment}
                                     disabled={!newComment.trim()}
-                                    className={`px - 4 py - 2 rounded - full text - sm font - medium transition - colors ${newComment.trim()
+                                    className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${newComment.trim()
                                         ? "bg-[#3ea6ff] text-black hover:bg-[#65b8ff]"
                                         : "bg-[#272727] text-gray-500 cursor-not-allowed"
-                                        } `}
+                                        }`}
                                 >
                                     Comment
                                 </button>

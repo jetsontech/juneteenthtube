@@ -17,7 +17,7 @@ export function CategoryBar({
 }: CategoryBarProps) {
     return (
         <div className={cn(
-            "sticky top-0 z-40 bg-[#0f0f0f] border-b border-white/5 sticky-nav-offset",
+            "sticky z-40 bg-[#0f0f0f] border-b border-white/5 sticky-nav-offset",
             className
         )}
         >
