@@ -61,11 +61,13 @@ export async function POST(req: NextRequest) {
         console.warn("Could not set process priority:", e instanceof Error ? e.message : String(e));
       }
 
-      const exitCode = await new Promise<number | null>((res) => {
+      // Prepare FFMPEG Promise
+      const ffmpegPromise = new Promise<number | null>((res, rej) => {
         // detached: true and unref() allow the process to survive if the parent is killed
         // Redirecting stdio to 'ignore' is often needed when detaching
+        // IMPROVEMENT: Downscale to 720p max for speed (-vf "scale='min(1280,iw)':-2")
         const ffmpeg = spawn(ffmpegPath,
-          ["-i", inputPath, "-c:v", "libx264", "-pix_fmt", "yuv420p", "-preset", "ultrafast", "-crf", "28", "-y", outputPath],
+          ["-i", inputPath, "-c:v", "libx264", "-pix_fmt", "yuv420p", "-preset", "ultrafast", "-crf", "28", "-vf", "scale='min(1280,iw)':-2", "-y", outputPath],
           {
             detached: true,
             stdio: 'ignore'
@@ -78,9 +80,28 @@ export async function POST(req: NextRequest) {
           console.log("--- FFMPEG FINISHED WITH EXIT CODE:", code);
           res(code);
         });
+
+        ffmpeg.on("error", (err) => {
+          console.error("FFmpeg spawn error:", err);
+          rej(err);
+        });
       });
 
-      if (exitCode !== 0) throw new Error("FFMPEG crashed with code " + exitCode);
+      // TIMEOUT SAFETY: Kill process if it takes too long (e.g. > Vercel limit)
+      // Vercel Hobby limit is 10s (sometimes 60s for API). Pro is 300s.
+      // We set a safe timeout to catch it before hard kill.
+      const TIMEOUT_MS = 50000; // 50 seconds (Adjust if on Hobby plan to ~8000)
+
+      const timeoutPromise = new Promise<number>((_, rej) => {
+        setTimeout(() => {
+          rej(new Error(`Transcoding timed out after ${TIMEOUT_MS}ms`));
+        }, TIMEOUT_MS);
+      });
+
+      // Race ffmpeg against timeout
+      const exitCode = await Promise.race([ffmpegPromise, timeoutPromise]);
+
+      if (exitCode !== 0) throw new Error("FFMPEG crashed or failed with code " + exitCode);
       if (!existsSync(outputPath)) throw new Error("Output file missing after transcode");
 
       // 3. Upload

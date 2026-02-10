@@ -11,7 +11,8 @@ import {
     Minimize,
     PictureInPicture,
     Cast,
-    Maximize2
+    Maximize2,
+    AlertCircle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -524,6 +525,22 @@ export function CustomPlayer({ src, srcH264, poster, transcodeStatus }: CustomPl
                     >
                         Check Status
                     </button>
+                </div>
+            )}
+
+            {/* Transcoding Failed Overlay */}
+            {(!isHEVCSupported && !srcH264 && transcodeStatus === 'failed') && (
+                <div className="absolute inset-0 z-[50] bg-black/90 flex flex-col items-center justify-center text-center p-6">
+                    <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
+                    <h3 className="text-white text-lg font-bold mb-2">Playback Error</h3>
+                    <p className="text-gray-400 text-sm max-w-md">
+                        This video uses a high-efficiency format (HEVC) not supported by your browser, and optimization failed.
+                    </p>
+                    <div className="mt-4 flex gap-3 text-xs text-gray-500">
+                        <span>Try using Safari</span>
+                        <span>•</span>
+                        <span>Try on iPhone/iPad</span>
+                    </div>
                 </div>
             )}
 
