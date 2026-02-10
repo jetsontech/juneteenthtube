@@ -40,14 +40,23 @@ export async function POST() {
         ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
         : "http://localhost:3000";
 
-    // Fire and forget the transcode call so the batcher doesn't timeout
-    fetch(`${baseUrl}/api/transcode`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ sourceKey: v.video_url.split("/").pop(), videoId: v.id })
-    }).catch(err => console.error("Background Transcode Trigger Error:", err));
+    // Await the fetch to ensure the request is sent before the function terminates
+    // Note: Since api/transcode now awaits ffmpeg, this entire call will wait for transcoding to finish.
+    // This might timeout if transcoding takes >10-60s, but it's safer than fire-and-forget on Vercel.
+    try {
+      const res = await fetch(`${baseUrl}/api/transcode`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sourceKey: v.video_url.split("/").pop(), videoId: v.id })
+      });
 
-    return NextResponse.json({ message: "Transcode started", id: v.id });
+      if (!res.ok) throw new Error(`Transcode API responded with ${res.status}`);
+    } catch (err) {
+      console.error("Transcode Trigger Error:", err);
+      return NextResponse.json({ error: "Failed to trigger transcode" }, { status: 500 });
+    }
+
+    return NextResponse.json({ message: "Transcode completed for video", id: v.id });
   } catch (e: unknown) {
     return NextResponse.json({ error: String(e) }, { status: 500 });
   }

@@ -120,13 +120,17 @@ export async function POST(req: NextRequest) {
     }
   };
 
-  // Trigger background task WITHOUT awaiting it
-  // This allows the request to return 200 immediately
-  runTranscoding().catch(err => console.error("Transcode Background Launch Error:", err));
-
-  return NextResponse.json({
-    success: true,
-    message: "Transcoding started in background",
-    videoId
-  });
+  // Await the transcoding task so the serverless function doesn't terminate immediately
+  // Note: This is subject to Vercel's execution timeout (e.g., 10s-60s)
+  try {
+    await runTranscoding();
+    return NextResponse.json({
+      success: true,
+      message: "Transcoding completed",
+      videoId
+    });
+  } catch (error) {
+    console.error("Transcode Route Error:", error);
+    return NextResponse.json({ error: "Transcoding failed" }, { status: 500 });
+  }
 }
