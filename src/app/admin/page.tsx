@@ -27,14 +27,14 @@ export default function AdminDashboard() {
     // Statistics
     const stats = {
         total: videos.length,
-        completed: videos.filter(v => v.transcode_status === 'completed').length,
-        failed: videos.filter(v => v.transcode_status === 'failed').length,
-        pending: videos.filter(v => !v.transcode_status || v.transcode_status === 'pending').length,
+        completed: videos.filter(v => v.transcodeStatus === 'completed').length,
+        failed: videos.filter(v => v.transcodeStatus === 'failed').length,
+        pending: videos.filter(v => !v.transcodeStatus || v.transcodeStatus === 'pending').length,
     };
 
     const filteredVideos = videos.filter(v => {
         const matchesSearch = v.title.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesFilter = filterStatus === 'all' || v.transcode_status === filterStatus;
+        const matchesFilter = filterStatus === 'all' || v.transcodeStatus === filterStatus;
         return matchesSearch && matchesFilter;
     });
 
@@ -141,9 +141,9 @@ export default function AdminDashboard() {
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-4">
                                                 <div className="w-24 aspect-video rounded-lg bg-white/5 border border-white/10 overflow-hidden relative group">
-                                                    {video.thumbnail_url ? (
+                                                    {video.thumbnail ? (
                                                         <Image
-                                                            src={video.thumbnail_url}
+                                                            src={video.thumbnail}
                                                             alt=""
                                                             fill
                                                             className="object-cover"
@@ -169,22 +169,32 @@ export default function AdminDashboard() {
                                         <td className="px-6 py-4">
                                             <div className={cn(
                                                 "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter",
-                                                video.transcode_status === 'completed' ? "bg-green-500/10 text-green-500 border border-green-500/20" :
-                                                    video.transcode_status === 'failed' ? "bg-red-500/10 text-red-500 border border-red-500/20" :
+                                                video.transcodeStatus === 'completed' ? "bg-green-500/10 text-green-500 border border-green-500/20" :
+                                                    video.transcodeStatus === 'failed' ? "bg-red-500/10 text-red-500 border border-red-500/20" :
                                                         "bg-j-gold/10 text-j-gold border border-j-gold/20"
                                             )}>
-                                                {video.transcode_status === 'completed' && <CheckCircle2 className="w-3 h-3" />}
-                                                {video.transcode_status === 'failed' && <XCircle className="w-3 h-3" />}
-                                                {(!video.transcode_status || video.transcode_status === 'pending') && <Clock className="w-3 h-3 animate-pulse" />}
-                                                {video.transcode_status || 'pending'}
+                                                {video.transcodeStatus === 'completed' && <CheckCircle2 className="w-3 h-3" />}
+                                                {video.transcodeStatus === 'failed' && <XCircle className="w-3 h-3" />}
+                                                {(!video.transcodeStatus || video.transcodeStatus === 'pending') && <Clock className="w-3 h-3 animate-pulse" />}
+                                                {video.transcodeStatus || 'pending'}
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 text-right">
                                             <div className="flex items-center justify-end gap-2">
                                                 <button
-                                                    onClick={() => handleReTriggerTranscode(video.id, video.video_url.split('/').pop()!)}
-                                                    className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-all"
-                                                    title="Re-trigger Transcode"
+                                                    onClick={() => {
+                                                        if (!video.videoUrl) return;
+                                                        const sourceKey = video.videoUrl.split('/').pop();
+                                                        if (sourceKey) handleReTriggerTranscode(video.id, sourceKey);
+                                                    }}
+                                                    disabled={!video.videoUrl}
+                                                    className={cn(
+                                                        "p-2 rounded-lg transition-all",
+                                                        !video.videoUrl
+                                                            ? "text-gray-600 cursor-not-allowed"
+                                                            : "text-gray-400 hover:text-white hover:bg-white/10"
+                                                    )}
+                                                    title={!video.videoUrl ? "Missing Video URL" : "Re-trigger Transcode"}
                                                 >
                                                     <RefreshCw className="w-5 h-5" />
                                                 </button>
