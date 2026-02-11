@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useVideo } from "@/context/VideoContext";
 import { useSidebar } from "@/context/SidebarContext";
-import { useState, useRef, useEffect, useId } from "react";
+import { useState, useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
 
 interface ShortVideo {
@@ -38,7 +38,7 @@ function ShortCard({ short, onDelete, onChangeThumbnail, onChangeVideo, onRename
     const menuRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const videoFileInputRef = useRef<HTMLInputElement>(null);
-    const uniqueId = useId();
+
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -170,8 +170,6 @@ function ShortCard({ short, onDelete, onChangeThumbnail, onChangeVideo, onRename
             <input
                 type="file"
                 ref={fileInputRef}
-                id={`thumb-input-${uniqueId}`}
-                name={`thumb-input-${uniqueId}`}
                 className="hidden"
                 accept="image/*"
                 onChange={handleFileChange}
@@ -181,8 +179,6 @@ function ShortCard({ short, onDelete, onChangeThumbnail, onChangeVideo, onRename
             <input
                 type="file"
                 ref={videoFileInputRef}
-                id={`video-input-${uniqueId}`}
-                name={`video-input-${uniqueId}`}
                 className="hidden"
                 accept="video/*"
                 onChange={handleVideoFileChange}
