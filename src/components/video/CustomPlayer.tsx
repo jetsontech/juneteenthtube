@@ -363,7 +363,7 @@ export function CustomPlayer({ src, srcH264, poster }: CustomPlayerProps) {
     };
 
     // Toggle Fullscreen - Smart handling for Mobile vs Desktop
-    const toggleFullscreen = (e?: React.MouseEvent) => {
+    const toggleFullscreen = async (e?: React.MouseEvent) => {
         e?.stopPropagation();
         if (!containerRef.current || !videoRef.current) return;
 
@@ -387,17 +387,44 @@ export function CustomPlayer({ src, srcH264, poster }: CustomPlayerProps) {
         }
 
         // Android / Desktop: Standard Fullscreen API
-        if (!document.fullscreenElement) {
-            containerRef.current.requestFullscreen().catch(err => {
-                console.error(`Error attempting to enable fullscreen: ${err.message}`);
-                // Fallback to CSS Fullscreen if native fails
-                setIsCssFullscreen(true);
+        try {
+            if (!document.fullscreenElement && !(document as any).webkitFullscreenElement) {
+                // Enter Fullscreen
+                if (containerRef.current.requestFullscreen) {
+                    await containerRef.current.requestFullscreen();
+                } else if ((containerRef.current as any).webkitRequestFullscreen) {
+                    await (containerRef.current as any).webkitRequestFullscreen(); // Safari/Old Chrome
+                } else if ((containerRef.current as any).msRequestFullscreen) {
+                    await (containerRef.current as any).msRequestFullscreen(); // IE/Edge
+                } else {
+                    // Fallback to CSS Fullscreen if native fails
+                    console.warn("Native fullscreen not supported, falling back to CSS");
+                    setIsCssFullscreen(true);
+                    setWindowHeight(window.innerHeight);
+                    setIsZoomed(true);
+                    document.body.style.overflow = 'hidden';
+                }
+            } else {
+                // Exit Fullscreen
+                if (document.exitFullscreen) {
+                    await document.exitFullscreen();
+                } else if ((document as any).webkitExitFullscreen) {
+                    await (document as any).webkitExitFullscreen();
+                } else if ((document as any).msExitFullscreen) {
+                    await (document as any).msExitFullscreen();
+                }
+            }
+        } catch (err) {
+            console.error(`Error attempting to toggle fullscreen: ${err}`);
+            // Fallback to CSS Fullscreen if native fails
+            setIsCssFullscreen(!isCssFullscreen);
+            if (!isCssFullscreen) {
                 setWindowHeight(window.innerHeight);
                 setIsZoomed(true);
                 document.body.style.overflow = 'hidden';
-            });
-        } else {
-            document.exitFullscreen();
+            } else {
+                document.body.style.overflow = '';
+            }
         }
     };
 

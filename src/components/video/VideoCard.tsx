@@ -13,45 +13,79 @@ export function VideoCard({ video }: { video: VideoProps }) {
     const videoRef = useRef<HTMLVideoElement>(null);
     const cardRef = useRef<HTMLDivElement>(null);
     const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
-    const isTouchDeviceRef = useRef(false);
     const preventNavigationRef = useRef(false);
+
+    // Track hover state in ref to handle async play/pause correctly
+    const isHoveredRef = useRef(false);
 
     // Simple preview source: prefer original, handle fallback internally if needed
     // Chrome can handle most formats natively
     const previewSrc = video.videoUrl;
 
-    // Detect touch capability once
+    // Detect capabilities
+    const [canHover, setCanHover] = useState(true); // Default to assuming hover capability on desktop-first
+
     useEffect(() => {
-        isTouchDeviceRef.current =
-            "ontouchstart" in window ||
-            navigator.maxTouchPoints > 0 ||
-            window.matchMedia("(pointer: coarse)").matches;
+        // precise check for primary input mechanism
+        const hoverQuery = window.matchMedia("(hover: hover)");
+        setCanHover(hoverQuery.matches);
+
+        const handler = (e: MediaQueryListEvent) => setCanHover(e.matches);
+        hoverQuery.addEventListener("change", handler);
+        return () => hoverQuery.removeEventListener("change", handler);
     }, []);
 
     // Desktop hover: delay then play
     useEffect(() => {
+        if (!canHover) return; // Skip hover logic if device can't hover
+
+        isHoveredRef.current = isHovered;
         let timeout: NodeJS.Timeout;
-        if (isHovered && !isTouchDeviceRef.current && videoRef.current) {
-            timeout = setTimeout(() => {
-                setShowPreview(true);
-                videoRef.current?.play().catch(() => { });
-            }, 500);
-        } else if (!isHovered && videoRef.current) {
-            videoRef.current.pause();
-            videoRef.current.currentTime = 0;
+
+        const stopPreview = () => {
+            if (videoRef.current) {
+                videoRef.current.pause();
+                videoRef.current.currentTime = 0;
+            }
             setShowPreview(false);
+        };
+
+        if (isHovered) {
+            timeout = setTimeout(() => {
+                // Double check if still hovered before playing
+                if (isHoveredRef.current && videoRef.current) {
+                    const playPromise = videoRef.current.play();
+                    if (playPromise !== undefined) {
+                        playPromise
+                            .then(() => {
+                                // Only show preview if successfully playing AND still hovered
+                                if (isHoveredRef.current) {
+                                    setShowPreview(true);
+                                } else {
+                                    stopPreview();
+                                }
+                            })
+                            .catch((error) => {
+                                // console.warn("Preview playback failed:", error); // Suppress common abort errors
+                                setShowPreview(false);
+                            });
+                    }
+                }
+            }, 600);
+        } else {
+            stopPreview();
         }
-        return () => clearTimeout(timeout);
-    }, [isHovered]);
+        return () => {
+            clearTimeout(timeout);
+            stopPreview(); // Ensure video stops on unmount/dep change
+        };
+    }, [isHovered, canHover]);
 
     // Mobile: IntersectionObserver auto-play when card is >60% visible
+    // ONLY run this if hover is NOT supported to avoid conflicts
     useEffect(() => {
-        if (typeof window === "undefined") return;
-        const isTouch =
-            "ontouchstart" in window ||
-            navigator.maxTouchPoints > 0 ||
-            window.matchMedia("(pointer: coarse)").matches;
-        if (!isTouch || !cardRef.current || !previewSrc) return;
+        if (typeof window === "undefined" || canHover) return;
+        if (!cardRef.current || !previewSrc) return;
 
         let playTimeout: NodeJS.Timeout;
         const observer = new IntersectionObserver(
@@ -79,9 +113,9 @@ export function VideoCard({ video }: { video: VideoProps }) {
             clearTimeout(playTimeout);
             observer.disconnect();
         };
-    }, [previewSrc]);
+    }, [previewSrc, canHover]);
 
-    // Start preview on touch-hold (500ms press)
+    // Touch handlers for explicit long-press preview (works on both if needed, but primary for touch)
     const handleTouchStart = useCallback((e: React.TouchEvent) => {
         if (!previewSrc) return;
         preventNavigationRef.current = false;
@@ -167,7 +201,7 @@ export function VideoCard({ video }: { video: VideoProps }) {
                             loop
                             playsInline
                             preload="metadata"
-                            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${showPreview ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+                            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 pointer-events-none ${showPreview ? 'opacity-100' : 'opacity-0'}`}
                         />
                     )}
                     {/* Touch preview indicator */}
