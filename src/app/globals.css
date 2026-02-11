@@ -149,12 +149,7 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.glass {
-  background: rgba(255, 255, 255, 0.03);
-  -webkit-backdrop-filter: blur(12px);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
+/* glass class defined below in "Glassmorphism & Gloss System" section */
 
 .no-scrollbar {
   @supports (scrollbar-width: none) {
@@ -411,7 +406,8 @@ body.sidebar-open-mobile {
 }
 
 .video-enhanced {
-  filter: contrast(1.05) saturate(1.1) brightness(1.02) sepia(0.05) hue-rotate(-2deg) blur(0.4px) url(#video-sharpen);
+  /* Lightweight color grading only — no blur or SVG convolution (those killed mobile GPU perf) */
+  filter: contrast(1.04) saturate(1.08) brightness(1.02);
   image-rendering: high-quality;
 }
 

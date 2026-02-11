@@ -68,7 +68,6 @@ export function CustomPlayer({ src, srcH264, poster, transcodeStatus }: CustomPl
     const [hasEnded, setHasEnded] = useState(false);
     const [showControls, setShowControls] = useState(true);
     const [isZoomed, setIsZoomed] = useState(false);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [isBuffering, setIsBuffering] = useState(true);
     const [hasStartedPlaying, setHasStartedPlaying] = useState(false);
 
@@ -464,17 +463,12 @@ export function CustomPlayer({ src, srcH264, poster, transcodeStatus }: CustomPl
             <video
                 ref={videoRef}
                 src={effectiveSrc}
-                preload="auto"
+                preload="metadata"
                 className={cn(
                     "w-full h-full flex-grow pointer-events-none",
                     (isZoomed || isCssFullscreen) ? "object-cover" : "object-contain",
                     hasStartedPlaying && "video-enhanced"
                 )}
-                // YOUTUBE-LEVEL VIDEO ENHANCEMENT via CSS Filters
-                // Applied after playback starts to enhance user-uploaded content
-                // These subtle enhancements improve perceived quality without heavy processing
-                // YOUTUBE-LEVEL MASTERING & VISUAL CONSISTENCY
-                // Uses a multi-pass filter stack to unify the look across all uploads
                 onTimeUpdate={onTimeUpdate}
                 onLoadedMetadata={onLoadedMetadata}
                 onEnded={onEnded}
@@ -485,13 +479,8 @@ export function CustomPlayer({ src, srcH264, poster, transcodeStatus }: CustomPl
                     setHasStartedPlaying(true);
                 }}
                 playsInline
-                webkit-playsinline="true"
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-ignore
-                x5-playsinline="true"
                 disablePictureInPicture={false}
                 disableRemotePlayback={false}
-                crossOrigin="anonymous" // REQUIRED for AudioContext/Mastering to work with R2/external URLs
             />
 
             {/* High-Quality Poster Overlay - Only shows before first play or after video ends */}
@@ -508,6 +497,13 @@ export function CustomPlayer({ src, srcH264, poster, transcodeStatus }: CustomPl
                             isZoomed && "object-cover"
                         )}
                     />
+                </div>
+            )}
+
+            {/* Buffering Spinner — visible during stalls */}
+            {isBuffering && hasStartedPlaying && (
+                <div className="absolute inset-0 z-[5] flex items-center justify-center pointer-events-none">
+                    <div className="w-14 h-14 border-4 border-white/30 border-t-white rounded-full animate-spin" />
                 </div>
             )}
 
