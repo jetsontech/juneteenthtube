@@ -18,42 +18,22 @@ import { cn } from "@/lib/utils";
 
 interface CustomPlayerProps {
     src: string;
-    srcH264?: string; // Transcoded H.264 version for Android/non-HEVC devices
+    srcH264?: string; // Transcoded H.264 fallback (tried only if primary fails)
     poster?: string;
     transcodeStatus?: 'pending' | 'processing' | 'completed' | 'failed' | null;
 }
-
-// Helper: Detect if device supports HEVC natively
-const supportsHEVC = (): boolean => {
-    if (typeof window === 'undefined') return false;
-
-    const ua = navigator.userAgent.toLowerCase();
-
-    // iOS Safari supports HEVC
-    const isIOS = /iphone|ipad|ipod/.test(ua);
-
-    // macOS Safari supports HEVC
-    const isMacSafari = /macintosh/.test(ua) && /safari/.test(ua) && !/chrome/.test(ua);
-
-    // Some newer Android devices support HEVC, but it's unreliable
-    // For safety, assume Android doesn't support HEVC
-    const isAndroid = /android/.test(ua);
-
-    return (isIOS || isMacSafari) && !isAndroid;
-};
 
 interface HTMLVideoElementWithWebKit extends HTMLVideoElement {
     webkitShowPlaybackTargetPicker?: () => void;
     webkitEnterFullscreen?: () => void;
 }
 
-export function CustomPlayer({ src, srcH264, poster, transcodeStatus }: CustomPlayerProps) {
-    // Automatic codec selection: Use H.264 on non-HEVC devices if available
-    const isHEVCSupported = supportsHEVC();
-    const effectiveSrc = (srcH264 && !isHEVCSupported) ? srcH264 : src;
-
-    // Check if we are waiting for transcoding
-    const isProcessing = !isHEVCSupported && !srcH264 && (transcodeStatus === 'pending' || transcodeStatus === 'processing');
+export function CustomPlayer({ src, srcH264, poster }: CustomPlayerProps) {
+    // Always try the original source first — Chrome can play most formats
+    // Only fall back to H.264 if the primary source genuinely fails
+    const [activeSrc, setActiveSrc] = useState(src);
+    const [triedFallback, setTriedFallback] = useState(false);
+    const [playbackError, setPlaybackError] = useState<string | null>(null);
 
     const videoRef = useRef<HTMLVideoElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
@@ -81,6 +61,9 @@ export function CustomPlayer({ src, srcH264, poster, transcodeStatus }: CustomPl
     const audioContextRef = useRef<AudioContext | null>(null);
     const sourceNodeRef = useRef<MediaElementAudioSourceNode | null>(null);
     const compressorNodeRef = useRef<DynamicsCompressorNode | null>(null);
+
+    // Progress bar ref for CSS variable
+    const progressBarRef = useRef<HTMLDivElement>(null);
 
     // User Interaction State
     const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -112,12 +95,23 @@ export function CustomPlayer({ src, srcH264, poster, transcodeStatus }: CustomPl
         return () => window.removeEventListener('resize', handleResize);
     }, [isCssFullscreen]);
 
-    // Update body scroll lock
+    // Update body scroll lock + CSS fullscreen height variable
     useEffect(() => {
         if (!isCssFullscreen) {
             document.body.style.overflow = '';
         }
-    }, [isCssFullscreen]);
+        if (containerRef.current && isCssFullscreen) {
+            containerRef.current.style.setProperty('--window-height', `${windowHeight}px`);
+        }
+    }, [isCssFullscreen, windowHeight]);
+
+    // Update progress bar CSS variable
+    useEffect(() => {
+        if (progressBarRef.current) {
+            const pct = duration > 0 ? (currentTime / duration) * 100 : 0;
+            progressBarRef.current.style.setProperty('--progress-percent', `${pct}%`);
+        }
+    }, [currentTime, duration]);
 
     // PHASE 2: PROFESSIONAL MEDIA MASTERING (Absolute Consistency)
     // Implements Audio Compression + Video Glow + Denoising
@@ -189,12 +183,19 @@ export function CustomPlayer({ src, srcH264, poster, transcodeStatus }: CustomPl
             console.error(`❌ [JuneteenthTube] Video Error: ${errorMessage}`, {
                 code: error?.code,
                 message: error?.message,
-                src: effectiveSrc,
+                src: activeSrc,
                 readyState: video.readyState,
                 networkState: video.networkState
             });
 
-            // Set error state if needed (using isBuffering as proxy for now or could add dedicated error UI)
+            // Reactive fallback: if primary source fails, try H.264 version
+            if ((error?.code === 3 || error?.code === 4) && srcH264 && !triedFallback) {
+                console.log('🔄 Trying H.264 fallback:', srcH264);
+                setTriedFallback(true);
+                setActiveSrc(srcH264);
+            } else if (error?.code === 3 || error?.code === 4) {
+                setPlaybackError('Video format may not be supported in this browser');
+            }
             setIsBuffering(false);
         };
 
@@ -208,7 +209,7 @@ export function CustomPlayer({ src, srcH264, poster, transcodeStatus }: CustomPl
                 audioContextRef.current = null;
             }
         };
-    }, [effectiveSrc]);
+    }, [activeSrc, srcH264, triedFallback]);
 
     // Format time helper
     const formatTime = (time: number) => {
@@ -452,7 +453,6 @@ export function CustomPlayer({ src, srcH264, poster, transcodeStatus }: CustomPl
                 "group relative bg-black overflow-hidden flex flex-col",
                 isCssFullscreen ? "fixed inset-0 z-[10000] w-full dynamic-height" : "w-full h-full"
             )}
-            style={isCssFullscreen ? { "--window-height": `${windowHeight}px` } as React.CSSProperties : undefined}
             onMouseMove={handleMouseMove}
             onClick={resetControlsTimeout}
             onMouseLeave={resetControlsTimeout}
@@ -462,7 +462,7 @@ export function CustomPlayer({ src, srcH264, poster, transcodeStatus }: CustomPl
         >
             <video
                 ref={videoRef}
-                src={effectiveSrc}
+                src={activeSrc}
                 preload="metadata"
                 className={cn(
                     "w-full h-full flex-grow pointer-events-none",
@@ -507,36 +507,18 @@ export function CustomPlayer({ src, srcH264, poster, transcodeStatus }: CustomPl
                 </div>
             )}
 
-            {/* Processing / Transcoding Overlay */}
-            {isProcessing && (
-                <div className="absolute inset-0 z-[50] bg-black/80 flex flex-col items-center justify-center text-center p-6 backdrop-blur-sm">
-                    <div className="w-12 h-12 border-4 border-j-gold border-t-transparent rounded-full animate-spin mb-4" />
-                    <h3 className="text-white text-lg font-bold mb-2">Processing Video...</h3>
-                    <p className="text-gray-400 text-sm max-w-md">
-                        Optimizing for your device (Android/PC). This usually takes 30-60 seconds.
-                    </p>
+            {/* Non-blocking playback error/status banner */}
+            {playbackError && (
+                <div className="absolute top-4 left-4 right-4 z-[50] flex items-center gap-2 bg-black/70 backdrop-blur-md rounded-lg px-3 py-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <AlertCircle className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                    <span className="text-xs text-gray-300 flex-1">{playbackError}</span>
                     <button
-                        onClick={() => window.location.reload()}
-                        className="mt-6 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-full text-sm text-white transition-colors"
+                        onClick={() => setPlaybackError(null)}
+                        className="text-gray-500 hover:text-white transition-colors p-1"
+                        aria-label="Dismiss"
                     >
-                        Check Status
+                        <span className="text-xs">✕</span>
                     </button>
-                </div>
-            )}
-
-            {/* Transcoding Failed Overlay */}
-            {(!isHEVCSupported && !srcH264 && transcodeStatus === 'failed') && (
-                <div className="absolute inset-0 z-[50] bg-black/90 flex flex-col items-center justify-center text-center p-6">
-                    <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
-                    <h3 className="text-white text-lg font-bold mb-2">Playback Error</h3>
-                    <p className="text-gray-400 text-sm max-w-md">
-                        This video uses a high-efficiency format (HEVC) not supported by your browser, and optimization failed.
-                    </p>
-                    <div className="mt-4 flex gap-3 text-xs text-gray-500">
-                        <span>Try using Safari</span>
-                        <span>•</span>
-                        <span>Try on iPhone/iPad</span>
-                    </div>
                 </div>
             )}
 
@@ -604,8 +586,8 @@ export function CustomPlayer({ src, srcH264, poster, transcodeStatus }: CustomPl
                 >
                     {/* Progress Bar */}
                     <div
+                        ref={progressBarRef}
                         className="relative group/progress h-2 mb-4 cursor-pointer w-full progress-fill"
-                        style={{ "--progress-percent": `${duration > 0 ? (currentTime / duration) * 100 : 0}%` } as React.CSSProperties}
                     >
                         {/* Background Track */}
                         <div className="absolute top-0 left-0 right-0 bottom-0 bg-white/30 rounded-full overflow-hidden">

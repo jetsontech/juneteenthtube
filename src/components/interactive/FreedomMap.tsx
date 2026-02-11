@@ -123,8 +123,13 @@ export function FreedomMap() {
                 {pins.map((pin) => (
                     <div
                         key={pin.id}
-                        className="absolute group cursor-pointer z-10"
-                        style={{ top: pin.top, left: pin.left }}
+                        className="absolute group cursor-pointer z-10 pin-position"
+                        ref={(el) => {
+                            if (el) {
+                                el.style.setProperty('--pin-top', pin.top);
+                                el.style.setProperty('--pin-left', pin.left);
+                            }
+                        }}
                         onClick={() => setActivePin(pin)}
                         role="button"
                         title={pin.city}
