@@ -119,7 +119,7 @@ export function CustomPlayer({ src, srcH264, poster }: CustomPlayerProps) {
         if (!videoRef.current) return;
         const video = videoRef.current;
 
-        const initMastering = () => {
+        const _initMastering = () => {
             // Already initialized?
             if (audioContextRef.current) return;
 
@@ -158,7 +158,7 @@ export function CustomPlayer({ src, srcH264, poster }: CustomPlayerProps) {
         };
 
         const handlePlay = () => {
-            initMastering();
+            // _initMastering(); // Disabled to fix audio silence caused by CORS
             // Resume context if suspended (browser policy)
             if (audioContextRef.current?.state === 'suspended') {
                 audioContextRef.current.resume();

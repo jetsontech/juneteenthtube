@@ -1,6 +1,5 @@
 const { exec } = require('child_process'); // eslint-disable-line @typescript-eslint/no-require-imports
 const path = require('path'); // eslint-disable-line @typescript-eslint/no-require-imports
-const fs = require('fs'); // eslint-disable-line @typescript-eslint/no-require-imports
 
 const outputPath = path.join(__dirname, '../public/background.mp4');
 

@@ -21,17 +21,20 @@ CREATE POLICY "Allow public read access" ON public.photos
 -- Create policy to allow authenticated users to insert
 CREATE POLICY "Allow authenticated insert" ON public.photos
     FOR INSERT
-    WITH CHECK (true);
+    TO authenticated
+    WITH CHECK (auth.uid() IS NOT NULL);
 
 -- Create policy to allow users to update their own photos
 CREATE POLICY "Allow authenticated update" ON public.photos
     FOR UPDATE
-    USING (true);
+    TO authenticated
+    USING (auth.uid() IS NOT NULL);
 
 -- Create policy to allow users to delete their own photos
 CREATE POLICY "Allow authenticated delete" ON public.photos
     FOR DELETE
-    USING (true);
+    TO authenticated
+    USING (auth.uid() IS NOT NULL);
 
 -- Create index on created_at for efficient sorting
 CREATE INDEX IF NOT EXISTS idx_photos_created_at ON public.photos(created_at DESC);

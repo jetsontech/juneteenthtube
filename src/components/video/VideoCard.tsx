@@ -28,6 +28,7 @@ export function VideoCard({ video }: { video: VideoProps }) {
     useEffect(() => {
         // precise check for primary input mechanism
         const hoverQuery = window.matchMedia("(hover: hover)");
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setCanHover(hoverQuery.matches);
 
         const handler = (e: MediaQueryListEvent) => setCanHover(e.matches);
@@ -65,7 +66,7 @@ export function VideoCard({ video }: { video: VideoProps }) {
                                     stopPreview();
                                 }
                             })
-                            .catch((error) => {
+                            .catch(() => {
                                 // console.warn("Preview playback failed:", error); // Suppress common abort errors
                                 setShowPreview(false);
                             });

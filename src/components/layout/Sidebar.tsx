@@ -42,6 +42,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
     useEffect(() => {
         const media = window.matchMedia('(hover: hover)');
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setIsHoverSupported(media.matches);
 
         const listener = () => setIsHoverSupported(media.matches);
