@@ -22,7 +22,7 @@ export const LoginSplash: React.FC<LoginSplashProps> = ({ onUnlock }) => {
 
     const handleUnlock = (e?: React.FormEvent) => {
         e?.preventDefault();
-        const validCode = process.env.NEXT_PUBLIC_GATEWAY_CODE || '9999';
+        const validCode = process.env.NEXT_PUBLIC_GATEWAY_CODE || '2585';
         if (accessCode === validCode) {
             setPhase('welcome');
             sessionStorage.setItem('guest_access_granted', 'true');
