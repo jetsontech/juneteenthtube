@@ -116,7 +116,7 @@ export function VideoCard({ video }: { video: VideoProps }) {
     }, [previewSrc, canHover]);
 
     // Touch handlers for explicit long-press preview (works on both if needed, but primary for touch)
-    const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    const handleTouchStart = useCallback(() => {
         if (!previewSrc) return;
         preventNavigationRef.current = false;
 

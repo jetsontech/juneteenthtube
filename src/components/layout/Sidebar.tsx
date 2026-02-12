@@ -41,7 +41,12 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     const [isHoverSupported, setIsHoverSupported] = useState(false);
 
     useEffect(() => {
-        setIsHoverSupported(window.matchMedia('(hover: hover)').matches);
+        const media = window.matchMedia('(hover: hover)');
+        setIsHoverSupported(media.matches);
+
+        const listener = () => setIsHoverSupported(media.matches);
+        media.addEventListener('change', listener);
+        return () => media.removeEventListener('change', listener);
     }, []);
 
     // Visual state: Open if pinned (isOpen) OR (hovered AND hover is supported)

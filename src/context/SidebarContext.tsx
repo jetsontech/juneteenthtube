@@ -51,7 +51,9 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
     // Auto-close sidebar when navigating to watch/shorts pages
     useEffect(() => {
         if (isWatchPage) {
-            setIsOpen(false);
+            // Push to next tick to avoid "synchronous update" warning during render phase
+            const timer = setTimeout(() => setIsOpen(false), 0);
+            return () => clearTimeout(timer);
         }
     }, [isWatchPage]);
 

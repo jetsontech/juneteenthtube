@@ -388,14 +388,14 @@ export function CustomPlayer({ src, srcH264, poster }: CustomPlayerProps) {
 
         // Android / Desktop: Standard Fullscreen API
         try {
-            if (!document.fullscreenElement && !(document as any).webkitFullscreenElement) {
+            if (!document.fullscreenElement && !(document as unknown as { webkitFullscreenElement: Element }).webkitFullscreenElement) {
                 // Enter Fullscreen
                 if (containerRef.current.requestFullscreen) {
                     await containerRef.current.requestFullscreen();
-                } else if ((containerRef.current as any).webkitRequestFullscreen) {
-                    await (containerRef.current as any).webkitRequestFullscreen(); // Safari/Old Chrome
-                } else if ((containerRef.current as any).msRequestFullscreen) {
-                    await (containerRef.current as any).msRequestFullscreen(); // IE/Edge
+                } else if ((containerRef.current as unknown as { webkitRequestFullscreen: () => Promise<void> }).webkitRequestFullscreen) {
+                    await (containerRef.current as unknown as { webkitRequestFullscreen: () => Promise<void> }).webkitRequestFullscreen(); // Safari/Old Chrome
+                } else if ((containerRef.current as unknown as { msRequestFullscreen: () => Promise<void> }).msRequestFullscreen) {
+                    await (containerRef.current as unknown as { msRequestFullscreen: () => Promise<void> }).msRequestFullscreen(); // IE/Edge
                 } else {
                     // Fallback to CSS Fullscreen if native fails
                     console.warn("Native fullscreen not supported, falling back to CSS");
@@ -408,10 +408,10 @@ export function CustomPlayer({ src, srcH264, poster }: CustomPlayerProps) {
                 // Exit Fullscreen
                 if (document.exitFullscreen) {
                     await document.exitFullscreen();
-                } else if ((document as any).webkitExitFullscreen) {
-                    await (document as any).webkitExitFullscreen();
-                } else if ((document as any).msExitFullscreen) {
-                    await (document as any).msExitFullscreen();
+                } else if ((document as unknown as { webkitExitFullscreen: () => Promise<void> }).webkitExitFullscreen) {
+                    await (document as unknown as { webkitExitFullscreen: () => Promise<void> }).webkitExitFullscreen();
+                } else if ((document as unknown as { msExitFullscreen: () => Promise<void> }).msExitFullscreen) {
+                    await (document as unknown as { msExitFullscreen: () => Promise<void> }).msExitFullscreen();
                 }
             }
         } catch (err) {
