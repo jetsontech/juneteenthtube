@@ -408,7 +408,7 @@ function CinemaPlayer({ src, accent, onEnded, autoPlay }: { src: string; accent:
     return (
         <div ref={containerRef} className="relative rounded-2xl overflow-hidden shadow-2xl bg-black border border-white/10 group aspect-video cursor-pointer"
             onMouseMove={handleMouseMove} onMouseLeave={() => isPlaying && setShowControls(false)} onClick={togglePlay}>
-            <video ref={videoRef} src={src} preload="metadata" playsInline className="w-full h-full object-contain bg-black" />
+            <video ref={videoRef} src={src} poster="/placeholder.svg" preload="metadata" playsInline className="w-full h-full object-contain bg-black" />
             {!isPlaying && (
                 <div className="absolute inset-0 flex items-center justify-center bg-black/30 transition-opacity">
                     <div className={cn("w-20 h-20 rounded-full flex items-center justify-center hover:scale-110 transition-transform shadow-2xl", accentBtnBg)}>

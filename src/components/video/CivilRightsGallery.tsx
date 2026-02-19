@@ -327,7 +327,7 @@ function CivilRightsPlayer({ src, accent }: { src: string; accent: string }) {
             onMouseLeave={() => isPlaying && setShowControls(false)}
             onClick={togglePlay}
         >
-            <video ref={videoRef} src={src} preload="metadata" playsInline className="w-full h-full object-contain bg-black" />
+            <video ref={videoRef} src={src} poster="/placeholder.svg" preload="metadata" playsInline className="w-full h-full object-contain bg-black" />
 
             {/* Play overlay */}
             {!isPlaying && (

@@ -6,6 +6,11 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 export const metadata = {
   title: 'JuneteenthTube',
   description: 'Video platform',
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 1,
+  },
 };
 
 export default function RootLayout({

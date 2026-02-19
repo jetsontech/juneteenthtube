@@ -82,7 +82,7 @@ export function VideoCard({ video }: { video: VideoProps }) {
         };
     }, [isHovered, canHover]);
 
-    // Mobile: IntersectionObserver auto-play when card is >60% visible
+    // Mobile: IntersectionObserver auto-play when card is >75% visible
     // ONLY run this if hover is NOT supported to avoid conflicts
     useEffect(() => {
         if (typeof window === "undefined") return;
@@ -102,7 +102,7 @@ export function VideoCard({ video }: { video: VideoProps }) {
                     playTimeout = setTimeout(() => {
                         setShowPreview(true);
                         videoRef.current?.play().catch(() => { });
-                    }, 800);
+                    }, 500);
                 } else {
                     clearTimeout(playTimeout);
                     if (videoRef.current) {
@@ -112,7 +112,7 @@ export function VideoCard({ video }: { video: VideoProps }) {
                     setShowPreview(false);
                 }
             },
-            { threshold: 0.6 }
+            { threshold: 0.85 } // Stricter threshold to prevent multiple videos playing
         );
 
         observer.observe(cardRef.current);
@@ -185,14 +185,14 @@ export function VideoCard({ video }: { video: VideoProps }) {
             {/* Card Container — glass background, edge-to-edge on mobile */}
             <div
                 ref={cardRef}
-                className={`flex flex-col bg-white/[0.03] sm:bg-white/[0.04] backdrop-blur-sm sm:rounded-2xl sm:border sm:border-white/[0.06] overflow-hidden transition-colors duration-300 group-hover:bg-white/[0.06] ${isTouchPreviewing ? 'ring-2 ring-j-gold/50 scale-[0.97] transition-transform' : ''}`}
+                className={`flex flex-col bg-white/[0.03] sm:bg-white/[0.04] backdrop-blur-sm sm:rounded-2xl sm:border sm:border-white/[0.06] overflow-hidden transition-colors duration-300 group-hover:bg-white/[0.06] ${isTouchPreviewing ? 'scale-[0.97] transition-transform' : ''}`}
                 onTouchStart={handleTouchStart}
                 onTouchEnd={handleTouchEnd}
                 onTouchCancel={handleTouchEnd}
                 onTouchMove={handleTouchMove}
             >
                 {/* Thumbnail */}
-                <div className={`relative aspect-video w-full overflow-hidden bg-zinc-900 ${showPreview ? "ring-2 ring-j-gold/60 ring-inset" : ""}`}>
+                <div className={`relative aspect-video w-full overflow-hidden bg-zinc-900`}>
                     <Image
                         src={thumb}
                         alt={video.title}
