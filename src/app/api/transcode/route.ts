@@ -15,7 +15,7 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
-export const maxDuration = 300;
+export const maxDuration = 300; // Vercel timeout configuration
 
 const S3 = new S3Client({
   region: process.env.S3_REGION || "us-east-1",
@@ -26,132 +26,234 @@ const S3 = new S3Client({
   }
 } as any); // eslint-disable-line @typescript-eslint/no-explicit-any
 
+// Helper to construct public URL (Replicates upload-multipart logic)
+const getPublicUrl = (key: string) => {
+  if (process.env.S3_PUBLIC_DOMAIN) {
+    return `${process.env.S3_PUBLIC_DOMAIN}/${key}`;
+  }
+  // Fallback to Endpoint/Bucket pattern
+  const endpoint = process.env.S3_ENDPOINT || "";
+  // Ensure we don't double slash if endpoint ends with slash
+  const cleanEndpoint = endpoint.replace(/\/$/, "");
+  return `${cleanEndpoint}/${process.env.S3_BUCKET_NAME}/${key}`;
+};
+
 export async function POST(req: NextRequest) {
-  const { sourceKey, videoId } = await req.json();
-  const tempDir = join(tmpdir(), "transcode-" + randomUUID());
+  let videoId = "unknown";
+  try {
+    const { sourceKey, videoId: id } = await req.json();
+    videoId = id;
 
-  // Define the heavy work as an async background task
-  const runTranscoding = async () => {
-    try {
-      console.log("--- BACKGROUND WORKER START:", videoId);
+    // Unique temp directory for this job
+    const tempDir = join(tmpdir(), "transcode-" + randomUUID());
 
-      // Cross-platform ffmpeg path (supports Linux/Vercel and Windows)
-      const ffmpegPath = ffmpegStatic || 'ffmpeg';
-      await mkdir(tempDir, { recursive: true });
-      const inputPath = join(tempDir, "input");
-      const outputPath = join(tempDir, "output.mp4");
-
-      // 1. Download
-      console.log(`--- DOWNLOADING ${sourceKey} FOR ${videoId}`);
-      const response = await S3.send(new GetObjectCommand({ Bucket: process.env.S3_BUCKET_NAME!, Key: sourceKey }));
-      if (!response.Body) throw new Error("S3 response body is empty");
-
-      await new Promise<void>((res, rej) => {
-        const ws = createWriteStream(inputPath);
-        (response.Body as Readable).pipe(ws).on("finish", () => res()).on("error", rej);
-      });
-
-      // 2. Transcode with Exit Code Capture
-      console.log("--- FFMPEG STARTING...");
-
-      // Increase process priority to prevent Windows throttling
+    // Define the heavy work as an async function
+    const runTranscoding = async () => {
       try {
-        os.setPriority(os.constants.priority.PRIORITY_ABOVE_NORMAL);
-      } catch (e: unknown) {
-        console.warn("Could not set process priority:", e instanceof Error ? e.message : String(e));
-      }
+        console.log(`--- [${videoId}] START TRANSCODE JOB ---`);
+        console.log(`Source Key: ${sourceKey}`);
 
-      // Prepare FFMPEG Promise
-      const ffmpegPromise = new Promise<number | null>((res, rej) => {
-        // detached: true and unref() allow the process to survive if the parent is killed
-        // Redirecting stdio to 'ignore' is often needed when detaching
-        // IMPROVEMENT: Downscale to 720p max for speed (-vf "scale='min(1280,iw)':-2")
-        const ffmpeg = spawn(ffmpegPath,
-          ["-i", inputPath, "-c:v", "libx264", "-pix_fmt", "yuv420p", "-preset", "ultrafast", "-crf", "28", "-vf", "scale='min(1280,iw)':-2", "-y", outputPath],
-          {
-            detached: true,
-            stdio: 'ignore'
-          }
+        // Cross-platform ffmpeg path (supports Linux/Vercel and Windows)
+        // ffmpeg-static returns a string path to the binary
+        const ffmpegPath = ffmpegStatic || 'ffmpeg';
+
+        await mkdir(tempDir, { recursive: true });
+        const inputPath = join(tempDir, "input_video"); // improved name
+        const outputPath = join(tempDir, "output.mp4");
+        const thumbPath = join(tempDir, "thumb.jpg");
+
+        // 1. Download Video
+        console.log(`--- [${videoId}] DOWNLOADING...`);
+        const response = await S3.send(new GetObjectCommand({ Bucket: process.env.S3_BUCKET_NAME!, Key: sourceKey }));
+        if (!response.Body) throw new Error("S3 response body is empty");
+
+        await new Promise<void>((res, rej) => {
+          const ws = createWriteStream(inputPath);
+          (response.Body as Readable).pipe(ws).on("finish", () => res()).on("error", rej);
+        });
+
+        // 2a. Generate Thumbnail Step
+        // We do this first as it is fast and provides immediate value even if transcode fails later
+        console.log(`--- [${videoId}] GENERATING THUMBNAIL...`);
+        let thumbSuccess = false;
+
+        try {
+          await new Promise<void>((resolve, reject) => {
+            const thumbProc = spawn(ffmpegPath, [
+              "-i", inputPath,
+              "-ss", "00:00:01", // Capture at 1s to avoid black start frames
+              "-vframes", "1",
+              "-vf", "scale=640:-1", // Reasonable thumbnail size (width 640, keep aspect)
+              "-q:v", "2", // High quality jpeg
+              "-y", thumbPath
+            ]);
+
+            thumbProc.on('close', (code) => {
+              if (code === 0) {
+                thumbSuccess = true;
+                resolve();
+              } else {
+                console.warn(`Thumbnail generation exited with code ${code}`);
+                resolve(); // Resolve anyway to proceed
+              }
+            });
+
+            thumbProc.on('error', (err) => {
+              console.warn("Thumbnail generation error:", err);
+              resolve();
+            });
+          });
+        } catch (err) {
+          console.warn("Thumbnail generation exception:", err);
+        }
+
+        // 2b. Transcode Video to H.264
+        console.log(`--- [${videoId}] TRANSCODING TO H.264...`);
+
+        // Increase process priority to prevent Windows throttling (optional)
+        try {
+          os.setPriority(os.constants.priority.PRIORITY_ABOVE_NORMAL);
+        } catch (e) { }
+
+        // Prepare FFMPEG Promise
+        const ffmpegPromise = new Promise<number | null>((res, rej) => {
+          // Command optimized for compatibility and speed
+          // -c:v libx264: H.264 Video Codec (Compat king)
+          // -pix_fmt yuv420p: Ensure broad player support (QuickTime, Chrome, Android)
+          // -preset ultrafast: Speed over compression efficiency (vital for serverless timeout)
+          // -crf 28: Reasonable quality for web
+          // -vf scale=...: Downscale to 720p max width if larger
+          const ffmpeg = spawn(ffmpegPath,
+            [
+              "-i", inputPath,
+              "-c:v", "libx264",
+              "-pix_fmt", "yuv420p",
+              "-preset", "ultrafast",
+              "-crf", "28",
+              "-vf", "scale='min(1280,iw)':-2",
+              "-y", outputPath
+            ],
+            { detached: true, stdio: 'ignore' }
+          );
+
+          ffmpeg.unref();
+
+          ffmpeg.on("close", (code) => {
+            console.log(`--- [${videoId}] FFMPEG EXIT: ${code}`);
+            res(code);
+          });
+
+          ffmpeg.on("error", (err) => {
+            console.error("FFmpeg spawn error:", err);
+            rej(err);
+          });
+        });
+
+        // TIMEOUT SAFETY: Kill process if it takes too long
+        // Vercel Pro Function Limit is 300s, Hobby is 10s (but 60s for API)
+        const TIMEOUT_MS = 50000; // 50 seconds safety
+
+        const timeoutPromise = new Promise<number>((_, rej) => {
+          setTimeout(() => {
+            rej(new Error(`Transcoding timed out after ${TIMEOUT_MS}ms`));
+          }, TIMEOUT_MS);
+        });
+
+        // Race ffmpeg against timeout
+        const exitCode = await Promise.race([ffmpegPromise, timeoutPromise]);
+
+        if (exitCode !== 0) throw new Error("FFMPEG crashed or failed with code " + exitCode);
+        if (!existsSync(outputPath)) throw new Error("Output file missing after transcode");
+
+        // 3. Upload Results
+        // Clean up filename (remove extension from source key)
+        const baseKey = sourceKey.replace(/\.[^/.]+$/, "");
+        const h264Key = `${baseKey}_h264.mp4`;
+        const thumbKey = `${baseKey}_thumb.jpg`;
+
+        console.log(`--- [${videoId}] UPLOADING RESULTS...`);
+
+        const uploads = [];
+
+        // Upload Video
+        uploads.push(
+          S3.send(new PutObjectCommand({
+            Bucket: process.env.S3_BUCKET_NAME,
+            Key: h264Key,
+            Body: createReadStream(outputPath),
+            ContentType: "video/mp4"
+          }))
         );
 
-        ffmpeg.unref();
+        // Upload Thumbnail (if generated)
+        let thumbPublicUrl = null;
+        if (thumbSuccess && existsSync(thumbPath)) {
+          uploads.push(
+            S3.send(new PutObjectCommand({
+              Bucket: process.env.S3_BUCKET_NAME,
+              Key: thumbKey,
+              Body: createReadStream(thumbPath),
+              ContentType: "image/jpeg"
+            })).then(() => {
+              thumbPublicUrl = getPublicUrl(thumbKey);
+            })
+          );
+        }
 
-        ffmpeg.on("close", (code: number | null) => {
-          console.log("--- FFMPEG FINISHED WITH EXIT CODE:", code);
-          res(code);
-        });
+        await Promise.all(uploads);
 
-        ffmpeg.on("error", (err) => {
-          console.error("FFmpeg spawn error:", err);
-          rej(err);
-        });
-      });
+        // 4. Update Database
+        const h264PublicUrl = getPublicUrl(h264Key);
 
-      // TIMEOUT SAFETY: Kill process if it takes too long (e.g. > Vercel limit)
-      // Vercel Hobby limit is 10s (sometimes 60s for API). Pro is 300s.
-      // We set a safe timeout to catch it before hard kill.
-      const TIMEOUT_MS = 50000; // 50 seconds (Adjust if on Hobby plan to ~8000)
+        console.log(`--- [${videoId}] UPDATING DB...`);
 
-      const timeoutPromise = new Promise<number>((_, rej) => {
-        setTimeout(() => {
-          rej(new Error(`Transcoding timed out after ${TIMEOUT_MS}ms`));
-        }, TIMEOUT_MS);
-      });
+        const updatePayload: any = {
+          video_url_h264: h264PublicUrl, // Store FULL URL
+          transcode_status: "completed"
+        };
 
-      // Race ffmpeg against timeout
-      const exitCode = await Promise.race([ffmpegPromise, timeoutPromise]);
+        if (thumbPublicUrl) {
+          updatePayload.thumbnail_url = thumbPublicUrl;
+        }
 
-      if (exitCode !== 0) throw new Error("FFMPEG crashed or failed with code " + exitCode);
-      if (!existsSync(outputPath)) throw new Error("Output file missing after transcode");
+        const { error } = await supabase.from("videos").update(updatePayload).eq("id", videoId);
 
-      // 3. Upload
-      const h264Key = sourceKey.split(".")[0] + "_h264.mp4";
-      console.log("--- UPLOADING TO S3...");
-      await S3.send(new PutObjectCommand({
-        Bucket: process.env.S3_BUCKET_NAME,
-        Key: h264Key,
-        Body: createReadStream(outputPath),
-        ContentType: "video/mp4"
-      }));
+        if (error) throw error;
+        console.log(`--- [${videoId}] JOB COMPLETE (Success)`);
 
-      // 4. Update Database
-      const { error } = await supabase.from("videos").update({
-        video_url_h264: h264Key,
-        transcode_status: "completed"
-      }).eq("id", videoId);
+      } catch (e: unknown) {
+        const error = e instanceof Error ? e : new Error(String(e));
+        console.error(`--- [${videoId}] FATAL ERROR:`, error.message);
 
-      if (error) throw error;
-      console.log("--- FULL SUCCESS FOR:", videoId);
+        // Update status to failed
+        await supabase.from("videos").update({ transcode_status: "failed" }).eq("id", videoId);
 
-    } catch (e: unknown) {
-      const error = e instanceof Error ? e : new Error(String(e));
-      console.error("--- WORKER FATAL ERROR:", error.message);
-      // Ensure we update status to failed in DB
-      await supabase.from("videos").update({ transcode_status: "failed" }).eq("id", videoId);
-    } finally {
-      // Return priority to normal if possible
-      try {
-        os.setPriority(os.constants.priority.PRIORITY_NORMAL);
-      } catch { }
+      } finally {
+        // Cleanup Temp
+        try { os.setPriority(os.constants.priority.PRIORITY_NORMAL); } catch { }
 
-      setTimeout(async () => {
-        await rm(tempDir, { recursive: true, force: true }).catch(() => { });
-        console.log("--- TEMP CLEANED");
-      }, 30000);
-    }
-  };
+        // Delay cleanup slightly to ensure streams close
+        setTimeout(async () => {
+          try {
+            await rm(tempDir, { recursive: true, force: true });
+            console.log(`--- [${videoId}] CLEARED TEMP`);
+          } catch (e) { console.error("Temp cleanup failed", e); }
+        }, 5000);
+      }
+    };
 
-  // Await the transcoding task so the serverless function doesn't terminate immediately
-  // Note: This is subject to Vercel's execution timeout (e.g., 10s-60s)
-  try {
+    // Await the transcoding task within the request handler
+    // This assumes the platform allows running for ~60s
     await runTranscoding();
+
     return NextResponse.json({
       success: true,
-      message: "Transcoding completed",
+      message: "Transcoding completed successfully",
       videoId
     });
+
   } catch (error) {
-    console.error("Transcode Route Error:", error);
-    return NextResponse.json({ error: "Transcoding failed" }, { status: 500 });
+    console.error("Transcode Route Top-Level Error:", error);
+    return NextResponse.json({ error: "Transcoding invocation failed" }, { status: 500 });
   }
 }

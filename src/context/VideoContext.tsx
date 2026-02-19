@@ -165,7 +165,8 @@ export function VideoProvider({ children }: { children: ReactNode }) {
                     setVideos(prev => prev.map(v => v.id === video.id ? {
                         ...v,
                         videoUrlH264: video.video_url_h264,
-                        transcodeStatus: video.transcode_status
+                        transcodeStatus: video.transcode_status,
+                        thumbnail: video.thumbnail_url || v.thumbnail
                     } : v));
                 }
             )

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import Image from "next/image";
 import { Menu, Search, Video, Bell, User, X, UploadCloud } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -135,11 +136,27 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                         >
                             <Menu className="w-6 h-6" />
                         </button>
-                        <Link href="/" className="flex items-center gap-1 group">
-                            <div className="w-8 h-8 bg-j-red rounded-lg flex items-center justify-center text-white font-bold shadow-[0_0_15px_rgba(227,28,35,0.4)] group-hover:scale-105 transition-transform">J</div>
-                            <span className="text-xl font-bold tracking-tight text-white hidden sm:block">
-                                Juneteenth<span className="text-j-red glow-text-red">Tube</span>
-                            </span>
+                        <Link href="/" className="flex items-center gap-2 group">
+                            {/* Desktop Logo */}
+                            <div className="relative h-10 w-40 hidden sm:block">
+                                <Image
+                                    src="/logo.svg"
+                                    alt="JuneteenthTube"
+                                    fill
+                                    className="object-contain object-left drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]"
+                                    priority
+                                />
+                            </div>
+                            {/* Mobile Logo (Icon Only or Compact) */}
+                            <div className="relative h-8 w-32 sm:hidden">
+                                <Image
+                                    src="/logo.svg"
+                                    alt="JuneteenthTube"
+                                    fill
+                                    className="object-contain object-left drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]"
+                                    priority
+                                />
+                            </div>
                         </Link>
                         <StateSelector
                             selectedState={selectedState}

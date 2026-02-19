@@ -85,7 +85,13 @@ export function VideoCard({ video }: { video: VideoProps }) {
     // Mobile: IntersectionObserver auto-play when card is >60% visible
     // ONLY run this if hover is NOT supported to avoid conflicts
     useEffect(() => {
-        if (typeof window === "undefined" || canHover) return;
+        if (typeof window === "undefined") return;
+        // Force scroll-preview on small screens or touch devices, regardless of hover capability
+        const isMobile = window.matchMedia("(max-width: 768px)").matches || window.matchMedia("(pointer: coarse)").matches;
+
+        // Only skip if NOT mobile AND has hover capability (Desktop behavior)
+        if (!isMobile && canHover) return;
+
         if (!cardRef.current || !previewSrc) return;
 
         let playTimeout: NodeJS.Timeout;

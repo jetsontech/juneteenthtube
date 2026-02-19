@@ -14,6 +14,11 @@ export default function cloudflareLoader({
     width: number;
     quality?: number;
 }) {
+    // Bypass cloudflare resizing in development to fix local assets
+    if (process.env.NODE_ENV === 'development') {
+        return src;
+    }
+
     const params = [`width=${width}`];
     if (quality) {
         params.push(`quality=${quality}`);

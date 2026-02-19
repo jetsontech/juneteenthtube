@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="400" height="100" viewBox="0 0 400 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+        <linearGradient id="gold-gradient" x1="0" y1="0" x2="400" y2="100" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#FFD700" />
+            <stop offset="0.3" stop-color="#BF953F" />
+            <stop offset="0.6" stop-color="#B38728" />
+            <stop offset="1" stop-color="#FBF5B7" />
+        </linearGradient>
+        <linearGradient id="text-gold" x1="0" y1="0" x2="100%" y2="0" gradientUnits="objectBoundingBox">
+             <stop offset="0" stop-color="#FFD700" />
+            <stop offset="0.5" stop-color="#BF953F" />
+            <stop offset="1" stop-color="#FFD700" />
+        </linearGradient>
+        <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+            <feMerge>
+                <feMergeNode in="coloredBlur"/>
+                <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+        </filter>
+    </defs>
+
+    <!-- Icon: Monolith 'J' - Clean, geometric, powerful -->
+    <path d="M50 15 H85 V70 C85 85 75 90 60 90 H35 L35 75 H55 C60 75 65 72 65 65 V35 H50 V15 Z" fill="url(#gold-gradient)" filter="url(#glow)" />
+    
+    <!-- Accent Line -->
+    <rect x="35" y="15" width="10" height="20" fill="url(#gold-gradient)" opacity="0.8" />
+
+    <!-- Text: JUNETEENTH -->
+    <text x="110" y="65" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="48" letter-spacing="-1" fill="white">
+        JUNETEENTH
+    </text>
+
+    <!-- Text: TUBE (Gold) -->
+    <text x="445" y="65" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="48" letter-spacing="-1" fill="url(#text-gold)">
+        TUBE
+    </text>
+    
+    <!-- Subtitle -->
+    <text x="112" y="85" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="10" letter-spacing="6" fill="#888888" text-transform="uppercase">
+        Streaming Platform
+    </text>
+</svg>

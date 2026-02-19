@@ -119,7 +119,7 @@ export function CustomPlayer({ src, srcH264, poster }: CustomPlayerProps) {
         if (!videoRef.current) return;
         const video = videoRef.current;
 
-        const _initMastering = () => {
+        const initMastering = () => {
             // Already initialized?
             if (audioContextRef.current) return;
 
@@ -158,7 +158,7 @@ export function CustomPlayer({ src, srcH264, poster }: CustomPlayerProps) {
         };
 
         const handlePlay = () => {
-            // _initMastering(); // Disabled to fix audio silence caused by CORS
+            initMastering();
             // Resume context if suspended (browser policy)
             if (audioContextRef.current?.state === 'suspended') {
                 audioContextRef.current.resume();
@@ -506,13 +506,14 @@ export function CustomPlayer({ src, srcH264, poster }: CustomPlayerProps) {
                     setHasStartedPlaying(true);
                 }}
                 playsInline
+                crossOrigin="anonymous"
                 disablePictureInPicture={false}
                 disableRemotePlayback={false}
             />
 
             {/* High-Quality Poster Overlay - Only shows before first play or after video ends */}
             {poster && poster.includes('pub-efcc4aa0b3b24e3d97760577b0ec20bd.r2.dev') && (!hasStartedPlaying || hasEnded) && (
-                <div className="absolute inset-0 z-[1]">
+                <div className="absolute inset-0 z-[1] pointer-events-none">
                     <Image
                         src={poster}
                         alt="Video thumbnail"

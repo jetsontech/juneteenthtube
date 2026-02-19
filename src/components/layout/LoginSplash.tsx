@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import Image from "next/image";
 import { Lock, ArrowRight, Play } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { BackgroundSystem } from './BackgroundSystem';
@@ -57,31 +58,32 @@ export const LoginSplash: React.FC<LoginSplashProps> = ({ onUnlock }) => {
                 "relative z-10 w-full max-w-lg px-8 py-12 transition-all duration-1000 delay-300 transform",
                 isLoaded ? "translate-y-0 opacity-100" : "translate-y-12 opacity-0"
             )}>
-                <div className="flex flex-col items-center text-center space-y-8">
-                    {/* Logo/Icon Section */}
-                    <div className="relative">
-                        <div className="absolute inset-0 bg-white/10 rounded-full blur-2xl animate-pulse" />
-                        <div className="relative h-24 w-24 rounded-3xl bg-gradient-to-br from-[#222] to-[#000] border border-white/10 flex items-center justify-center shadow-2xl backdrop-blur-xl transition-transform hover:scale-105 duration-500">
-                            <Play className="w-10 h-10 text-white fill-white" />
+                <div className="flex flex-col items-center text-center space-y-12">
+                    {/* Premium Logo Section */}
+                    <div className="relative group">
+                        <div className="absolute -inset-8 bg-j-gold/20 rounded-full blur-3xl opacity-50 animate-pulse group-hover:opacity-70 transition-opacity duration-1000" />
+                        <div className="relative">
+                            <Image
+                                src="/logo.svg"
+                                alt="JuneteenthTube"
+                                width={320}
+                                height={80}
+                                className="object-contain drop-shadow-[0_0_15px_rgba(212,175,55,0.3)]"
+                                priority
+                            />
                         </div>
                     </div>
 
-                    <div className="space-y-3">
-                        <h1 className="text-4xl font-black tracking-tight text-white sm:text-5xl">
-                            JUNETEENTH<span className="text-red-600">TUBE</span>
-                        </h1>
-                        <div className="flex flex-col gap-1">
-                            <p className="text-white/40 font-medium text-xs tracking-[0.2em] uppercase italic">
-                                Official Media Gateway
-                            </p>
-                            <p className="text-white/25 font-bold text-[9px] tracking-[0.3em] uppercase">
-                                Provided by Net Post Media, llc
-                            </p>
-                        </div>
+                    {/* Status Text - Typewriter style or simple fade */}
+                    <div className="space-y-2">
+                        <p className="text-j-gold/80 font-medium text-[10px] tracking-[0.4em] uppercase font-mono">
+                            Secure Media Gateway
+                        </p>
+                        <div className="h-[1px] w-16 bg-gradient-to-r from-transparent via-j-gold/50 to-transparent mx-auto" />
                     </div>
 
                     {phase === 'gate' ? (
-                        <form onSubmit={handleUnlock} className="w-full space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                        <form onSubmit={handleUnlock} className="w-full max-w-sm space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
                             <div className="relative group">
                                 <input
                                     type="password"
@@ -89,66 +91,63 @@ export const LoginSplash: React.FC<LoginSplashProps> = ({ onUnlock }) => {
                                     onChange={(e) => setAccessCode(e.target.value)}
                                     placeholder="ENTER ACCESS CODE"
                                     className={cn(
-                                        "w-full bg-white/[0.03] border border-white/10 rounded-2xl px-6 py-4 text-center text-lg tracking-[0.3em] font-bold text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-white/20 transition-all backdrop-blur-md",
-                                        error && "border-red-500/50 animate-[shake_0.2s_ease-in-out_infinite] ring-2 ring-red-500/20"
+                                        "w-full bg-black/40 border-b border-white/10 px-4 py-4 text-center text-xl tracking-[0.5em] font-medium text-white placeholder:text-white/10 focus:outline-none focus:border-j-gold/50 focus:bg-white/[0.02] transition-all duration-300 font-mono",
+                                        error && "border-red-500/50 text-red-500 animate-[shake_0.2s_ease-in-out_infinite]"
                                     )}
                                     autoFocus
                                 />
-                                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-white/40 transition-colors">
-                                    <Lock size={18} />
-                                </div>
+                                {/* Scanning Line Effect on focus */}
+                                <div className="absolute bottom-0 left-0 h-[1px] w-0 bg-j-gold transition-all duration-500 group-focus-within:w-full" />
                             </div>
 
                             <button
                                 type="submit"
-                                className="group relative w-full bg-white text-black font-black py-4 rounded-2xl text-sm tracking-[0.2em] uppercase transition-all hover:scale-[1.02] active:scale-[0.98] shadow-xl hover:shadow-white/10 overflow-hidden"
+                                className="group w-full relative overflow-hidden"
                             >
-                                <span className="relative z-10 flex items-center justify-center gap-2">
-                                    Unlock Gateway <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
+                                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
+                                <span className="relative z-10 flex items-center justify-center gap-3 text-xs font-bold tracking-[0.3em] uppercase text-white/60 group-hover:text-white transition-colors py-4">
+                                    <Lock size={12} className="mb-0.5" /> Authenticate Access <ArrowRight size={12} className="mb-0.5 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
                                 </span>
                             </button>
                         </form>
                     ) : (
-                        <div className="w-full space-y-8 animate-in fade-in zoom-in-95 duration-700">
-                            {/* Green Digital Marquee */}
-                            <div className="relative w-full overflow-hidden bg-black/80 border border-green-500/30 rounded-xl py-4 shadow-[0_0_20px_rgba(34,197,94,0.1)]">
-                                <div className="marquee-container flex whitespace-nowrap">
-                                    <div className="flex gap-8 items-center animate-[marquee_20s_linear_infinite]">
-                                        {[...Array(4)].map((_, i) => (
-                                            <span key={i} className="text-green-500 font-mono text-xl font-bold tracking-[0.3em] uppercase">
-                                                WELCOME TO JUNETEENTHTUBE • ACCESS GRANTED • 2026 MEDIA GATEWAY •
-                                            </span>
-                                        ))}
-                                    </div>
+                        <div className="w-full flex flex-col items-center justify-center space-y-8 animate-in fade-in zoom-in-95 duration-1000">
+                            {/* Access Granted Sequence */}
+                            <div className="flex flex-col items-center gap-4">
+                                <div className="text-green-500 font-mono text-xs tracking-[0.5em] uppercase animate-pulse">
+                                    Access Granted
                                 </div>
-                                <div className="absolute inset-0 pointer-events-none bg-gradient-to-r from-black via-transparent to-black opacity-60" />
-                                <div className="absolute inset-0 pointer-events-none bg-[repeating-linear-gradient(rgba(0,0,0,0)_0px,rgba(0,0,0,0.1)_2px,rgba(0,0,0,0)_4px)]" />
+                                <h2 className="text-3xl sm:text-4xl font-black text-white tracking-tight leading-tight">
+                                    WELCOME TO <br />
+                                    <span className="text-transparent bg-clip-text bg-gradient-to-b from-[#FFF] to-[#AAA]">THE VAULT</span>
+                                </h2>
                             </div>
 
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            {/* Gold Progress Line */}
+                            <div className="w-0 h-[1px] bg-j-gold animate-[width_1s_ease-out_forwards]" style={{ width: '100px' }} />
+
+                            <div className="grid grid-cols-1 gap-4 w-full max-w-xs pt-8">
                                 <button
                                     onClick={handleFinalEnter}
-                                    className="group relative bg-green-500 text-black font-black py-4 rounded-2xl text-sm tracking-[0.2em] uppercase transition-all hover:scale-[1.02] hover:bg-green-400 active:scale-[0.98] shadow-lg shadow-green-500/20"
+                                    className="group relative bg-[#D4AF37] text-black font-bold py-4 px-8 rounded-sm text-xs tracking-[0.2em] uppercase transition-all hover:bg-[#F5D061] hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-[#D4AF37]/20"
                                 >
-                                    <span className="flex items-center justify-center gap-2">
-                                        Access Platform <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
+                                    <span className="flex items-center justify-center gap-3">
+                                        Enter Platform <ArrowRight size={14} className="transition-transform group-hover:translate-x-1" />
                                     </span>
                                 </button>
                                 <button
                                     onClick={handleSubscribe}
-                                    className="group relative bg-white/[0.05] border border-white/10 text-white font-black py-4 rounded-2xl text-sm tracking-[0.2em] uppercase transition-all hover:scale-[1.02] hover:bg-white/[0.1] active:scale-[0.98] backdrop-blur-md"
+                                    className="text-white/40 hover:text-white text-[10px] tracking-[0.2em] uppercase transition-colors py-2"
                                 >
-                                    <span className="flex items-center justify-center gap-2">
-                                        Subscribe <Play size={14} className="fill-current" />
-                                    </span>
+                                    Subscribe for Updates
                                 </button>
                             </div>
                         </div>
                     )}
 
-                    <div className="pt-4 border-t border-white/5 w-full">
-                        <p className="text-white/20 text-[10px] tracking-widest uppercase font-bold text-center">
-                            © 2026 Net Post Media, llc • Restricted Access
+                    <div className="absolute bottom-12 left-0 w-full text-center">
+                        <p className="text-white/10 text-[9px] tracking-[0.3em] uppercase font-medium">
+                            Restricted Area • Authorized Personnel Only
                         </p>
                     </div>
                 </div>
