@@ -217,7 +217,7 @@ export function FreedomMap() {
                     <div className="max-w-2xl w-full glass rounded-[3rem] overflow-hidden shadow-2xl border-white/10 animate-in zoom-in-95 duration-300">
                         <div className="relative aspect-video">
                             <Image
-                                src={activePin.image || ""}
+                                src={activePin.image || "/placeholder.svg"}
                                 fill
                                 className="object-cover"
                                 alt={activePin.brand || "Pin details"}

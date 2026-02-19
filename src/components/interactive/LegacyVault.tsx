@@ -6,7 +6,6 @@ import { ShieldCheck, Search, Play, Info, Clock, UserCheck, Film, Database, Mega
 import { cn } from "@/lib/utils";
 import { BlackCinemaGallery } from "@/components/video/BlackCinemaGallery";
 import { CivilRightsGallery } from "@/components/video/CivilRightsGallery";
-import { VaultSplash } from "@/components/layout/VaultSplash";
 
 interface LegacyItem {
     id: string;
@@ -83,7 +82,6 @@ const VAULT_ITEMS: LegacyItem[] = [
 ];
 
 export function LegacyVault() {
-    const [showSplash, setShowSplash] = useState(true);
     const [activeTab, setActiveTab] = useState<'cinema' | 'civil-rights' | 'archives'>('cinema');
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -98,7 +96,7 @@ export function LegacyVault() {
     });
 
     return (
-        <div className="min-h-screen relative bg-[#0d0d0d] text-white overflow-hidden">
+        <div className="min-h-screen relative bg-[#0d0d0d] text-white overflow-x-hidden">
             {/* PERSISTENT BACKGROUND */}
             <div className="fixed inset-0 z-0">
                 <Image
@@ -112,18 +110,15 @@ export function LegacyVault() {
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,#0d0d0d_100%)] opacity-80" />
             </div>
 
-            {showSplash && <VaultSplash onComplete={() => setShowSplash(false)} />}
-
             {/* CONTENT WRAPPER */}
             <div className="relative z-10 p-4 sm:p-8 animate-in fade-in duration-1000 delay-500">
                 {/* VAULT HEADER */}
-                <div className="max-w-7xl mx-auto mb-12 text-center pt-8">
+                <div className="max-w-7xl mx-auto mb-8 text-center pt-4">
                     <div className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full glass border-yellow-600/30 mb-6">
                         <ShieldCheck className="w-4 h-4 text-yellow-500" />
                         <span className="text-[10px] font-black tracking-[0.3em] text-yellow-500 uppercase">Community Certified Archive</span>
                     </div>
-                    <h1 className="text-5xl sm:text-7xl font-serif italic mb-6">The Legacy Vault</h1>
-                    <p className="max-w-2xl mx-auto text-gray-400 text-lg">
+                    <p className="max-w-2xl mx-auto text-gray-400 text-sm sm:text-lg">
                         Preserving the authentic narratives of freedom through decentralized community verification.
                     </p>
 

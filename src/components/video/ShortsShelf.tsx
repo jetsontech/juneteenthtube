@@ -193,7 +193,7 @@ function ShortCard({ short, onDelete, onChangeThumbnail, onChangeVideo, onRename
                     (isUploadingThumb || isUploadingVideo) && "opacity-50"
                 )}>
                     <Image
-                        src={short.thumbnail}
+                        src={short.thumbnail || "/placeholder.svg"}
                         alt={short.title}
                         fill
                         sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 180px"

@@ -22,7 +22,139 @@ export interface VideoProps {
 }
 
 // Initial Mock Data (Fallback) - Empty, user will upload their own content
-const MOCK_VIDEOS: VideoProps[] = [];
+// Initial Mock Data (Fallback) - Populated with Public Domain Classics for instant playback
+const MOCK_VIDEOS: VideoProps[] = [
+    {
+        id: "within-our-gates",
+        title: "Within Our Gates",
+        thumbnail: "https://images.unsplash.com/photo-1590073844006-33379778ae09?q=80&w=800",
+        channelName: "Maverick Black Cinema",
+        channelAvatar: "",
+        views: "1.2M",
+        postedAt: "1920",
+        duration: "1:19:00",
+        videoUrl: "https://archive.org/download/WithinOurGates/WithinOurGates_512kb.mp4",
+        category: "History",
+        state: "GLOBAL"
+    },
+    {
+        id: "symbol-of-the-unconquered",
+        title: "The Symbol of the Unconquered",
+        thumbnail: "https://images.unsplash.com/photo-1579541814924-49fef17c5be5?q=80&w=800",
+        channelName: "Maverick Black Cinema",
+        channelAvatar: "",
+        views: "850K",
+        postedAt: "1920",
+        duration: "1:08:00",
+        videoUrl: "https://archive.org/download/TheSymbolOfTheUnconquered1920/The%20Symbol%20Of%20the%20Unconquered%20%281920%29.mp4",
+        category: "History",
+        state: "GLOBAL"
+    },
+    {
+        id: "body-and-soul",
+        title: "Body and Soul",
+        thumbnail: "/placeholder.svg",
+        channelName: "Maverick Black Cinema",
+        channelAvatar: "",
+        views: "2.1M",
+        postedAt: "1925",
+        duration: "1:42:00",
+        videoUrl: "https://archive.org/download/body-and-soul_202107/Body%20and%20Soul.mp4",
+        category: "History",
+        state: "GLOBAL"
+    },
+    {
+        id: "bronze-buckaroo",
+        title: "The Bronze Buckaroo",
+        thumbnail: "https://images.unsplash.com/photo-1526857240824-92be52581d9f?q=80&w=800",
+        channelName: "Black Westerns",
+        channelAvatar: "",
+        views: "940K",
+        postedAt: "1939",
+        duration: "58:00",
+        videoUrl: "https://archive.org/download/bronze_buckaroo/the_bronze_buckaroo.mp4",
+        category: "Music",
+        state: "GLOBAL"
+    },
+    {
+        id: "hi-de-ho",
+        title: "Hi-De-Ho",
+        thumbnail: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=800",
+        channelName: "Soul Stage",
+        channelAvatar: "",
+        views: "3.5M",
+        postedAt: "1947",
+        duration: "1:12:00",
+        videoUrl: "https://archive.org/download/hi_de_ho/Hi-De-Ho.mp4",
+        category: "Music",
+        state: "GLOBAL"
+    },
+    {
+        id: "negro-soldier",
+        title: "The Negro Soldier",
+        thumbnail: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?q=80&w=800",
+        channelName: "Freedom Reels",
+        channelAvatar: "",
+        views: "5.2M",
+        postedAt: "1944",
+        duration: "40:00",
+        videoUrl: "https://archive.org/download/negrosoldier/negrosoldier.mp4",
+        category: "History",
+        state: "GLOBAL"
+    },
+    {
+        id: "black-history-lost-stolen-pt1",
+        title: "Black History: Lost, Stolen, or Strayed (Pt 1)",
+        thumbnail: "https://images.unsplash.com/photo-1569025743873-ea3a9ber?q=80&w=800",
+        channelName: "Freedom Reels",
+        channelAvatar: "",
+        views: "1.8M",
+        postedAt: "1968",
+        duration: "27:00",
+        videoUrl: "https://archive.org/download/blackhistoryloststolenorstrayed/blackhistoryloststolenorstrayedreel1.mp4",
+        category: "Speeches",
+        state: "GLOBAL"
+    },
+    {
+        id: "1950s-home-movies-detroit",
+        title: "African American Family Life (Detroit)",
+        thumbnail: "/placeholder.svg",
+        channelName: "Home & Heritage",
+        channelAvatar: "",
+        views: "420K",
+        postedAt: "1950",
+        duration: "12:00",
+        videoUrl: "https://archive.org/download/HM_African_American_Family_Detroit/HM_African_American_Family_Detroit.mp4",
+        category: "History",
+        state: "GLOBAL"
+    },
+    {
+        id: "scar-of-shame",
+        title: "The Scar of Shame",
+        thumbnail: "/placeholder.svg",
+        channelName: "Maverick Black Cinema",
+        channelAvatar: "",
+        views: "600K",
+        postedAt: "1927",
+        duration: "1:26:00",
+        videoUrl: "https://archive.org/download/the-scar-of-shame_1927/the-scar-of-shame_1927.ia.mp4",
+        category: "History",
+        state: "GLOBAL"
+    },
+    {
+        id: "study-negro-artists",
+        title: "A Study of Negro Artists",
+        thumbnail: "https://images.unsplash.com/photo-1579541814924-49fef17c5be5?q=80&w=800",
+        channelName: "Soul Stage",
+        channelAvatar: "",
+        views: "300K",
+        postedAt: "1933",
+        duration: "18:00",
+        videoUrl: "https://archive.org/download/StudyOfNegroArtists/StudyOfNegroArtists_512kb.mp4",
+        category: "History",
+        state: "GLOBAL"
+    }
+];
 
 interface VideoContextType {
     videos: VideoProps[];

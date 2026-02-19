@@ -6,7 +6,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 export { type VideoProps };
 
 export function VideoCard({ video }: { video: VideoProps }) {
-    const thumb = video.thumbnail || "/placeholder-thumb.jpg";
+    const thumb = video.thumbnail || "/placeholder.svg";
     const [isHovered, setIsHovered] = useState(false);
     const [showPreview, setShowPreview] = useState(false);
     const [isTouchPreviewing, setIsTouchPreviewing] = useState(false);
