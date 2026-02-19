@@ -512,7 +512,7 @@ export function CustomPlayer({ src, srcH264, poster }: CustomPlayerProps) {
             />
 
             {/* High-Quality Poster Overlay - Only shows before first play or after video ends */}
-            {poster && poster.includes('pub-efcc4aa0b3b24e3d97760577b0ec20bd.r2.dev') && (!hasStartedPlaying || hasEnded) && (
+            {poster && (!hasStartedPlaying || hasEnded) && (
                 <div className="absolute inset-0 z-[1] pointer-events-none">
                     <Image
                         src={poster}

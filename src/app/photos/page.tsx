@@ -145,7 +145,7 @@ export default function PhotosPage() {
                                 onClick={() => openLightbox(index)}
                                 className="group relative aspect-square overflow-hidden rounded-xl bg-white/5 border border-white/10 hover:border-j-gold/50 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-j-gold/50 w-full"
                             >
-                                {photo.photo_url && photo.photo_url.includes('pub-efcc4aa0b3b24e3d97760577b0ec20bd.r2.dev') ? (
+                                {photo.photo_url ? (
                                     <Image
                                         src={photo.photo_url}
                                         alt={photo.title}
@@ -224,7 +224,7 @@ export default function PhotosPage() {
                         className="max-w-[90vw] max-h-[85vh] flex flex-col items-center"
                         onClick={(e) => e.stopPropagation()}
                     >
-                        {photos[selectedIndex].photo_url && photos[selectedIndex].photo_url.includes('pub-efcc4aa0b3b24e3d97760577b0ec20bd.r2.dev') ? (
+                        {photos[selectedIndex].photo_url ? (
                             <Image
                                 src={photos[selectedIndex].photo_url}
                                 alt={photos[selectedIndex].title}

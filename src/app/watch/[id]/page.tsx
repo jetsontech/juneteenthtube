@@ -238,7 +238,7 @@ export default function WatchPage({
                     {/* Channel Row - Avatar, Name, Subs, Subscribe Button */}
                     <div className="flex items-center gap-3 mt-3 py-3 border-t border-white/5">
                         <div className="w-10 h-10 rounded-full bg-j-green flex-shrink-0 overflow-hidden cursor-pointer hover:opacity-90 relative">
-                            {video.channelAvatar && video.channelAvatar.includes('pub-efcc4aa0b3b24e3d97760577b0ec20bd.r2.dev') ? (
+                            {video.channelAvatar ? (
                                 <Image src={video.channelAvatar} alt={video.channelName} fill sizes="40px" className="object-cover" />
                             ) : (
                                 <div className="w-full h-full bg-gradient-to-br from-j-green to-j-gold flex items-center justify-center text-white font-bold">
@@ -376,7 +376,7 @@ export default function WatchPage({
                 {filteredSidebarVideos.map((v) => (
                     <a href={`/watch/${v.id}`} key={v.id} className="flex gap-2 cursor-pointer group hover:bg-[#272727] p-2 rounded-xl transition-colors">
                         <div className="w-[168px] aspect-video bg-gray-800 rounded-lg overflow-hidden flex-shrink-0 relative">
-                            {v.thumbnail && v.thumbnail.includes('pub-efcc4aa0b3b24e3d97760577b0ec20bd.r2.dev') ? (
+                            {v.thumbnail ? (
                                 <Image src={v.thumbnail} fill sizes="168px" className="object-cover" alt={v.title} />
                             ) : (
                                 <div className="w-full h-full bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center">
