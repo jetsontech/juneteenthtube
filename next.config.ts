@@ -27,11 +27,11 @@ const nextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'example.com',
+        hostname: 'archive.org',
       },
       {
         protocol: 'https',
-        hostname: 'archive.org',
+        hostname: '**', // Allow all HTTPS domains for maximum compatibility with user uploads
       },
     ],
   },

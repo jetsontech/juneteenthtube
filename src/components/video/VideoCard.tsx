@@ -6,7 +6,10 @@ import { useState, useRef, useEffect, useCallback } from "react";
 export { type VideoProps };
 
 export function VideoCard({ video }: { video: VideoProps }) {
-    const thumb = video.thumbnail || "/placeholder.svg";
+    // 1. Robust Thumbnail State
+    const [imgSrc, setImgSrc] = useState(video.thumbnail || "/placeholder.svg");
+    const [hasError, setHasError] = useState(false);
+
     const [isHovered, setIsHovered] = useState(false);
     const [showPreview, setShowPreview] = useState(false);
     const [isTouchPreviewing, setIsTouchPreviewing] = useState(false);
@@ -15,104 +18,92 @@ export function VideoCard({ video }: { video: VideoProps }) {
     const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
     const preventNavigationRef = useRef(false);
 
-    // Track hover state in ref to handle async play/pause correctly
     const isHoveredRef = useRef(false);
-
-    // Simple preview source: prefer original, handle fallback internally if needed
-    // Chrome can handle most formats natively
     const previewSrc = video.videoUrl;
+    const [canHover, setCanHover] = useState(true);
+
+    // 2. Global Mutual Exclusion for Previews
+    useEffect(() => {
+        const handlePreviewStart = (e: CustomEvent) => {
+            if (e.detail.id !== video.id) {
+                // Another video started playing, stop this one
+                setShowPreview(false);
+                if (videoRef.current) {
+                    videoRef.current.pause();
+                    videoRef.current.currentTime = 0;
+                }
+            }
+        };
+
+        window.addEventListener('juneteenth:preview-start', handlePreviewStart as EventListener);
+        return () => window.removeEventListener('juneteenth:preview-start', handlePreviewStart as EventListener);
+    }, [video.id]);
+
+    const startPreview = useCallback(() => {
+        // Broadcast "I am playing"
+        if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('juneteenth:preview-start', { detail: { id: video.id } }));
+        }
+        setShowPreview(true);
+        videoRef.current?.play().catch(() => { });
+    }, [video.id]);
 
     // Detect capabilities
-    const [canHover, setCanHover] = useState(true); // Default to assuming hover capability on desktop-first
-
     useEffect(() => {
-        // precise check for primary input mechanism
         const hoverQuery = window.matchMedia("(hover: hover)");
-        // eslint-disable-next-line react-hooks/set-state-in-effect
         setCanHover(hoverQuery.matches);
-
         const handler = (e: MediaQueryListEvent) => setCanHover(e.matches);
         hoverQuery.addEventListener("change", handler);
         return () => hoverQuery.removeEventListener("change", handler);
     }, []);
 
-    // Desktop hover: delay then play
+    // Desktop hover logic
     useEffect(() => {
-        if (!canHover) return; // Skip hover logic if device can't hover
+        if (!canHover) return;
 
         isHoveredRef.current = isHovered;
         let timeout: NodeJS.Timeout;
 
-        const stopPreview = () => {
+        if (isHovered) {
+            timeout = setTimeout(() => {
+                if (isHoveredRef.current && videoRef.current) {
+                    startPreview();
+                }
+            }, 600);
+        } else {
+            setShowPreview(false);
             if (videoRef.current) {
                 videoRef.current.pause();
                 videoRef.current.currentTime = 0;
             }
-            setShowPreview(false);
-        };
-
-        if (isHovered) {
-            timeout = setTimeout(() => {
-                // Double check if still hovered before playing
-                if (isHoveredRef.current && videoRef.current) {
-                    const playPromise = videoRef.current.play();
-                    if (playPromise !== undefined) {
-                        playPromise
-                            .then(() => {
-                                // Only show preview if successfully playing AND still hovered
-                                if (isHoveredRef.current) {
-                                    setShowPreview(true);
-                                } else {
-                                    stopPreview();
-                                }
-                            })
-                            .catch(() => {
-                                // console.warn("Preview playback failed:", error); // Suppress common abort errors
-                                setShowPreview(false);
-                            });
-                    }
-                }
-            }, 600);
-        } else {
-            stopPreview();
         }
-        return () => {
-            clearTimeout(timeout);
-            stopPreview(); // Ensure video stops on unmount/dep change
-        };
-    }, [isHovered, canHover]);
+        return () => clearTimeout(timeout);
+    }, [isHovered, canHover, startPreview]);
 
-    // Mobile: IntersectionObserver auto-play when card is >75% visible
-    // ONLY run this if hover is NOT supported to avoid conflicts
+    // Mobile IntersectionObserver logic
     useEffect(() => {
         if (typeof window === "undefined") return;
-        // Force scroll-preview on small screens or touch devices, regardless of hover capability
         const isMobile = window.matchMedia("(max-width: 768px)").matches || window.matchMedia("(pointer: coarse)").matches;
-
-        // Only skip if NOT mobile AND has hover capability (Desktop behavior)
         if (!isMobile && canHover) return;
-
         if (!cardRef.current || !previewSrc) return;
 
         let playTimeout: NodeJS.Timeout;
         const observer = new IntersectionObserver(
             ([entry]) => {
                 if (entry.isIntersecting) {
-                    // Delay slightly so rapid scrolling doesn't trigger dozens of plays
                     playTimeout = setTimeout(() => {
-                        setShowPreview(true);
-                        videoRef.current?.play().catch(() => { });
+                        startPreview();
                     }, 500);
                 } else {
                     clearTimeout(playTimeout);
+                    setShowPreview(false);
                     if (videoRef.current) {
                         videoRef.current.pause();
                         videoRef.current.currentTime = 0;
                     }
-                    setShowPreview(false);
                 }
             },
-            { threshold: 0.85 } // Stricter threshold to prevent multiple videos playing
+            { threshold: 0.85 }
         );
 
         observer.observe(cardRef.current);
@@ -120,26 +111,20 @@ export function VideoCard({ video }: { video: VideoProps }) {
             clearTimeout(playTimeout);
             observer.disconnect();
         };
-    }, [previewSrc, canHover]);
+    }, [previewSrc, canHover, startPreview]);
 
-    // Touch handlers for explicit long-press preview (works on both if needed, but primary for touch)
+    // Touch handlers
     const handleTouchStart = useCallback(() => {
         if (!previewSrc) return;
         preventNavigationRef.current = false;
-
         longPressTimerRef.current = setTimeout(() => {
-            // Long press activated — prevent the tap from navigating
             preventNavigationRef.current = true;
             setIsTouchPreviewing(true);
-            setShowPreview(true);
-            videoRef.current?.play().catch(() => { });
-
-            // Haptic feedback if available
+            startPreview();
             if (navigator.vibrate) navigator.vibrate(30);
         }, 500);
-    }, [previewSrc]);
+    }, [previewSrc, startPreview]);
 
-    // Stop preview on touch release
     const handleTouchEnd = useCallback(() => {
         if (longPressTimerRef.current) {
             clearTimeout(longPressTimerRef.current);
@@ -147,8 +132,6 @@ export function VideoCard({ video }: { video: VideoProps }) {
         }
         if (isTouchPreviewing) {
             setIsTouchPreviewing(false);
-            // Don't immediately hide preview — the IntersectionObserver will handle it
-            // But stop playback from the long-press
             if (videoRef.current) {
                 videoRef.current.pause();
                 videoRef.current.currentTime = 0;
@@ -157,7 +140,6 @@ export function VideoCard({ video }: { video: VideoProps }) {
         }
     }, [isTouchPreviewing]);
 
-    // Cancel long-press if user moves finger (scrolling)
     const handleTouchMove = useCallback(() => {
         if (longPressTimerRef.current) {
             clearTimeout(longPressTimerRef.current);
@@ -165,7 +147,6 @@ export function VideoCard({ video }: { video: VideoProps }) {
         }
     }, []);
 
-    // Block navigation clicks if we were long-press previewing
     const handleClick = useCallback((e: React.MouseEvent) => {
         if (preventNavigationRef.current) {
             e.preventDefault();
@@ -182,7 +163,6 @@ export function VideoCard({ video }: { video: VideoProps }) {
             onMouseLeave={() => setIsHovered(false)}
             onClick={handleClick}
         >
-            {/* Card Container — glass background, edge-to-edge on mobile */}
             <div
                 ref={cardRef}
                 className={`flex flex-col bg-white/[0.03] sm:bg-white/[0.04] backdrop-blur-sm sm:rounded-2xl sm:border sm:border-white/[0.06] overflow-hidden transition-colors duration-300 group-hover:bg-white/[0.06] ${isTouchPreviewing ? 'scale-[0.97] transition-transform' : ''}`}
@@ -194,11 +174,17 @@ export function VideoCard({ video }: { video: VideoProps }) {
                 {/* Thumbnail */}
                 <div className={`relative aspect-video w-full overflow-hidden bg-zinc-900`}>
                     <Image
-                        src={thumb}
+                        src={imgSrc}
                         alt={video.title}
                         fill
                         className={`object-cover transition-transform duration-500 group-hover:scale-105 ${showPreview ? 'opacity-0' : 'opacity-100'}`}
                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        onError={() => {
+                            if (!hasError) {
+                                setImgSrc("/placeholder.svg");
+                                setHasError(true);
+                            }
+                        }}
                     />
                     {previewSrc && (
                         <video
@@ -207,11 +193,10 @@ export function VideoCard({ video }: { video: VideoProps }) {
                             muted
                             loop
                             playsInline
-                            preload="metadata"
+                            preload="none" // Optimization: don't load until needed
                             className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 pointer-events-none ${showPreview ? 'opacity-100' : 'opacity-0'}`}
                         />
                     )}
-                    {/* Touch preview indicator */}
                     {isTouchPreviewing && (
                         <div className="absolute top-2 left-2 z-10 flex items-center gap-1.5 bg-black/70 backdrop-blur-sm rounded-full px-2.5 py-1 animate-in fade-in duration-200">
                             <span className="w-1.5 h-1.5 bg-j-red rounded-full animate-pulse" />
@@ -226,7 +211,15 @@ export function VideoCard({ video }: { video: VideoProps }) {
                 <div className="flex gap-3 p-3 sm:p-4">
                     <div className="h-10 w-10 flex-shrink-0 rounded-full bg-zinc-800 overflow-hidden relative border border-white/5">
                         {video.channelAvatar ? (
-                            <Image src={video.channelAvatar} alt={video.channelName} fill className="object-cover" />
+                            <Image
+                                src={video.channelAvatar}
+                                alt={video.channelName}
+                                fill
+                                className="object-cover"
+                                onError={(e) => {
+                                    (e.target as HTMLImageElement).style.display = 'none';
+                                }}
+                            />
                         ) : (
                             <div className="w-full h-full bg-j-green flex items-center justify-center text-white font-bold">
                                 {video.channelName.charAt(0).toUpperCase()}
