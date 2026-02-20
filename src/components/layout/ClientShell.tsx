@@ -41,6 +41,39 @@ function ShellContent({ children }: { children: React.ReactNode }) {
         return () => document.body.classList.remove('sidebar-open-mobile');
     }, [isOpen]);
 
+    // === MOBILE IMMERSION ===
+    // 1. Auto-collapse browser address bar on load (same technique as YouTube/TikTok)
+    // 2. Track real viewport height via CSS variable (handles address bar shrinking)
+    useEffect(() => {
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        if (!isMobile) return;
+
+        // Set real viewport height as CSS variable — updates when address bar show/hides
+        const setAppHeight = () => {
+            document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`);
+        };
+        setAppHeight();
+        window.addEventListener('resize', setAppHeight);
+        window.addEventListener('orientationchange', () => {
+            setTimeout(setAppHeight, 100); // Delay for orientation animation
+        });
+
+        // Auto-scroll to collapse the browser address bar
+        // This is the standard trick: a tiny scroll triggers Safari/Chrome to minimize their chrome
+        if (window.scrollY === 0) {
+            setTimeout(() => {
+                window.scrollTo(0, 1);
+                // Tiny delay then scroll back — the address bar stays collapsed
+                setTimeout(() => {
+                    window.scrollTo(0, 0);
+                    setAppHeight(); // Recalculate after collapse
+                }, 50);
+            }, 300);
+        }
+
+        return () => window.removeEventListener('resize', setAppHeight);
+    }, []);
+
     // Simple Swipe Detection
     const handleTouchStart = (e: React.TouchEvent) => {
         setTouchStart({

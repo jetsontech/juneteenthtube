@@ -23,6 +23,8 @@
   /* Default: Trust the env, fallback to 0 */
   --safe-area-top: env(safe-area-inset-top, 0px);
   --navbar-height: calc(3.5rem + var(--safe-area-top));
+  --app-height: 100dvh;
+  /* Updated dynamically by JS on mobile */
 }
 
 .main-content {
@@ -317,6 +319,7 @@ html {
 body {
   min-height: -webkit-fill-available;
   min-height: 100dvh;
+  min-height: var(--app-height, 100dvh);
   width: 100%;
   margin: 0;
   padding: 0;
@@ -327,12 +330,29 @@ body {
   font-family: var(--font-sans), sans-serif;
   position: relative;
   -ms-overflow-style: none;
+  overscroll-behavior-y: none;
 
   @supports (scrollbar-width: none) {
     scrollbar-width: none;
   }
 
   touch-action: manipulation;
+}
+
+/* Mobile-specific: ensure no gaps anywhere */
+@media (max-width: 640px) {
+
+  html,
+  body {
+    overscroll-behavior: none;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  /* Use dynamic app height for the shell */
+  .min-h-\[100dvh\] {
+    min-height: var(--app-height, 100dvh);
+  }
 }
 
 /* Install banner slide-up animation */
