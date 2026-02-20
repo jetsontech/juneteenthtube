@@ -355,6 +355,28 @@ body {
   }
 }
 
+/* === SCROLL PERFORMANCE === */
+
+/* GPU-accelerated compositing for video cards */
+.video-card {
+  will-change: transform;
+  transform: translateZ(0);
+  content-visibility: auto;
+  contain-intrinsic-size: auto 300px;
+}
+
+/* iOS momentum scrolling on horizontal shelves */
+.scrollbar-none {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Smooth scroll for programmatic scrolls only (not for user scrolling) */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
 /* Install banner slide-up animation */
 .animate-slideUp {
   animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;

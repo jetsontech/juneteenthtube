@@ -15,13 +15,9 @@ function VideoGridComponent({ videos }: VideoGridProps) {
     );
 }
 
-// Memoize to prevent re-renders when parent re-renders
-// Only re-render if videos array actually changes
+// Proper memoization — compare all video IDs, not just the first one
 export const VideoGrid = memo(VideoGridComponent, (prevProps, nextProps) => {
-    // Quick check: if lengths differ, definitely re-render
     if (prevProps.videos.length !== nextProps.videos.length) return false;
-
-    // If same length and first video ID matches, likely the same list
-    // This is a performance optimization - we trust the list hasn't changed
-    return prevProps.videos[0]?.id === nextProps.videos[0]?.id;
+    // Compare every video ID for true equality
+    return prevProps.videos.every((v, i) => v.id === nextProps.videos[i]?.id);
 });

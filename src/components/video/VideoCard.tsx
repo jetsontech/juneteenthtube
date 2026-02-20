@@ -1,36 +1,45 @@
 ﻿import Image from "next/image";
 import Link from "next/link";
 import { type VideoProps } from "@/context/VideoContext";
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, memo } from "react";
 
 export { type VideoProps };
 
-export function VideoCard({ video }: { video: VideoProps }) {
-    // 1. Robust Thumbnail State
+/**
+ * VideoCard — Performance-optimized video card component
+ * 
+ * Key optimizations:
+ * 1. <video> element is LAZY — only created when preview actually triggers
+ * 2. No IntersectionObserver auto-play on mobile (crash cause)
+ * 3. Desktop: hover preview after 600ms delay
+ * 4. Mobile: long-press preview only (intentional interaction)
+ * 5. Global mutual exclusion — only 1 preview plays at a time
+ * 6. Memoized to prevent re-renders when parent re-renders
+ */
+function VideoCardInner({ video }: { video: VideoProps }) {
     const [imgSrc, setImgSrc] = useState(video.thumbnail || "/placeholder.svg");
     const [hasError, setHasError] = useState(false);
-
-    const [isHovered, setIsHovered] = useState(false);
     const [showPreview, setShowPreview] = useState(false);
     const [isTouchPreviewing, setIsTouchPreviewing] = useState(false);
     const videoRef = useRef<HTMLVideoElement>(null);
     const cardRef = useRef<HTMLDivElement>(null);
     const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
     const preventNavigationRef = useRef(false);
-
     const isHoveredRef = useRef(false);
-    const previewSrc = video.videoUrl;
+    const [isHovered, setIsHovered] = useState(false);
     const [canHover, setCanHover] = useState(true);
 
-    // 2. Global Mutual Exclusion for Previews
+    const previewSrc = video.videoUrl;
+
+    // Global mutual exclusion for previews — only 1 plays at a time
     useEffect(() => {
         const handlePreviewStart = (e: CustomEvent) => {
             if (e.detail.id !== video.id) {
-                // Another video started playing, stop this one
                 setShowPreview(false);
                 if (videoRef.current) {
                     videoRef.current.pause();
-                    videoRef.current.currentTime = 0;
+                    videoRef.current.removeAttribute('src');
+                    videoRef.current.load(); // Release memory
                 }
             }
         };
@@ -40,15 +49,22 @@ export function VideoCard({ video }: { video: VideoProps }) {
     }, [video.id]);
 
     const startPreview = useCallback(() => {
-        // Broadcast "I am playing"
+        // Broadcast "I am playing" — all other cards will stop
         if (typeof window !== 'undefined') {
             window.dispatchEvent(new CustomEvent('juneteenth:preview-start', { detail: { id: video.id } }));
         }
         setShowPreview(true);
-        videoRef.current?.play().catch(() => { });
     }, [video.id]);
 
-    // Detect capabilities
+    // When showPreview becomes true AND we have a video ref, start playing
+    useEffect(() => {
+        if (showPreview && videoRef.current && previewSrc) {
+            videoRef.current.src = previewSrc;
+            videoRef.current.play().catch(() => { });
+        }
+    }, [showPreview, previewSrc]);
+
+    // Detect hover capability
     useEffect(() => {
         const hoverQuery = window.matchMedia("(hover: hover)");
         setCanHover(hoverQuery.matches);
@@ -57,7 +73,7 @@ export function VideoCard({ video }: { video: VideoProps }) {
         return () => hoverQuery.removeEventListener("change", handler);
     }, []);
 
-    // Desktop hover logic
+    // Desktop hover preview — 600ms delay before playing
     useEffect(() => {
         if (!canHover) return;
 
@@ -66,7 +82,7 @@ export function VideoCard({ video }: { video: VideoProps }) {
 
         if (isHovered) {
             timeout = setTimeout(() => {
-                if (isHoveredRef.current && videoRef.current) {
+                if (isHoveredRef.current) {
                     startPreview();
                 }
             }, 600);
@@ -74,46 +90,17 @@ export function VideoCard({ video }: { video: VideoProps }) {
             setShowPreview(false);
             if (videoRef.current) {
                 videoRef.current.pause();
-                videoRef.current.currentTime = 0;
+                videoRef.current.removeAttribute('src');
+                videoRef.current.load(); // Release memory immediately
             }
         }
         return () => clearTimeout(timeout);
     }, [isHovered, canHover, startPreview]);
 
-    // Mobile IntersectionObserver logic
-    useEffect(() => {
-        if (typeof window === "undefined") return;
-        const isMobile = window.matchMedia("(max-width: 768px)").matches || window.matchMedia("(pointer: coarse)").matches;
-        if (!isMobile && canHover) return;
-        if (!cardRef.current || !previewSrc) return;
+    // NO IntersectionObserver auto-play on mobile — this was the #1 crash cause
+    // Mobile users tap to navigate, or long-press to preview
 
-        let playTimeout: NodeJS.Timeout;
-        const observer = new IntersectionObserver(
-            ([entry]) => {
-                if (entry.isIntersecting) {
-                    playTimeout = setTimeout(() => {
-                        startPreview();
-                    }, 500);
-                } else {
-                    clearTimeout(playTimeout);
-                    setShowPreview(false);
-                    if (videoRef.current) {
-                        videoRef.current.pause();
-                        videoRef.current.currentTime = 0;
-                    }
-                }
-            },
-            { threshold: 0.85 }
-        );
-
-        observer.observe(cardRef.current);
-        return () => {
-            clearTimeout(playTimeout);
-            observer.disconnect();
-        };
-    }, [previewSrc, canHover, startPreview]);
-
-    // Touch handlers
+    // Touch handlers (long-press to preview)
     const handleTouchStart = useCallback(() => {
         if (!previewSrc) return;
         preventNavigationRef.current = false;
@@ -134,7 +121,8 @@ export function VideoCard({ video }: { video: VideoProps }) {
             setIsTouchPreviewing(false);
             if (videoRef.current) {
                 videoRef.current.pause();
-                videoRef.current.currentTime = 0;
+                videoRef.current.removeAttribute('src');
+                videoRef.current.load();
             }
             setShowPreview(false);
         }
@@ -165,14 +153,14 @@ export function VideoCard({ video }: { video: VideoProps }) {
         >
             <div
                 ref={cardRef}
-                className={`flex flex-col bg-white/[0.03] sm:bg-white/[0.04] backdrop-blur-sm sm:rounded-2xl sm:border sm:border-white/[0.06] overflow-hidden transition-colors duration-300 group-hover:bg-white/[0.06] ${isTouchPreviewing ? 'scale-[0.97] transition-transform' : ''}`}
+                className={`video-card flex flex-col bg-white/[0.03] sm:bg-white/[0.04] backdrop-blur-sm sm:rounded-2xl sm:border sm:border-white/[0.06] overflow-hidden transition-colors duration-300 group-hover:bg-white/[0.06] ${isTouchPreviewing ? 'scale-[0.97] transition-transform' : ''}`}
                 onTouchStart={handleTouchStart}
                 onTouchEnd={handleTouchEnd}
                 onTouchCancel={handleTouchEnd}
                 onTouchMove={handleTouchMove}
             >
                 {/* Thumbnail */}
-                <div className={`relative aspect-video w-full overflow-hidden bg-zinc-900`}>
+                <div className="relative aspect-video w-full overflow-hidden bg-zinc-900">
                     <Image
                         src={imgSrc}
                         alt={video.title}
@@ -186,15 +174,15 @@ export function VideoCard({ video }: { video: VideoProps }) {
                             }
                         }}
                     />
-                    {previewSrc && (
+                    {/* LAZY video element — only rendered when preview is active */}
+                    {showPreview && previewSrc && (
                         <video
                             ref={videoRef}
-                            src={previewSrc}
                             muted
                             loop
                             playsInline
-                            preload="none" // Optimization: don't load until needed
-                            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 pointer-events-none ${showPreview ? 'opacity-100' : 'opacity-0'}`}
+                            preload="none"
+                            className="absolute inset-0 w-full h-full object-cover pointer-events-none"
                         />
                     )}
                     {isTouchPreviewing && (
@@ -244,3 +232,8 @@ export function VideoCard({ video }: { video: VideoProps }) {
         </Link>
     );
 }
+
+// Memoize — only re-render if the video object identity changes
+export const VideoCard = memo(VideoCardInner, (prev, next) => {
+    return prev.video.id === next.video.id && prev.video.thumbnail === next.video.thumbnail;
+});

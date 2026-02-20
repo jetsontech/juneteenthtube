@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense, useMemo } from "react";
+import { useState, useEffect, Suspense, useMemo, useRef, useCallback } from "react";
 import { VideoGrid } from "@/components/video/VideoGrid";
 import { VideoCard } from "@/components/video/VideoCard";
 import { type VideoProps, useVideo } from "@/context/VideoContext";
@@ -12,6 +12,29 @@ import { cn } from "@/lib/utils";
 
 const CATEGORIES = ["All", "Parade", "Music", "Food", "History", "Speeches", "Live", "2024"] as const;
 
+// Helper to parse duration string (e.g., "1:30", "0:45", "12:30") to seconds
+function parseDurationToSeconds(duration: string | undefined): number {
+  if (!duration) return 0;
+  const parts = duration.split(':').map(Number);
+  if (parts.length === 2) return parts[0] * 60 + parts[1];
+  if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
+  return 0;
+}
+
+// Deterministic shuffle with a seed — same seed = same order
+function seededShuffle<T>(array: T[], seed: number): T[] {
+  const newArray = [...array];
+  let s = seed;
+  for (let i = newArray.length - 1; i > 0; i--) {
+    s = (s * 16807 + 0) % 2147483647; // Park-Miller LCG
+    const j = s % (i + 1);
+    [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+  }
+  return newArray;
+}
+
+const MAX_SHORT_DURATION = 60;
+
 function HomeContent() {
   const { videos } = useVideo();
   const { selectedState } = useStateFilter();
@@ -19,69 +42,33 @@ function HomeContent() {
   const searchQuery = searchParams.get('q')?.toLowerCase() || "";
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
 
-  // Helper to parse duration string (e.g., "1:30", "0:45", "12:30") to seconds
-  const parseDurationToSeconds = (duration: string | undefined): number => {
-    if (!duration) return 0;
-    const parts = duration.split(':').map(Number);
-    if (parts.length === 2) {
-      // MM:SS format
-      return parts[0] * 60 + parts[1];
-    } else if (parts.length === 3) {
-      // HH:MM:SS format
-      return parts[0] * 3600 + parts[1] * 60 + parts[2];
-    }
-    return 0;
-  };
+  // Generate a shuffle seed ONCE per page load — stays stable across re-renders
+  const shuffleSeedRef = useRef<number>(Math.floor(Math.random() * 2147483647));
 
-  // Shuffle function
-  const shuffleArray = <T,>(array: T[]): T[] => {
-    const newArray = [...array];
-    for (let i = newArray.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
-    }
-    return newArray;
-  };
-
-  // Filter videos by category, search query, state, EXCLUDING shorts (≤ 60s)
-  const MAX_SHORT_DURATION = 60;
-
-  const rawFilteredVideos = useMemo(() => {
-    return videos.filter(video => {
+  // Filter videos EXCLUDING shorts (≤ 60s)
+  const filteredVideos = useMemo(() => {
+    const filtered = videos.filter(video => {
       const matchesCategory = selectedCategory === "All" || video.category === selectedCategory;
       const matchesSearch = !searchQuery ||
         video.title.toLowerCase().includes(searchQuery) ||
         video.channelName.toLowerCase().includes(searchQuery);
-
-      // State filter: GLOBAL shows all videos, otherwise match the selected state
       const matchesState = selectedState.code === "GLOBAL" ||
         video.state === selectedState.code ||
-        video.state === "GLOBAL"; // Global videos always show regardless of filter
-
+        video.state === "GLOBAL";
       const durationInSeconds = parseDurationToSeconds(video.duration);
       const isShort = durationInSeconds > 0 && durationInSeconds <= MAX_SHORT_DURATION;
 
       return matchesCategory && matchesSearch && matchesState && !isShort;
     });
+
+    // Shuffle deterministically with per-session seed — same order until page reload
+    return seededShuffle(filtered, shuffleSeedRef.current);
   }, [videos, selectedCategory, searchQuery, selectedState]);
 
-  // Shuffle videos in useEffect to avoid impure render
-  const [filteredVideos, setFilteredVideos] = useState<VideoProps[]>([]);
-
-  useEffect(() => {
-    const shuffled = shuffleArray(rawFilteredVideos);
-    const timeoutId = setTimeout(() => {
-      setFilteredVideos(shuffled);
-    }, 0);
-
-    return () => clearTimeout(timeoutId);
-  }, [rawFilteredVideos]);
-
-  // YouTube-style: Maximum 3 columns on desktop to maintain consistent card size
-  // Mobile: single column with tighter vertical spacing
+  // YouTube-style grid classes
   const videoGridClass = cn(
     "grid gap-x-4",
-    "gap-y-8 sm:gap-y-12 lg:gap-y-14", // Increased vertical gap for YouTube-style airy look
+    "gap-y-8 sm:gap-y-12 lg:gap-y-14",
     "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
   );
 
@@ -93,7 +80,6 @@ function HomeContent() {
         onCategoryChange={setSelectedCategory}
       />
 
-      {/* Main content area - Edge-to-edge on mobile, padded on desktop */}
       <div className="px-0 sm:px-6 lg:px-8 py-4 sm:py-8 lg:py-10">
         {/* First row of videos */}
         <div className={videoGridClass}>
@@ -104,11 +90,7 @@ function HomeContent() {
 
         {/* Shorts Section (Vertical) */}
         {selectedCategory === "All" && (
-          <ShortsShelf
-            title="Shorts"
-            horizontal={true}
-            offset={0}
-          />
+          <ShortsShelf title="Shorts" horizontal={true} offset={0} />
         )}
 
         {/* Second row of videos */}
@@ -118,14 +100,9 @@ function HomeContent() {
           ))}
         </div>
 
-        {/* Landscape Shorts Section (16:9) - Cinema Shorts */}
+        {/* Landscape Shorts Section (16:9) */}
         {selectedCategory === "All" && (
-          <ShortsShelf
-            title="Cinema Shorts"
-            offset={6}
-            horizontal={true}
-            landscapeMode={true}
-          />
+          <ShortsShelf title="Cinema Shorts" offset={6} horizontal={true} landscapeMode={true} />
         )}
 
         {/* Remaining Videos */}
