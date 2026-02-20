@@ -56,7 +56,7 @@ export function StateSelector({ selectedState, onStateChange }: StateSelectorPro
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 className={cn(
-                    "flex items-center gap-2 px-3 py-1.5 rounded-full transition-all duration-200",
+                    "flex items-center gap-2 px-3 h-10 rounded-full transition-all duration-200",
                     "bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20",
                     "text-sm font-medium text-white",
                     isOpen && "bg-white/10 border-j-gold/50"

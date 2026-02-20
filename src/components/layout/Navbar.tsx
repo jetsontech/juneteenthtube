@@ -128,7 +128,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                 {/* Navbar Content - Exactly 3.5rem (h-14) */}
                 <div className="h-14 w-full flex items-center justify-between pl-4 pr-4 sm:pl-6 sm:pr-8">
                     {/* Left Section */}
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2 sm:gap-4">
                         <button
                             onClick={onMenuClick}
                             className="p-2 hover:bg-white/10 rounded-full transition-colors text-white"
@@ -172,7 +172,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                             }}
                             className="flex w-full"
                         >
-                            <div className="flex-1 flex items-center pl-4 glass rounded-l-full focus-within:border-j-gold/50 transition-colors">
+                            <div className="flex-1 flex items-center h-10 pl-4 glass rounded-l-full focus-within:border-j-gold/50 transition-colors">
                                 <Search className="w-5 h-5 text-gray-400" />
                                 <input
                                     type="text"
@@ -198,7 +198,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                             </div>
                             <button
                                 type="submit"
-                                className="px-6 bg-white/10 border border-l-0 border-white/10 rounded-r-full hover:bg-white/20 transition-colors"
+                                className="px-6 h-10 bg-white/10 border border-l-0 border-white/10 rounded-r-full hover:bg-white/20 transition-colors flex items-center justify-center"
                                 aria-label="Search button"
                             >
                                 <Search className="w-5 h-5 text-white" />
@@ -225,7 +225,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                             <div className="flex items-center gap-2">
                                 <button
                                     onClick={() => handleOpenAuth('login')}
-                                    className="px-4 py-1.5 text-sm font-medium text-j-gold hover:bg-j-gold/10 rounded-full border border-j-gold/50 transition-colors"
+                                    className="px-4 h-10 flex items-center text-sm font-medium text-j-gold hover:bg-j-gold/10 rounded-full border border-j-gold/50 transition-colors"
                                 >
                                     Sign In
                                 </button>
