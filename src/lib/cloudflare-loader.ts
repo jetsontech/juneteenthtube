@@ -1,5 +1,9 @@
 // Image Loader for Cloudflare Image Resizing
 // Docs: https://developers.cloudflare.com/images/image-resizing/integration-with-frameworks/#nextjs
+//
+// To enable Cloudflare Image Resizing:
+//   1. Cloudflare Dashboard -> Images -> Transformations -> Enable "Resize from any origin"
+//   2. Set NEXT_PUBLIC_CLOUDFLARE_IMAGE_RESIZING=true in your .env
 
 const normalizeSrc = (src: string) => {
     return src.startsWith('/') ? src.slice(1) : src;
@@ -14,8 +18,12 @@ export default function cloudflareLoader({
     width: number;
     quality?: number;
 }) {
-    // Bypass cloudflare resizing in development to fix local assets
-    if (process.env.NODE_ENV === 'development') {
+    // Bypass cloudflare resizing in development or when not enabled
+    // Return raw source URL so images load directly from their origin
+    if (
+        process.env.NODE_ENV === 'development' ||
+        process.env.NEXT_PUBLIC_CLOUDFLARE_IMAGE_RESIZING !== 'true'
+    ) {
         return src;
     }
 
@@ -31,7 +39,6 @@ export default function cloudflareLoader({
     // If the image is coming from your R2 bucket public domain:
     if (src.includes('r2.dev') || src.includes('pub-efcc4aa0b3b24e3d97760577b0ec20bd.r2.dev')) {
         const paramsString = params.join(',');
-        // The src must be encoded to work correctly in the path
         return `https://juneteenthtube.com/cdn-cgi/image/${paramsString}/${encodeURIComponent(src)}`;
     }
 
