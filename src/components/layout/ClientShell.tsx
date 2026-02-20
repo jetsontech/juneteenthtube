@@ -9,6 +9,7 @@ import { AuthProvider } from "@/context/AuthContext";
 import { StateProvider } from "@/context/StateContext";
 import { LoginSplash } from "./LoginSplash";
 import { BackgroundSystem } from "./BackgroundSystem";
+import { InstallBanner } from "./InstallBanner";
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 
@@ -78,12 +79,13 @@ function ShellContent({ children }: { children: React.ReactNode }) {
 
     return (
         <div
-            className="min-h-screen bg-transparent text-foreground"
+            className="min-h-[100dvh] bg-transparent text-foreground"
             onTouchStart={handleTouchStart}
             onTouchEnd={handleTouchEnd}
         >
             {isLocked && <LoginSplash onUnlock={() => setIsLocked(false)} />}
             {!isLocked && <BackgroundSystem />}
+            {!isLocked && <InstallBanner />}
 
             <Navbar onMenuClick={toggle} />
             <Sidebar isOpen={isOpen} onClose={toggle} />

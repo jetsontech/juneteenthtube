@@ -310,21 +310,19 @@ html {
   overscroll-behavior: none;
   overscroll-behavior-y: none;
   background-color: #0f0f0f;
-  /* Prevent white bars */
+  min-height: -webkit-fill-available;
+  min-height: 100dvh;
 }
 
 body {
+  min-height: -webkit-fill-available;
   min-height: 100dvh;
   width: 100%;
   margin: 0;
   padding: 0;
   overflow-x: hidden !important;
   max-width: 100%;
-  /* Prevent elastic bounce which reveals browser UI - RELAXED for better feel */
-  /* overscroll-behavior: none; */
-  /* overscroll-behavior-y: none; */
   background-color: #0f0f0f;
-  /* Prevent white bars */
   color: var(--foreground);
   font-family: var(--font-sans), sans-serif;
   position: relative;
@@ -335,6 +333,15 @@ body {
   }
 
   touch-action: manipulation;
+}
+
+/* Install banner slide-up animation */
+.animate-slideUp {
+  animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.install-banner-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 /* Improve Touch Targets & Responsiveness */
