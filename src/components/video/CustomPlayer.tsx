@@ -55,12 +55,7 @@ export function CustomPlayer({ src, srcH264, poster }: CustomPlayerProps) {
     const [isCssFullscreen, setIsCssFullscreen] = useState(false);
     const [windowHeight, setWindowHeight] = useState(0); // Track window height for safe scaling
 
-    // NEW: Audio & Video Quality State
     const [qualityBadge, setQualityBadge] = useState<string | null>(null);
-    const [isMastered, setIsMastered] = useState(false); // Track if professional mastering is active
-    const audioContextRef = useRef<AudioContext | null>(null);
-    const sourceNodeRef = useRef<MediaElementAudioSourceNode | null>(null);
-    const compressorNodeRef = useRef<DynamicsCompressorNode | null>(null);
 
     // Progress bar ref for CSS variable
     const progressBarRef = useRef<HTMLDivElement>(null);
@@ -113,59 +108,14 @@ export function CustomPlayer({ src, srcH264, poster }: CustomPlayerProps) {
         }
     }, [currentTime, duration]);
 
-    // PHASE 2: PROFESSIONAL MEDIA MASTERING (Absolute Consistency)
-    // Implements Audio Compression + Video Glow + Denoising
+    // Reactive Effect for Source & Error Handling
     useEffect(() => {
         if (!videoRef.current) return;
         const video = videoRef.current;
 
-        const initMastering = () => {
-            // Already initialized?
-            if (audioContextRef.current) return;
-
-            try {
-                const AudioContextClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-                if (!AudioContextClass) throw new Error("AudioContext not supported");
-
-                const ctx = new AudioContextClass();
-                audioContextRef.current = ctx;
-
-                // TRY to take control for Professional Mastering
-                // This will fail if CORS is restrictive
-                const source = ctx.createMediaElementSource(video);
-                sourceNodeRef.current = source;
-
-                const compressor = ctx.createDynamicsCompressor();
-                // "Broadcast Standard" Mastering Settings
-                compressor.threshold.value = -20;
-                compressor.knee.value = 40;
-                compressor.ratio.value = 12;
-                compressor.attack.value = 0.003;
-                compressor.release.value = 0.25;
-                compressorNodeRef.current = compressor;
-
-                source.connect(compressor);
-                compressor.connect(ctx.destination);
-
-                setIsMastered(true);
-                console.log("💎 Professional Audio Mastering Active (Broadcast Level)");
-            } catch (e) {
-                // FALLBACK: If CORS blocks Mastering, use our safe Volume Boost
-                console.warn("⚠️ Audio Mastering blocked by CORS. Falling back to Native Volume Normalization.", e);
-                video.volume = 0.85; // Reliable boost
-                setIsMastered(false);
-            }
+        const handlePlayInternal = () => {
+            // Low-level fixes if needed
         };
-
-        const handlePlay = () => {
-            initMastering();
-            // Resume context if suspended (browser policy)
-            if (audioContextRef.current?.state === 'suspended') {
-                audioContextRef.current.resume();
-            }
-        };
-
-        video.addEventListener('play', handlePlay);
 
         const handleVideoError = () => {
             const error = video.error;
@@ -199,15 +149,12 @@ export function CustomPlayer({ src, srcH264, poster }: CustomPlayerProps) {
             setIsBuffering(false);
         };
 
+        video.addEventListener('play', handlePlayInternal);
         video.addEventListener('error', handleVideoError);
 
         return () => {
-            video.removeEventListener('play', handlePlay);
+            video.removeEventListener('play', handlePlayInternal);
             video.removeEventListener('error', handleVideoError);
-            if (audioContextRef.current) {
-                audioContextRef.current.close().catch(e => console.warn("Error closing AudioContext:", e));
-                audioContextRef.current = null;
-            }
         };
     }, [activeSrc, srcH264, triedFallback]);
 
@@ -493,8 +440,7 @@ export function CustomPlayer({ src, srcH264, poster }: CustomPlayerProps) {
                 preload="metadata"
                 className={cn(
                     "w-full h-full flex-grow pointer-events-none",
-                    (isZoomed || isCssFullscreen) ? "object-cover" : "object-contain",
-                    hasStartedPlaying && "video-enhanced"
+                    (isZoomed || isCssFullscreen) ? "object-cover" : "object-contain"
                 )}
                 onTimeUpdate={onTimeUpdate}
                 onLoadedMetadata={onLoadedMetadata}
@@ -558,35 +504,21 @@ export function CustomPlayer({ src, srcH264, poster }: CustomPlayerProps) {
 
             {/* Big Play/Replay Overlay - REMOVED per user request */}
 
-            {/* Unified Quality & Mastering Badge (Top Right) */}
-            {(qualityBadge || isMastered) && hasStartedPlaying && (
+            {/* Unified Quality Badge (Top Right) */}
+            {(qualityBadge) && hasStartedPlaying && (
                 <div className="absolute top-4 right-4 z-10 pointer-events-none">
                     <div className={cn(
                         "px-2.5 py-1 backdrop-blur-md rounded-md text-[11px] font-black tracking-tighter border shadow-2xl flex items-center gap-1.5 animate-in fade-in slide-in-from-right-4 duration-700",
-                        isMastered
-                            ? "bg-white/5 border-white/20 text-white/90"
-                            : "bg-black/40 border-white/10 text-white/70"
+                        "bg-black/40 border-white/10 text-white/70"
                     )}>
-                        {isMastered && <div className="w-1 h-1 bg-j-gold rounded-full animate-pulse shadow-[0_0_8px_#FFD700]" />}
                         <span className="drop-shadow-sm">
-                            {qualityBadge || ""}{isMastered ? "M" : ""}
+                            {qualityBadge || ""}
                         </span>
                     </div>
                 </div>
             )}
 
-            {/* SVG Filter for Video Sharpening (Upscaling Standard) */}
-            <svg width="0" height="0" className="absolute invisible pointer-events-none overflow-hidden">
-                <defs>
-                    <filter id="video-sharpen">
-                        <feConvolveMatrix
-                            order="3"
-                            preserveAlpha="true"
-                            kernelMatrix="0 -1 0 -1 5 -1 0 -1 0"
-                        />
-                    </filter>
-                </defs>
-            </svg>
+            {/* SVG Filter for Video Sharpening - REMOVED for performance */}
 
             {/* Controls Bar */}
             <div

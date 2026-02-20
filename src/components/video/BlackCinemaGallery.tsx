@@ -66,6 +66,16 @@ const CHANNELS: Channel[] = [
                 director: "Oscar Micheaux"
             },
             {
+                id: "1950s-home-movies-maverick",
+                title: "African American Home Movies (1950s)",
+                description: "Precious mid-century home movies capturing everyday African American family life — birthday parties, church picnics, neighborhood gatherings, and holiday celebrations. Intimate glimpses of joy, love, and community.",
+                source: "Archive.org • Library of Congress",
+                url: "https://archive.org/download/HM_African_American_Family_Detroit/HM_African_American_Family_Detroit.mp4",
+                year: "1950s",
+                duration: "12m",
+                director: "Unknown"
+            },
+            {
                 id: "symbol-of-the-unconquered",
                 title: "The Symbol of the Unconquered",
                 description: "Oscar Micheaux's bold silent film follows Eve Mason, a young Black woman who travels west to claim land left to her by her grandfather. She encounters racial hostility including the Ku Klux Klan, but finds an unexpected ally.",
