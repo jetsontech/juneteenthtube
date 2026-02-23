@@ -43,7 +43,7 @@ function HomeContent() {
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
 
   // Generate a shuffle seed ONCE per page load — stays stable across re-renders
-  const shuffleSeedRef = useRef<number>(Math.floor(Math.random() * 2147483647));
+  const [shuffleSeed] = useState(() => Math.floor(Math.random() * 2147483647));
 
   // Filter videos EXCLUDING shorts (≤ 60s)
   const filteredVideos = useMemo(() => {
@@ -62,8 +62,8 @@ function HomeContent() {
     });
 
     // Shuffle deterministically with per-session seed — same order until page reload
-    return seededShuffle(filtered, shuffleSeedRef.current);
-  }, [videos, selectedCategory, searchQuery, selectedState]);
+    return seededShuffle(filtered, shuffleSeed);
+  }, [videos, selectedCategory, searchQuery, selectedState, shuffleSeed]);
 
   // YouTube-style grid classes
   const videoGridClass = cn(

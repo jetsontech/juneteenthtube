@@ -219,6 +219,7 @@ export function VideoProvider({ children }: { children: ReactNode }) {
     const [uploadProgress, setUploadProgress] = useState(0);
     const abortControllerRef = useRef<AbortController | null>(null);
 
+    // Helper to fetch videos
     const fetchVideos = useCallback(async () => {
         try {
             const { data, error } = await supabase
@@ -227,6 +228,7 @@ export function VideoProvider({ children }: { children: ReactNode }) {
                 .order('created_at', { ascending: false });
 
             if (error) {
+                console.error('Error fetching videos:', error);
                 setVideos(MOCK_VIDEOS);
                 return;
             }
@@ -263,22 +265,30 @@ export function VideoProvider({ children }: { children: ReactNode }) {
         }
     }, []);
 
+    // Initial Fetch & Realtime
     useEffect(() => {
         fetchVideos();
+
         const channel = supabase
             .channel('video_updates')
-            .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'videos' }, (payload) => {
-                const video = payload.new as DBVideo;
-                setVideos(prev => prev.map(v => v.id === video.id ? {
-                    ...v,
-                    videoUrlH264: video.video_url_h264,
-                    transcodeStatus: video.transcode_status,
-                    thumbnail: video.thumbnail_url || v.thumbnail
-                } : v));
-            })
+            .on(
+                'postgres_changes',
+                { event: 'UPDATE', schema: 'public', table: 'videos' },
+                (payload) => {
+                    const video = payload.new as DBVideo;
+                    setVideos(prev => prev.map(v => v.id === video.id ? {
+                        ...v,
+                        videoUrlH264: video.video_url_h264,
+                        transcodeStatus: video.transcode_status,
+                        thumbnail: video.thumbnail_url || v.thumbnail
+                    } : v));
+                }
+            )
             .subscribe();
 
-        return () => { supabase.removeChannel(channel).catch(() => { }); };
+        return () => {
+            supabase.removeChannel(channel).catch(() => { });
+        };
     }, [fetchVideos]);
 
     const cancelUpload = useCallback(() => {
@@ -291,6 +301,7 @@ export function VideoProvider({ children }: { children: ReactNode }) {
     }, []);
 
     const getGuestId = () => {
+        if (typeof window === 'undefined') return "";
         let guestId = localStorage.getItem("jtube_guest_id");
         if (!guestId) {
             guestId = crypto.randomUUID();
@@ -355,66 +366,8 @@ export function VideoProvider({ children }: { children: ReactNode }) {
         return subscribed;
     }, []);
 
-    const deleteVideo = useCallback(async (id: string) => {
-        try {
-            const response = await fetch(`/api/videos?id=${id}`, { method: 'DELETE' });
-            if (!response.ok) {
-                const { error } = await response.json();
-                throw new Error(error || 'Delete failed');
-            }
-            setVideos(prev => prev.filter(v => v.id !== id));
-        } catch (error) {
-            console.error("Error deleting video:", error);
-            throw error;
-        }
-    }, []);
-
-    const updateVideoTitle = useCallback(async (id: string, newTitle: string) => {
-        try {
-            const response = await fetch('/api/videos/update', {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id, title: newTitle })
-            });
-            if (!response.ok) throw new Error('Failed to update title');
-            setVideos(prev => prev.map(v => v.id === id ? { ...v, title: newTitle } : v));
-        } catch (error) {
-            console.error("Error updating title:", error);
-            throw error;
-        }
-    }, []);
-
-    const updateVideoThumbnail = useCallback(async (id: string, file: File) => {
-        try {
-            const response = await fetch("/api/upload", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ filename: `thumb_${id}_${file.name}`, contentType: file.type || "image/jpeg" }),
-            });
-            if (!response.ok) throw new Error("Failed to sign thumbnail upload");
-            const { signedUrl, publicUrl } = await response.json();
-            await new Promise<void>((resolve, reject) => {
-                const xhr = new XMLHttpRequest();
-                xhr.open("PUT", signedUrl);
-                xhr.setRequestHeader("Content-Type", file.type || "image/jpeg");
-                xhr.onload = () => (xhr.status >= 200 && xhr.status < 300) ? resolve() : reject(new Error("Thumbnail upload failed"));
-                xhr.onerror = () => reject(new Error("Network Error"));
-                xhr.send(file);
-            });
-            const updateRes = await fetch('/api/videos/update', {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id, thumbnail_url: publicUrl })
-            });
-            if (!updateRes.ok) throw new Error('Failed to update video record');
-            setVideos(prev => prev.map(v => v.id === id ? { ...v, thumbnail: publicUrl } : v));
-        } catch (error) {
-            console.error("Error updating thumbnail:", error);
-            throw error;
-        }
-    }, []);
-
-    const uploadMultipart = async (file: File, _category: string): Promise<string> => {
+    // --- UPLOAD LOGIC ---
+    const uploadMultipart = useCallback(async (file: File, _category: string): Promise<string> => {
         void _category;
         const CHUNK_SIZE = 5 * 1024 * 1024;
         const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
@@ -469,7 +422,65 @@ export function VideoProvider({ children }: { children: ReactNode }) {
         if (!completeRes.ok) throw new Error("Failed to complete multipart upload");
         const { publicUrl } = await completeRes.json();
         return publicUrl;
-    };
+    }, []);
+
+    const deleteVideo = useCallback(async (id: string) => {
+        try {
+            const response = await fetch(`/api/videos?id=${id}`, { method: 'DELETE' });
+            if (!response.ok) {
+                const { error } = await response.json();
+                throw new Error(error || 'Delete failed');
+            }
+            setVideos(prev => prev.filter(v => v.id !== id));
+        } catch (error) {
+            console.error("Error deleting video:", error);
+            throw error;
+        }
+    }, []);
+
+    const updateVideoTitle = useCallback(async (id: string, newTitle: string) => {
+        try {
+            const response = await fetch('/api/videos/update', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id, title: newTitle })
+            });
+            if (!response.ok) throw new Error('Failed to update title');
+            setVideos(prev => prev.map(v => v.id === id ? { ...v, title: newTitle } : v));
+        } catch (error) {
+            console.error("Error updating title:", error);
+            throw error;
+        }
+    }, []);
+
+    const updateVideoThumbnail = useCallback(async (id: string, file: File) => {
+        try {
+            const response = await fetch("/api/upload", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ filename: `thumb_${id}_${file.name}`, contentType: file.type || "image/jpeg" }),
+            });
+            if (!response.ok) throw new Error("Failed to sign thumbnail upload");
+            const { signedUrl, publicUrl } = await response.json();
+            await new Promise<void>((resolve, reject) => {
+                const xhr = new XMLHttpRequest();
+                xhr.open("PUT", signedUrl);
+                xhr.setRequestHeader("Content-Type", file.type || "image/jpeg");
+                xhr.onload = () => resolve();
+                xhr.onerror = () => reject(new Error("Network Error"));
+                xhr.send(file);
+            });
+            await fetch('/api/videos/update', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id, thumbnail_url: publicUrl })
+            });
+            setVideos(prev => prev.map(v => v.id === id ? { ...v, thumbnail: publicUrl } : v));
+        } catch (error) {
+            console.error("Error updating thumbnail:", error);
+            throw error;
+        }
+    }, []);
 
     const updateVideoFile = useCallback(async (id: string, file: File) => {
         try {
@@ -488,24 +499,41 @@ export function VideoProvider({ children }: { children: ReactNode }) {
                     const xhr = new XMLHttpRequest();
                     xhr.open("PUT", signedUrl);
                     xhr.upload.onprogress = (e) => { if (e.lengthComputable) setUploadProgress(Math.round((e.loaded / e.total) * 100)); };
-                    xhr.onload = () => (xhr.status >= 200 && xhr.status < 300) ? resolve() : reject(new Error("Video upload failed"));
+                    xhr.onload = () => resolve();
+                    xhr.onerror = () => reject(new Error("Video upload failed"));
                     xhr.send(file);
                 });
             }
-            const duration = "0:00"; // Simplified for this fix
+            const duration = "0:00";
             await fetch('/api/videos/update', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, video_url: publicUrl, duration }) });
             setVideos(prev => prev.map(v => v.id === id ? { ...v, videoUrl: publicUrl, duration } : v));
         } finally { setIsUploading(false); setUploadProgress(0); }
     }, [uploadMultipart]);
 
     const incrementView = useCallback(async (id: string) => {
-        setVideos(prev => prev.map(v => v.id === id ? { ...v, views: (parseInt(v.views.replace(/,/g, '') || "0") + 1).toString() } : v));
+        setVideos(prev => prev.map(v => {
+            if (v.id === id) {
+                const current = parseInt(v.views.replace(/,/g, '') || "0");
+                return { ...v, views: (current + 1).toString() };
+            }
+            return v;
+        }));
         const { data } = await supabase.from('videos').select('views').eq('id', id).single();
-        if (data) await fetch('/api/videos/update', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, views: data.views + 1 }) });
+        if (data) {
+            await fetch('/api/videos/update', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id, views: (data.views || 0) + 1 })
+            });
+        }
     }, []);
 
     const updateUserAvatar = useCallback(async (publicUrl: string) => {
-        await fetch('/api/user/metadata', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ avatar_url: publicUrl }) });
+        await fetch('/api/user/metadata', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ avatar_url: publicUrl })
+        });
     }, []);
 
     const deletePhoto = useCallback(async (id: string) => {
@@ -514,15 +542,23 @@ export function VideoProvider({ children }: { children: ReactNode }) {
 
     const updatePhotoImage = useCallback(async (id: string, file: File) => {
         setIsUploading(true);
-        const response = await fetch("/api/upload", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ filename: `photo_${id}_${Date.now()}_${file.name}`, contentType: file.type || "image/jpeg" }) });
+        const response = await fetch("/api/upload", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ filename: `photo_${id}_${Date.now()}_${file.name}`, contentType: file.type || "image/jpeg" })
+        });
         const { signedUrl, publicUrl } = await response.json();
-        await new Promise<void>((resolve, reject) => {
+        await new Promise<void>((resolve) => {
             const xhr = new XMLHttpRequest();
             xhr.open("PUT", signedUrl);
             xhr.onload = () => resolve();
             xhr.send(file);
         });
-        await fetch('/api/photos/update', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, photo_url: publicUrl }) });
+        await fetch('/api/photos/update', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id, photo_url: publicUrl })
+        });
         setIsUploading(false);
     }, []);
 
@@ -534,7 +570,7 @@ export function VideoProvider({ children }: { children: ReactNode }) {
             const publicUrl = file.size > 50 * 1024 * 1024 ? await uploadMultipart(file, category) : (await (async () => {
                 const res = await fetch("/api/upload", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ filename: file.name, contentType: file.type || "video/mp4" }) });
                 const { signedUrl, publicUrl: url } = await res.json();
-                await new Promise<void>((resolve, reject) => {
+                await new Promise<void>((resolve) => {
                     const xhr = new XMLHttpRequest();
                     xhr.open("PUT", signedUrl);
                     xhr.upload.onprogress = (e) => { if (e.lengthComputable) setUploadProgress(Math.round((e.loaded / e.total) * 100)); };

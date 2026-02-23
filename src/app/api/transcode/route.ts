@@ -73,7 +73,7 @@ export async function POST(req: NextRequest) {
         // 2a. Generate Thumbnail
         let thumbSuccess = false;
         try {
-          await new Promise < void > ((resolve, _reject) => { // Prefixed unused reject
+          await new Promise<void>((resolve, _reject) => { // Prefixed unused reject
             const thumbProc = spawn(ffmpegPath, [
               "-i", inputPath,
               "-ss", "00:00:01",
@@ -88,7 +88,7 @@ export async function POST(req: NextRequest) {
                 thumbSuccess = true;
                 resolve();
               } else {
-                resolve(); 
+                resolve();
               }
             });
 
@@ -162,8 +162,11 @@ export async function POST(req: NextRequest) {
 
         // 4. Update Database
         const h264PublicUrl = getPublicUrl(h264Key);
+
+        console.log(`--- [${videoId}] UPDATING DB...`);
+
         const updatePayload: UpdatePayload = {
-          video_url_h264: h264PublicUrl,
+          video_url_h264: h264PublicUrl, // Store FULL URL
           transcode_status: "completed"
         };
 
@@ -185,8 +188,8 @@ export async function POST(req: NextRequest) {
       } finally {
         try { os.setPriority(os.constants.priority.PRIORITY_NORMAL); } catch { }
         setTimeout(async () => {
-          try { await rm(tempDir, { recursive: true, force: true }); } catch (cleanupError) { 
-             console.error("Cleanup error:", cleanupError); 
+          try { await rm(tempDir, { recursive: true, force: true }); } catch (cleanupError) {
+            console.error("Cleanup error:", cleanupError);
           }
         }, 5000);
       }

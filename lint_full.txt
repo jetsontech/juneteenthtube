@@ -1,104 +1,137 @@
 
-> juneteenthtube@0.1.0 lint
-> eslint
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\app\admin\page.tsx
+   7:5  warning  'LayoutDashboard' is defined but never used  @typescript-eslint/no-unused-vars
+  19:5  warning  'UserMinus' is defined but never used        @typescript-eslint/no-unused-vars
+  21:5  warning  'UserCheck' is defined but never used        @typescript-eslint/no-unused-vars
+  22:5  warning  'MoreVertical' is defined but never used     @typescript-eslint/no-unused-vars
 
-
-C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\scripts\apply_cors.ts
-  49:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-
-C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\scripts\check_cors.ts
-   8:11  warning  'publicUrl' is assigned a value but never used  @typescript-eslint/no-unused-vars
-  40:19  error    Unexpected any. Specify a different type        @typescript-eslint/no-explicit-any
-
-C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\scripts\debug-s3.js
-  2:1   error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
-  3:52  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
-
-C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\scripts\debug_delete.ts
-  42:33  warning  'count' is assigned a value but never used       @typescript-eslint/no-unused-vars
-  53:41  warning  'checkError' is assigned a value but never used  @typescript-eslint/no-unused-vars
-
-C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\scripts\find_specific.ts
-  20:19  warning  'error' is assigned a value but never used  @typescript-eslint/no-unused-vars
-
-C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\scripts\placeholder.ts
-   9:7   warning  'supabase' is assigned a value but never used  @typescript-eslint/no-unused-vars
-  14:16  warning  'migrate' is defined but never used            @typescript-eslint/no-unused-vars
-  15:11  warning  'sql' is assigned a value but never used       @typescript-eslint/no-unused-vars
-
-C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\scripts\repro_s3_error.ts
-  27:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-
-C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\scripts\sync-env.js
-   1:12  error    A `require()` style import is forbidden  @typescript-eslint/no-require-imports
-   2:22  error    A `require()` style import is forbidden  @typescript-eslint/no-require-imports
-   3:14  error    A `require()` style import is forbidden  @typescript-eslint/no-require-imports
-  36:26  warning  'e' is defined but never used            @typescript-eslint/no-unused-vars
-
-C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\scripts\test-upload.js
-  2:15  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
-
-C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\scripts\test_r2_upload.ts
-  73:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-
-C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\scripts\upload_headless.ts
-  112:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-
-C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\scripts\upload_manual_robust.ts
-   90:31  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  129:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-
-C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\scripts\verify_upload.ts
-  52:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-
-C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\app\api\comments\route.ts
-  65:14  warning  '_error' is defined but never used  @typescript-eslint/no-unused-vars
-
-C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\app\api\likes\route.ts
-  86:14  warning  '_error' is defined but never used  @typescript-eslint/no-unused-vars
-
-C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\app\api\subscribe\route.ts
-  41:14  warning  '_error' is defined but never used  @typescript-eslint/no-unused-vars
-
-C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\app\api\videos\route.ts
-  27:14  warning  '_error' is defined but never used  @typescript-eslint/no-unused-vars
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\app\api\transcode\route.ts
+   82:45  warning  'reject' is defined but never used        @typescript-eslint/no-unused-vars
+  117:18  warning  'e' is defined but never used             @typescript-eslint/no-unused-vars
+  212:30  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
 
 C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\app\page.tsx
-  8:10  warning  'useSidebar' is defined but never used  @typescript-eslint/no-unused-vars
+   3:20  warning  'useEffect' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    @typescript-eslint/no-unused-vars
+   3:58  warning  'useCallback' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  @typescript-eslint/no-unused-vars
+   6:15  warning  'VideoProps' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   @typescript-eslint/no-unused-vars
+  46:52  error    Error: Cannot call impure function during render
 
-C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\app\photos\page.tsx
-  104:25  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
-  151:25  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
 
-C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\app\shorts\[id]\page.tsx
-  100:18  warning  'e' is defined but never used                                                                                                                                                                                                                                                            @typescript-eslint/no-unused-vars
-  115:18  warning  'e' is defined but never used                                                                                                                                                                                                                                                            @typescript-eslint/no-unused-vars
-  204:29  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
-  213:37  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
-  305:29  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\app\page.tsx:46:52
+  44 |
+  45 |   // Generate a shuffle seed ONCE per page load ÔÇö stays stable across re-renders
+> 46 |   const shuffleSeedRef = useRef<number>(Math.floor(Math.random() * 2147483647));
+     |                                                    ^^^^^^^^^^^^^ Cannot call impure function
+  47 |
+  48 |   // Filter videos EXCLUDING shorts (Ôëñ 60s)
+  49 |   const filteredVideos = useMemo(() => {  react-hooks/purity
 
-C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\app\watch\[id]\page.tsx
-  108:18  warning  'e' is defined but never used                                                                                                                                                                                                                                                            @typescript-eslint/no-unused-vars
-  125:18  warning  'e' is defined but never used                                                                                                                                                                                                                                                            @typescript-eslint/no-unused-vars
-  224:33  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
-  358:29  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\app\settings\page.tsx
+  22:33  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
 
-C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\components\video\CustomPlayer.tsx
-  411:21  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\components\interactive\LegacyVault.tsx
+  5:23  warning  'Search' is defined but never used     @typescript-eslint/no-unused-vars
+  5:37  warning  'Info' is defined but never used       @typescript-eslint/no-unused-vars
+  5:60  warning  'Database' is defined but never used   @typescript-eslint/no-unused-vars
+  5:70  warning  'Megaphone' is defined but never used  @typescript-eslint/no-unused-vars
 
-C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\components\video\ShortsShelf.tsx
-  203:21  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\components\layout\InstallBanner.tsx
+  14:12  warning  'isAndroid' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          @typescript-eslint/no-unused-vars
+  29:9   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\components\layout\InstallBanner.tsx:29:9
+  27 |         if (!isMobile) return;
+  28 |
+> 29 |         setIsIOS(/iPhone|iPad|iPod/i.test(navigator.userAgent));
+     |         ^^^^^^^^ Avoid calling setState() directly within an effect
+  30 |         setIsAndroid(/Android/i.test(navigator.userAgent));
+  31 |
+  32 |         // Show after 8 seconds of browsing  react-hooks/set-state-in-effect
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\components\video\BlackCinemaGallery.tsx
+  614:13  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\components\video\BlackCinemaGallery.tsx:614:13
+  612 |     useEffect(() => {
+  613 |         if (activeChannel.films.length > 0) {
+> 614 |             setActiveVideo(activeChannel.films[0]);
+      |             ^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  615 |         }
+  616 |         // Show tune-in overlay
+  617 |         setShowTuneIn(true);  react-hooks/set-state-in-effect
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\components\video\CivilRightsGallery.tsx
+    3:46   warning  'useCallback' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           @typescript-eslint/no-unused-vars
+    4:57   warning  'SkipForward' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           @typescript-eslint/no-unused-vars
+    4:70   warning  'Clock' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 @typescript-eslint/no-unused-vars
+    4:122  warning  'Zap' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   @typescript-eslint/no-unused-vars
+  320:24   error    Error: Cannot reassign variable after render completes
+
+Reassigning `hideTimer` after render has completed can cause inconsistent behavior on subsequent renders. Consider using state instead.
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\components\video\CivilRightsGallery.tsx:320:24
+  318 |         setShowControls(true);
+  319 |         clearTimeout(hideTimer);
+> 320 |         if (isPlaying) hideTimer = setTimeout(() => setShowControls(false), 3000);
+      |                        ^^^^^^^^^ Cannot reassign `hideTimer` after render completes
+  321 |     };
+  322 |
+  323 |     return (  react-hooks/immutability
 
 C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\components\video\VideoCard.tsx
-   34:83  warning  'isUploading' is assigned a value but never used                                                                                                                                                                                                                                         @typescript-eslint/no-unused-vars
-   34:96  warning  'uploadProgress' is assigned a value but never used                                                                                                                                                                                                                                      @typescript-eslint/no-unused-vars
-   40:12  warning  'isUploadingVideo' is assigned a value but never used                                                                                                                                                                                                                                    @typescript-eslint/no-unused-vars
-  279:14  warning  'e' is defined but never used                                                                                                                                                                                                                                                            @typescript-eslint/no-unused-vars
-  364:17  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
-  434:25  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  70:9   error  Error: Calling setState synchronously within an effect can trigger cascading renders
 
-C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\hooks\useDominantColor.ts
-  7:34  warning  '_imageUrl' is defined but never used  @typescript-eslint/no-unused-vars
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
 
-Ô£û 47 problems (14 errors, 33 warnings)
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\components\video\VideoCard.tsx:70:9
+  68 |     useEffect(() => {
+  69 |         const hoverQuery = window.matchMedia("(hover: hover)");
+> 70 |         setCanHover(hoverQuery.matches);
+     |         ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  71 |         const handler = (e: MediaQueryListEvent) => setCanHover(e.matches);
+  72 |         hoverQuery.addEventListener("change", handler);
+  73 |         return () => hoverQuery.removeEventListener("change", handler);  react-hooks/set-state-in-effect
+  90:13  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\components\video\VideoCard.tsx:90:13
+  88 |             }, 600);
+  89 |         } else {
+> 90 |             setShowPreview(false);
+     |             ^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  91 |             if (videoRef.current) {
+  92 |                 videoRef.current.pause();
+  93 |                 videoRef.current.removeAttribute('src');                                                                                                                     react-hooks/set-state-in-effect
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\context\VideoContext.tsx
+   228:7  warning  'isLikelyHEVC' is assigned a value but never used                                                              @typescript-eslint/no-unused-vars
+  1022:8  warning  React Hook useCallback has a missing dependency: 'user?.id'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  1119:8  warning  React Hook useCallback has a missing dependency: 'user?.id'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\lib\cloudflare-loader.ts
+  8:7  warning  'normalizeSrc' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+Ô£û 30 problems (8 errors, 22 warnings)
 

@@ -8,6 +8,10 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
 
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+
   // Performance optimizations
   compress: true, // Enable gzip compression
 

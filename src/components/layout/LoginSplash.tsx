@@ -22,8 +22,16 @@ export const LoginSplash: React.FC<LoginSplashProps> = ({ onUnlock }) => {
 
     const handleUnlock = (e?: React.FormEvent) => {
         e?.preventDefault();
-        const validCode = process.env.NEXT_PUBLIC_GATEWAY_CODE || '2585';
-        if (accessCode === validCode) {
+        const inputCode = accessCode.trim();
+        // Priority: Env Var > Hardcoded Fallback
+        const validCode = process.env.NEXT_PUBLIC_GATEWAY_CODE || '1318';
+
+        console.log(`[Gateway] Validation Attempt:`);
+        console.log(`- Input: "${inputCode}"`);
+        console.log(`- Expected Source: ${process.env.NEXT_PUBLIC_GATEWAY_CODE ? 'ENV_VAR' : 'FALLBACK'}`);
+        console.log(`- Match: ${inputCode === validCode}`);
+
+        if (inputCode === validCode) {
             setPhase('welcome');
             sessionStorage.setItem('guest_access_granted', 'true');
         } else {

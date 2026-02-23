@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react";
 import { User, Bell, LogOut, ChevronRight, Shield, Video, Trash2, Edit2, Camera, Upload, Sparkles, Check, X } from "lucide-react";
-import { useVideo } from "@/context/VideoContext";
+import { useVideo, type VideoProps } from "@/context/VideoContext";
 import { useAuth } from "@/context/AuthContext";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
@@ -19,7 +19,7 @@ export default function SettingsPage() {
     // Filter videos by current user
     const myVideos = videos.filter(v => v.ownerId === user?.id);
 
-    const handleEditStart = (v: any) => {
+    const handleEditStart = (v: VideoProps) => {
         setEditingVideoId(v.id);
         setEditTitle(v.title);
     };

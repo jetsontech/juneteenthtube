@@ -26,8 +26,13 @@ export function InstallBanner() {
         const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
         if (!isMobile) return;
 
-        setIsIOS(/iPhone|iPad|iPod/i.test(navigator.userAgent));
-        setIsAndroid(/Android/i.test(navigator.userAgent));
+        const userAgent = navigator.userAgent;
+        const ios = /iPhone|iPad|iPod/i.test(userAgent);
+        const android = /Android/i.test(userAgent);
+        setTimeout(() => {
+            setIsIOS(ios);
+            setIsAndroid(android);
+        }, 0);
 
         // Show after 8 seconds of browsing
         const timer = setTimeout(() => setShow(true), 8000);

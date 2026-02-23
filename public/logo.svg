@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg width="400" height="100" viewBox="0 0 400 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg width="520" height="100" viewBox="0 0 520 100" fill="none" xmlns="http://www.w3.org/2000/svg">
     <defs>
-        <linearGradient id="gold-gradient" x1="0" y1="0" x2="400" y2="100" gradientUnits="userSpaceOnUse">
+        <linearGradient id="gold-gradient" x1="0" y1="0" x2="520" y2="100" gradientUnits="userSpaceOnUse">
             <stop offset="0" stop-color="#FFD700" />
             <stop offset="0.3" stop-color="#BF953F" />
             <stop offset="0.6" stop-color="#B38728" />
@@ -33,7 +33,7 @@
     </text>
 
     <!-- Text: TUBE (Gold) -->
-    <text x="445" y="65" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="48" letter-spacing="-1" fill="url(#text-gold)">
+    <text x="365" y="65" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="48" letter-spacing="-1" fill="url(#text-gold)">
         TUBE
     </text>
     

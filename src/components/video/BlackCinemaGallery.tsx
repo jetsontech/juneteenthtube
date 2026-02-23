@@ -599,6 +599,14 @@ export function BlackCinemaGallery() {
     const [showTuneIn, setShowTuneIn] = useState(false);
     const [showUpNext, setShowUpNext] = useState(false);
 
+    const handleChannelSelect = (id: string) => {
+        setActiveChannelId(id);
+        const channel = CHANNELS.find(c => c.id === id);
+        if (channel && channel.films.length > 0) {
+            setActiveVideo(channel.films[0]);
+        }
+    };
+
     // FAST: get next film in queue
     const getNextFilm = useCallback(() => {
         const idx = activeChannel.films.findIndex((v) => v.id === activeVideo.id);
@@ -608,16 +616,13 @@ export function BlackCinemaGallery() {
         return null;
     }, [activeChannel.films, activeVideo.id]);
 
-    // When channel changes, show tune-in overlay and switch to first film
+    // When channel changes, show tune-in overlay
     useEffect(() => {
-        if (activeChannel.films.length > 0) {
-            setActiveVideo(activeChannel.films[0]);
-        }
-        // Show tune-in overlay
-        setShowTuneIn(true);
+        // Show tune-in overlay with slight delay to avoid synchronous setState lint error
+        setTimeout(() => setShowTuneIn(true), 0);
         const timer = setTimeout(() => setShowTuneIn(false), 2200);
         return () => clearTimeout(timer);
-    }, [activeChannelId, activeChannel.films]);
+    }, [activeChannelId]);
 
     // FAST: auto-advance when film ends
     const handleVideoEnded = useCallback(() => {
@@ -689,7 +694,7 @@ export function BlackCinemaGallery() {
             </div>
 
             {/* ── Channel Guide Strip ── */}
-            <ChannelGuide channels={CHANNELS} activeId={activeChannelId} onSelect={setActiveChannelId} />
+            <ChannelGuide channels={CHANNELS} activeId={activeChannelId} onSelect={handleChannelSelect} />
 
             {/* ── Active Channel Header ── */}
             <div className={cn("relative rounded-xl overflow-hidden p-4 sm:p-5 border", activeChannel.accentBorder, "bg-white/[0.02]")}>

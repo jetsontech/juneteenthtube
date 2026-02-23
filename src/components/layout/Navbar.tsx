@@ -4,7 +4,6 @@ import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import { Menu, Search, Video, Bell, User, X, UploadCloud } from "lucide-react";
 import Link from "next/link";
-import { cn } from "@/lib/utils";
 import { useVideo } from "@/context/VideoContext";
 import { useAuth } from "@/context/AuthContext";
 import { useStateFilter } from "@/context/StateContext";
@@ -118,10 +117,11 @@ export function Navbar({ onMenuClick }: NavbarProps) {
             if (confirm(`Upload Successful! Your video is being processed. Press OK to refresh.`)) {
                 window.location.reload();
             }
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error("Upload error:", error);
-            if (error.message !== "Upload cancelled") {
-                alert(`Upload Failed: ${error.message}`);
+            const message = error instanceof Error ? error.message : "Unknown error";
+            if (message !== "Upload cancelled") {
+                alert(`Upload Failed: ${message}`);
             }
         }
     };
@@ -150,9 +150,9 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                 className="fixed top-0 left-0 right-0 z-50 flex flex-col glass-heavy transition-all duration-300 navbar-layout"
             >
                 {/* Navbar Content - Exactly 3.5rem (h-14) */}
-                <div className="h-14 w-full flex items-center justify-between pl-4 pr-4 sm:pl-6 sm:pr-8">
+                <div className="h-14 w-full flex items-center justify-between pl-2 pr-3 sm:pl-6 sm:pr-8">
                     {/* Left Section */}
-                    <div className="flex items-center gap-3 sm:gap-6 shrink-0">
+                    <div className="flex items-center gap-1.5 sm:gap-6 shrink-0">
                         <button
                             onClick={onMenuClick}
                             className="p-2 hover:bg-white/10 rounded-full transition-colors text-white mt-1"
@@ -160,9 +160,9 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                         >
                             <Menu className="w-6 h-6" />
                         </button>
-                        <Link href="/" className="flex items-center gap-2 group">
+                        <Link href="/" className="flex items-center gap-1 sm:gap-2 group">
                             {/* Desktop Logo */}
-                            <div className="relative h-9 w-48 hidden sm:block">
+                            <div className="relative h-9 w-60 hidden sm:block">
                                 <Image
                                     src="/logo.svg"
                                     alt="JuneteenthTube"
@@ -172,7 +172,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                                 />
                             </div>
                             {/* Mobile Logo (Icon Only or Compact) */}
-                            <div className="relative h-8 w-44 sm:hidden">
+                            <div className="relative h-8 w-32 sm:hidden">
                                 <Image
                                     src="/logo.svg"
                                     alt="JuneteenthTube"
@@ -233,7 +233,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                     </div>
 
                     {/* Right Section */}
-                    <div className="flex items-center gap-2 sm:gap-4">
+                    <div className="flex items-center gap-0.5 sm:gap-4 ml-auto">
                         <button
                             className="p-2 hover:bg-white/10 rounded-full transition-colors text-white"
                             aria-label="Upload video"
@@ -357,6 +357,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                                             accept="image/*,video/*"
                                             className="absolute w-0 h-0 opacity-0 overflow-hidden"
                                             onChange={handleFileChange}
+                                            title="File Selection"
                                         />
                                     </>
                                 ) : uploadStep === 2 && !isUploading ? (
@@ -406,6 +407,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                                                     accept="image/*"
                                                     className="hidden"
                                                     onChange={handleThumbnailChange}
+                                                    title="Thumbnail Selection"
                                                 />
                                             </div>
 
@@ -470,7 +472,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                                         <div className="w-full h-3 bg-white/5 rounded-full overflow-hidden border border-white/5 shadow-inner">
                                             <div
                                                 className="h-full bg-gradient-to-r from-j-red via-j-gold to-j-green transition-all duration-300 ease-out"
-                                                style={{ width: `${uploadProgress}%` }}
+                                                style={{ ["--progress" as string]: `${uploadProgress}%`, width: 'var(--progress)' } as React.CSSProperties}
                                             />
                                         </div>
                                         <div className="flex items-center justify-center gap-3 pt-4">

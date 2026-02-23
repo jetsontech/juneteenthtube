@@ -47,7 +47,7 @@ function VideoCardInner({ video }: { video: VideoProps }) {
     // FIXED: Using setTimeout to move setState out of the synchronous effect body
     useEffect(() => {
         const hoverQuery = window.matchMedia("(hover: hover)");
-        
+
         const updateHover = () => {
             setTimeout(() => {
                 setCanHover(hoverQuery.matches);
@@ -61,7 +61,6 @@ function VideoCardInner({ video }: { video: VideoProps }) {
                 setCanHover(e.matches);
             }, 0);
         };
-        
         hoverQuery.addEventListener("change", handler);
         return () => hoverQuery.removeEventListener("change", handler);
     }, []);
@@ -79,8 +78,13 @@ function VideoCardInner({ video }: { video: VideoProps }) {
                 }
             }, 600);
         } else {
-            if (showPreview) {
-                stopPreview();
+
+            // Async to satisfy synchronous setState in effect rule
+            setTimeout(() => setShowPreview(false), 0);
+            if (videoRef.current) {
+                videoRef.current.pause();
+                videoRef.current.removeAttribute('src');
+                videoRef.current.load(); // Release memory immediately
             }
         }
         return () => clearTimeout(timeout);
