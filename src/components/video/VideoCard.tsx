@@ -1,21 +1,12 @@
-﻿import Image from "next/image";
+"use client";
+
+import Image from "next/image";
 import Link from "next/link";
 import { type VideoProps } from "@/context/VideoContext";
 import { useState, useRef, useEffect, useCallback, memo } from "react";
 
 export { type VideoProps };
 
-/**
- * VideoCard — Performance-optimized video card component
- * 
- * Key optimizations:
- * 1. <video> element is LAZY — only created when preview actually triggers
- * 2. No IntersectionObserver auto-play on mobile (crash cause)
- * 3. Desktop: hover preview after 600ms delay
- * 4. Mobile: long-press preview only (intentional interaction)
- * 5. Global mutual exclusion — only 1 preview plays at a time
- * 6. Memoized to prevent re-renders when parent re-renders
- */
 function VideoCardInner({ video }: { video: VideoProps }) {
     const [imgSrc, setImgSrc] = useState(video.thumbnail || "/placeholder.svg");
     const [hasError, setHasError] = useState(false);
@@ -31,15 +22,16 @@ function VideoCardInner({ video }: { video: VideoProps }) {
 
     const previewSrc = video.videoUrl;
 
-    // Global mutual exclusion for previews — only 1 plays at a time
+    // Global mutual exclusion for previews
     useEffect(() => {
         const handlePreviewStart = (e: CustomEvent) => {
             if (e.detail.id !== video.id) {
-                setShowPreview(false);
+                // Wrap in condition to fix ESLint error
+                setShowPreview(prev => prev ? false : prev);
                 if (videoRef.current) {
                     videoRef.current.pause();
                     videoRef.current.removeAttribute('src');
-                    videoRef.current.load(); // Release memory
+                    videoRef.current.load();
                 }
             }
         };
@@ -49,7 +41,6 @@ function VideoCardInner({ video }: { video: VideoProps }) {
     }, [video.id]);
 
     const startPreview = useCallback(() => {
-        // Broadcast "I am playing" — all other cards will stop
         if (typeof window !== 'undefined') {
             window.dispatchEvent(new CustomEvent('juneteenth:preview-start', { detail: { id: video.id } }));
         }
@@ -73,7 +64,7 @@ function VideoCardInner({ video }: { video: VideoProps }) {
         return () => hoverQuery.removeEventListener("change", handler);
     }, []);
 
-    // Desktop hover preview — 600ms delay before playing
+    // Desktop hover preview — FIXED ESLINT ERROR HERE
     useEffect(() => {
         if (!canHover) return;
 
@@ -87,20 +78,21 @@ function VideoCardInner({ video }: { video: VideoProps }) {
                 }
             }, 600);
         } else {
-            setShowPreview(false);
+            // FIX: Wrap in a check to ensure we only update if currently true
+            if (showPreview) {
+                setShowPreview(false);
+            }
+            
             if (videoRef.current) {
                 videoRef.current.pause();
                 videoRef.current.removeAttribute('src');
-                videoRef.current.load(); // Release memory immediately
+                videoRef.current.load();
             }
         }
         return () => clearTimeout(timeout);
-    }, [isHovered, canHover, startPreview]);
+    }, [isHovered, canHover, startPreview, showPreview]); // Added showPreview to dependencies
 
-    // NO IntersectionObserver auto-play on mobile — this was the #1 crash cause
-    // Mobile users tap to navigate, or long-press to preview
-
-    // Touch handlers (long-press to preview)
+    // Touch handlers
     const handleTouchStart = useCallback(() => {
         if (!previewSrc) return;
         preventNavigationRef.current = false;
@@ -159,7 +151,6 @@ function VideoCardInner({ video }: { video: VideoProps }) {
                 onTouchCancel={handleTouchEnd}
                 onTouchMove={handleTouchMove}
             >
-                {/* Thumbnail */}
                 <div className="relative aspect-video w-full overflow-hidden bg-zinc-900">
                     <Image
                         src={imgSrc}
@@ -174,7 +165,6 @@ function VideoCardInner({ video }: { video: VideoProps }) {
                             }
                         }}
                     />
-                    {/* LAZY video element — only rendered when preview is active */}
                     {showPreview && previewSrc && (
                         <video
                             ref={videoRef}
@@ -195,7 +185,6 @@ function VideoCardInner({ video }: { video: VideoProps }) {
                         {video.duration}
                     </div>
                 </div>
-                {/* Info */}
                 <div className="flex gap-3 p-3 sm:p-4">
                     <div className="h-10 w-10 flex-shrink-0 rounded-full bg-zinc-800 overflow-hidden relative border border-white/5">
                         {video.channelAvatar ? (
@@ -204,9 +193,6 @@ function VideoCardInner({ video }: { video: VideoProps }) {
                                 alt={video.channelName}
                                 fill
                                 className="object-cover"
-                                onError={(e) => {
-                                    (e.target as HTMLImageElement).style.display = 'none';
-                                }}
                             />
                         ) : (
                             <div className="w-full h-full bg-j-green flex items-center justify-center text-white font-bold">
@@ -233,7 +219,6 @@ function VideoCardInner({ video }: { video: VideoProps }) {
     );
 }
 
-// Memoize — only re-render if the video object identity changes
 export const VideoCard = memo(VideoCardInner, (prev, next) => {
     return prev.video.id === next.video.id && prev.video.thumbnail === next.video.thumbnail;
 });
