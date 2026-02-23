@@ -22,28 +22,18 @@ function VideoCardInner({ video }: { video: VideoProps }) {
 
     const previewSrc = video.videoUrl;
 
-    useEffect(() => {
-        const handlePreviewStart = (e: CustomEvent) => {
-            if (e.detail.id !== video.id) {
-                if (showPreview) setShowPreview(false);
-                if (videoRef.current) {
-                    videoRef.current.pause();
-                    videoRef.current.removeAttribute('src');
-                    videoRef.current.load();
-                }
-            }
-        };
-
-        window.addEventListener('juneteenth:preview-start', handlePreviewStart as EventListener);
-        return () => window.removeEventListener('juneteenth:preview-start', handlePreviewStart as EventListener);
-    }, [video.id, showPreview]);
-
     const startPreview = useCallback(() => {
-        if (typeof window !== 'undefined') {
-            window.dispatchEvent(new CustomEvent('juneteenth:preview-start', { detail: { id: video.id } }));
-        }
         setShowPreview(true);
-    }, [video.id]);
+    }, []);
+
+    const stopPreview = useCallback(() => {
+        setShowPreview(false);
+        if (videoRef.current) {
+            videoRef.current.pause();
+            videoRef.current.removeAttribute('src');
+            videoRef.current.load();
+        }
+    }, []);
 
     useEffect(() => {
         if (showPreview && videoRef.current && previewSrc) {
@@ -52,7 +42,6 @@ function VideoCardInner({ video }: { video: VideoProps }) {
         }
     }, [showPreview, previewSrc]);
 
-    // FIXED: Corrected setCanHover to avoid cascading renders
     useEffect(() => {
         const hoverQuery = window.matchMedia("(hover: hover)");
         if (canHover !== hoverQuery.matches) {
@@ -76,17 +65,10 @@ function VideoCardInner({ video }: { video: VideoProps }) {
                 }
             }, 600);
         } else {
-            if (showPreview) {
-                setShowPreview(false);
-            }
-            if (videoRef.current) {
-                videoRef.current.pause();
-                videoRef.current.removeAttribute('src');
-                videoRef.current.load();
-            }
+            stopPreview();
         }
         return () => clearTimeout(timeout);
-    }, [isHovered, canHover, startPreview, showPreview]);
+    }, [isHovered, canHover, startPreview, stopPreview]);
 
     const handleTouchStart = useCallback(() => {
         if (!previewSrc) return;
@@ -106,14 +88,9 @@ function VideoCardInner({ video }: { video: VideoProps }) {
         }
         if (isTouchPreviewing) {
             setIsTouchPreviewing(false);
-            if (videoRef.current) {
-                videoRef.current.pause();
-                videoRef.current.removeAttribute('src');
-                videoRef.current.load();
-            }
-            setShowPreview(false);
+            stopPreview();
         }
-    }, [isTouchPreviewing]);
+    }, [isTouchPreviewing, stopPreview]);
 
     const handleTouchMove = useCallback(() => {
         if (longPressTimerRef.current) {
