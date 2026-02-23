@@ -228,9 +228,13 @@ export async function POST(req: NextRequest) {
       } catch (e: unknown) {
         const error = e instanceof Error ? e : new Error(String(e));
         console.error(`--- [${videoId}] FATAL ERROR:`, error.message);
+        console.error(`Stack trace:`, error.stack);
 
-        // Update status to failed
-        await supabase.from("videos").update({ transcode_status: "failed" }).eq("id", videoId);
+        // Update status to failed with more context if possible
+        await supabase.from("videos").update({
+          transcode_status: "failed",
+          // We could add a 'transcode_error' column if it existed, but for now we just log
+        }).eq("id", videoId);
         return false;
 
 

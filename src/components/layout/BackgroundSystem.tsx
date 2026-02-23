@@ -27,7 +27,6 @@ export const BackgroundSystem = () => {
             {/* Micro-noise texture for film grain feel (static image, high perf) */}
             <div
                 className="absolute inset-0 opacity-[0.03] pointer-events-none noise-texture"
-                style={{ backgroundImage: 'url("/noise.png")' }}
             />
 
             {/* Gloss Overlay - Topmost background layer */}

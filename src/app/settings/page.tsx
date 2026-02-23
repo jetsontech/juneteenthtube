@@ -79,9 +79,10 @@ export default function SettingsPage() {
         try {
             setIsUpdatingAvatar(true);
             const seed = Math.floor(Math.random() * 1000);
-            const aiUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${seed}`;
+            const aiUrl = `https://api.dicebear.com/9.x/avataaars/svg?seed=${seed}`;
             await updateUserAvatar(aiUrl);
-            window.location.reload();
+            // Refresh to ensure all Auth state is synced across components
+            window.location.href = '/settings?updated=true';
         } catch (error) {
             console.error("AI Avatar generation failed:", error);
         } finally {
