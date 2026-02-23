@@ -27,7 +27,6 @@ function VideoCardInner({ video }: { video: VideoProps }) {
     }, []);
 
     const stopPreview = useCallback(() => {
-        // Use functional update to avoid synchronous dependency issues
         setShowPreview(prev => {
             if (prev && videoRef.current) {
                 videoRef.current.pause();
@@ -38,7 +37,6 @@ function VideoCardInner({ video }: { video: VideoProps }) {
         });
     }, []);
 
-    // Handle Video Playback
     useEffect(() => {
         if (showPreview && videoRef.current && previewSrc) {
             videoRef.current.src = previewSrc;
@@ -46,21 +44,28 @@ function VideoCardInner({ video }: { video: VideoProps }) {
         }
     }, [showPreview, previewSrc]);
 
-    // Handle Hover Capability Detection
+    // FIXED: Using setTimeout to move setState out of the synchronous effect body
     useEffect(() => {
         const hoverQuery = window.matchMedia("(hover: hover)");
         
-        // Initial check: only set if different to avoid cascading renders
-        if (canHover !== hoverQuery.matches) {
-            setCanHover(hoverQuery.matches);
-        }
+        const updateHover = () => {
+            setTimeout(() => {
+                setCanHover(hoverQuery.matches);
+            }, 0);
+        };
 
-        const handler = (e: MediaQueryListEvent) => setCanHover(e.matches);
+        updateHover(); // Initial check
+
+        const handler = (e: MediaQueryListEvent) => {
+            setTimeout(() => {
+                setCanHover(e.matches);
+            }, 0);
+        };
+        
         hoverQuery.addEventListener("change", handler);
         return () => hoverQuery.removeEventListener("change", handler);
-    }, [canHover]);
+    }, []);
 
-    // Handle Desktop Hover Preview Logic
     useEffect(() => {
         if (!canHover) return;
 
@@ -74,7 +79,6 @@ function VideoCardInner({ video }: { video: VideoProps }) {
                 }
             }, 600);
         } else {
-            // Only trigger stop if we are actually showing a preview
             if (showPreview) {
                 stopPreview();
             }
