@@ -27,14 +27,18 @@ function VideoCardInner({ video }: { video: VideoProps }) {
     }, []);
 
     const stopPreview = useCallback(() => {
-        setShowPreview(false);
-        if (videoRef.current) {
-            videoRef.current.pause();
-            videoRef.current.removeAttribute('src');
-            videoRef.current.load();
-        }
+        // Use functional update to avoid synchronous dependency issues
+        setShowPreview(prev => {
+            if (prev && videoRef.current) {
+                videoRef.current.pause();
+                videoRef.current.removeAttribute('src');
+                videoRef.current.load();
+            }
+            return false;
+        });
     }, []);
 
+    // Handle Video Playback
     useEffect(() => {
         if (showPreview && videoRef.current && previewSrc) {
             videoRef.current.src = previewSrc;
@@ -42,16 +46,21 @@ function VideoCardInner({ video }: { video: VideoProps }) {
         }
     }, [showPreview, previewSrc]);
 
+    // Handle Hover Capability Detection
     useEffect(() => {
         const hoverQuery = window.matchMedia("(hover: hover)");
+        
+        // Initial check: only set if different to avoid cascading renders
         if (canHover !== hoverQuery.matches) {
             setCanHover(hoverQuery.matches);
         }
+
         const handler = (e: MediaQueryListEvent) => setCanHover(e.matches);
         hoverQuery.addEventListener("change", handler);
         return () => hoverQuery.removeEventListener("change", handler);
     }, [canHover]);
 
+    // Handle Desktop Hover Preview Logic
     useEffect(() => {
         if (!canHover) return;
 
@@ -65,10 +74,13 @@ function VideoCardInner({ video }: { video: VideoProps }) {
                 }
             }, 600);
         } else {
-            stopPreview();
+            // Only trigger stop if we are actually showing a preview
+            if (showPreview) {
+                stopPreview();
+            }
         }
         return () => clearTimeout(timeout);
-    }, [isHovered, canHover, startPreview, stopPreview]);
+    }, [isHovered, canHover, startPreview, stopPreview, showPreview]);
 
     const handleTouchStart = useCallback(() => {
         if (!previewSrc) return;
