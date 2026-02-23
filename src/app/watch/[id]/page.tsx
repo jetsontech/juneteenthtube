@@ -156,9 +156,9 @@ export default function WatchPage({
     }
 
     return (
-        <div className="flex flex-col lg:flex-row gap-0 md:gap-6 mx-auto px-0 md:px-6 pt-2 md:pt-6 max-w-[1700px]">
+        <div className="flex flex-col gap-0 mx-auto px-0 md:px-6 pt-2 md:pt-6 max-w-[1700px]">
             {/* Primary Column - Player & Info */}
-            <div className="flex-1 min-w-0">
+            <div className="w-full">
                 {/* Player Container - Full width on mobile, no gap */}
                 <div className="relative aspect-video bg-black sm:rounded-xl overflow-hidden sm:shadow-lg sm:ring-1 sm:ring-white/10">
                     {video.videoUrl ? (
@@ -278,155 +278,142 @@ export default function WatchPage({
                     </div>
                 </div>
 
-                {/* Mobile Recommendations - Scroll under video like YouTube */}
-                <div className="mt-8 lg:hidden px-3 sm:px-0">
-                    <h3 className="text-lg font-bold text-white mb-4">Recommended for you</h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        {filteredSidebarVideos.map((v) => (
-                            <Link href={`/watch/${v.id}`} key={v.id} className="flex gap-3 cursor-pointer group">
-                                <div className="w-[160px] xs:w-[180px] aspect-video bg-gray-800 rounded-xl overflow-hidden flex-shrink-0 relative">
-                                    {v.thumbnail ? (
-                                        <Image src={v.thumbnail} fill sizes="(max-width: 640px) 160px, 180px" className="object-cover" alt={v.title} />
-                                    ) : (
-                                        <div className="w-full h-full bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center">
-                                            <span className="text-gray-500 text-xs text-center p-2">No Image</span>
-                                        </div>
-                                    )}
-                                    <div className="absolute bottom-1.5 right-1.5 bg-black/80 text-[10px] px-1.5 py-0.5 rounded text-white font-medium">
-                                        {v.duration}
+            </div>
+
+            {/* Recommendations Section - Unified Experience (Under Video) */}
+            <div className="w-full mt-8 border-t border-white/5 pt-8">
+                <div className="px-3 sm:px-0 mb-6 flex items-center justify-between">
+                    <h3 className="text-xl font-bold text-white">Recommended for you</h3>
+                    <CategoryBar
+                        categories={CATEGORIES}
+                        selectedCategory={sidebarCategory}
+                        onCategoryChange={setSidebarCategory}
+                        className="bg-transparent border-none px-0"
+                    />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6 px-3 sm:px-0">
+                    {filteredSidebarVideos.map((v) => (
+                        <Link href={`/watch/${v.id}`} key={v.id} className="flex flex-col gap-3 cursor-pointer group">
+                            <div className="w-full aspect-video bg-gray-800 rounded-2xl overflow-hidden relative shadow-lg group-hover:shadow-white/5 transition-all">
+                                {v.thumbnail ? (
+                                    <Image
+                                        src={v.thumbnail}
+                                        fill
+                                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                                        className="object-cover group-hover:scale-105 transition-transform duration-500"
+                                        alt={v.title}
+                                    />
+                                ) : (
+                                    <div className="w-full h-full bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center">
+                                        <span className="text-gray-500 text-xs">No Thumbnail</span>
                                     </div>
+                                )}
+                                <div className="absolute bottom-2 right-2 bg-black/80 px-2 py-1 rounded text-[11px] text-white font-bold backdrop-blur-sm">
+                                    {v.duration}
+                                </div>
+                            </div>
+                            <div className="flex gap-3">
+                                <div className="w-9 h-9 rounded-full bg-j-green flex-shrink-0 flex items-center justify-center text-white text-xs font-bold">
+                                    {v.channelAvatar ? (
+                                        <Image src={v.channelAvatar} width={36} height={36} className="rounded-full object-cover" alt={v.channelName} />
+                                    ) : (
+                                        v.channelName.charAt(0).toUpperCase()
+                                    )}
                                 </div>
                                 <div className="flex-1 min-w-0 pr-2">
-                                    <h4 className="font-bold text-white text-sm line-clamp-2 mb-1 group-hover:text-j-gold transition-colors leading-tight">{v.title}</h4>
-                                    <p className="text-[12px] text-gray-400">{v.channelName}</p>
+                                    <h4 className="font-bold text-white text-sm line-clamp-2 mb-1 group-hover:text-j-gold transition-colors leading-snug">{v.title}</h4>
+                                    <p className="text-[12px] text-gray-400 font-medium">{v.channelName}</p>
                                     <p className="text-[12px] text-gray-400">{v.views} views • {v.postedAt}</p>
                                 </div>
-                            </Link>
-                        ))}
-                    </div>
-                    <div className="h-px bg-white/5 w-full mt-8"></div>
-                </div>
-
-                {/* Comments Section */}
-                <div className="mt-6 px-3 sm:px-0 max-w-4xl">
-                    <div className="flex items-center gap-8 mb-6">
-                        <h3 className="text-xl font-bold text-white">{comments.length} Comments</h3>
-                        {/* Sort button could go here */}
-                    </div>
-
-                    {/* Add Comment */}
-                    <div className="flex items-start gap-4 mb-8">
-                        <div className="w-10 h-10 rounded-full bg-j-red flex-shrink-0 flex items-center justify-center text-white font-bold text-lg select-none">
-                            Y
-                        </div>
-                        <div className="flex-1">
-                            <input
-                                type="text"
-                                value={newComment}
-                                onChange={(e) => setNewComment(e.target.value)}
-                                placeholder="Add a comment..."
-                                className="w-full bg-transparent border-b border-white/20 pb-1 text-white placeholder-gray-400 focus:outline-none focus:border-white transition-colors text-sm"
-                                onKeyDown={(e) => e.key === 'Enter' && handleComment()}
-                            />
-                            <div className="flex justify-end mt-2 gap-2">
-                                <button
-                                    className="px-4 py-2 text-sm font-medium text-white hover:bg-[#272727] rounded-full transition-colors"
-                                    onClick={() => setNewComment("")}
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    onClick={handleComment}
-                                    disabled={!newComment.trim()}
-                                    className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${newComment.trim()
-                                        ? "bg-[#3ea6ff] text-black hover:bg-[#65b8ff]"
-                                        : "bg-[#272727] text-gray-500 cursor-not-allowed"
-                                        }`}
-                                >
-                                    Comment
-                                </button>
                             </div>
-                        </div>
-                    </div>
-
-                    <div className="space-y-6">
-                        {comments.length === 0 ? (
-                            <p className="text-gray-400 py-4">No comments yet.</p>
-                        ) : (
-                            comments.map((comment) => (
-                                <div key={comment.id} className="flex gap-4 group">
-                                    <div className="w-10 h-10 rounded-full bg-gray-700 flex-shrink-0 flex items-center justify-center text-white text-xs font-bold select-none">
-                                        {(comment.user_name || comment.user || "G")[0].toUpperCase()}
-                                    </div>
-                                    <div className="flex-1">
-                                        <div className="flex items-baseline gap-2 mb-1">
-                                            <span className="font-bold text-white text-sm cursor-pointer hover:text-gray-300">@{comment.user_name || comment.user || "Guest"}</span>
-                                            <span className="text-xs text-gray-400 hover:text-white cursor-pointer">
-                                                {comment.created_at ? new Date(comment.created_at).toLocaleDateString() : (comment.timestamp || "Just now")}
-                                            </span>
-                                        </div>
-                                        <p className="text-sm text-white leading-normal">{comment.content || comment.text}</p>
-                                        <div className="flex items-center gap-4 mt-2">
-                                            <button
-                                                className="flex items-center gap-1.5 text-gray-400 hover:text-white group-hover:opacity-100 opacity-0 transition-opacity"
-                                                aria-label="Like comment"
-                                            >
-                                                <ThumbsUp className="w-3.5 h-3.5" />
-                                                <span className="text-xs"></span>
-                                            </button>
-                                            <button
-                                                className="flex items-center text-gray-400 hover:text-white group-hover:opacity-100 opacity-0 transition-opacity"
-                                                aria-label="Dislike comment"
-                                            >
-                                                <ThumbsDown className="w-3.5 h-3.5" />
-                                            </button>
-                                            <button className="text-xs font-medium text-gray-400 hover:text-white rounded-full px-2 py-1 hover:bg-[#272727]">
-                                                Reply
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            ))
-                        )}
-                    </div>
+                        </Link>
+                    ))}
                 </div>
             </div>
 
-            {/* Secondary Column - Recommendations */}
-            <div className="lg:w-[400px] xl:w-[420px] flex-shrink-0 space-y-2 hidden lg:block">
-                {/* Mastered Category Filters */}
-                <CategoryBar
-                    categories={CATEGORIES}
-                    selectedCategory={sidebarCategory}
-                    onCategoryChange={setSidebarCategory}
-                    className="mb-4 bg-transparent border-none sticky-0 px-0"
-                />
+            {/* Comments Section */}
+            <div className="mt-12 px-3 sm:px-0 max-w-4xl border-t border-white/5 pt-12">
+                <div className="flex items-center gap-8 mb-6">
+                    <h3 className="text-xl font-bold text-white">{comments.length} Comments</h3>
+                </div>
 
-                {filteredSidebarVideos.map((v) => (
-                    <a href={`/watch/${v.id}`} key={v.id} className="flex gap-2 cursor-pointer group hover:bg-[#272727] p-2 rounded-xl transition-colors">
-                        <div className="w-[168px] aspect-video bg-gray-800 rounded-lg overflow-hidden flex-shrink-0 relative">
-                            {v.thumbnail ? (
-                                <Image src={v.thumbnail} fill sizes="168px" className="object-cover" alt={v.title} />
-                            ) : (
-                                <div className="w-full h-full bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center">
-                                    <span className="text-gray-500 text-xs">No Thumbnail</span>
+                {/* Add Comment */}
+                <div className="flex items-start gap-4 mb-8">
+                    <div className="w-10 h-10 rounded-full bg-j-red flex-shrink-0 flex items-center justify-center text-white font-bold text-lg select-none">
+                        Y
+                    </div>
+                    <div className="flex-1">
+                        <input
+                            type="text"
+                            value={newComment}
+                            onChange={(e) => setNewComment(e.target.value)}
+                            placeholder="Add a comment..."
+                            className="w-full bg-transparent border-b border-white/20 pb-1 text-white placeholder-gray-400 focus:outline-none focus:border-white transition-colors text-sm"
+                            onKeyDown={(e) => e.key === 'Enter' && handleComment()}
+                        />
+                        <div className="flex justify-end mt-2 gap-2">
+                            <button
+                                className="px-4 py-2 text-sm font-medium text-white hover:bg-[#272727] rounded-full transition-colors"
+                                onClick={() => setNewComment("")}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleComment}
+                                disabled={!newComment.trim()}
+                                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${newComment.trim()
+                                    ? "bg-[#3ea6ff] text-black hover:bg-[#65b8ff]"
+                                    : "bg-[#272727] text-gray-500 cursor-not-allowed"
+                                    }`}
+                            >
+                                Comment
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="space-y-6 pb-20">
+                    {comments.length === 0 ? (
+                        <p className="text-gray-400 py-4">No comments yet.</p>
+                    ) : (
+                        comments.map((comment) => (
+                            <div key={comment.id} className="flex gap-4 group">
+                                <div className="w-10 h-10 rounded-full bg-gray-700 flex-shrink-0 flex items-center justify-center text-white text-xs font-bold select-none">
+                                    {(comment.user_name || comment.user || "G")[0].toUpperCase()}
                                 </div>
-                            )}
-                            <div className="absolute bottom-1.5 right-1.5 bg-black/80 text-[10px] px-1.5 py-0.5 rounded text-white font-medium tracking-wide">
-                                {v.duration}
+                                <div className="flex-1">
+                                    <div className="flex items-baseline gap-2 mb-1">
+                                        <span className="font-bold text-white text-sm cursor-pointer hover:text-gray-300">@{comment.user_name || comment.user || "Guest"}</span>
+                                        <span className="text-xs text-gray-400 hover:text-white cursor-pointer">
+                                            {comment.created_at ? new Date(comment.created_at).toLocaleDateString() : (comment.timestamp || "Just now")}
+                                        </span>
+                                    </div>
+                                    <p className="text-sm text-white leading-normal">{comment.content || comment.text}</p>
+                                    <div className="flex items-center gap-4 mt-2">
+                                        <button
+                                            className="flex items-center gap-1.5 text-gray-400 hover:text-white group-hover:opacity-100 opacity-0 transition-opacity"
+                                            aria-label="Like comment"
+                                        >
+                                            <ThumbsUp className="w-3.5 h-3.5" />
+                                            <span className="text-xs"></span>
+                                        </button>
+                                        <button
+                                            className="flex items-center text-gray-400 hover:text-white group-hover:opacity-100 opacity-0 transition-opacity"
+                                            aria-label="Dislike comment"
+                                        >
+                                            <ThumbsDown className="w-3.5 h-3.5" />
+                                        </button>
+                                        <button className="text-xs font-medium text-gray-400 hover:text-white rounded-full px-2 py-1 hover:bg-[#272727]">
+                                            Reply
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                        <div className="flex-1 min-w-0 pr-4">
-                            <h4 className="font-bold text-white text-sm line-clamp-2 mb-1 group-hover:text-white transition-colors leading-tight">{v.title}</h4>
-                            <p className="text-xs text-gray-400 hover:text-white transition-colors">{v.channelName}</p>
-                            <p className="text-xs text-gray-400">{v.views} views • {v.postedAt}</p>
-                        </div>
-                        <div className="opacity-0 group-hover:opacity-100 self-start p-1 -mr-2">
-                            <MoreHorizontal className="w-5 h-5 text-white transform rotate-90" />
-                        </div>
-                    </a>
-                ))}
+                        ))
+                    )}
+                </div>
             </div>
-        </div>
+        </div >
     );
 }
