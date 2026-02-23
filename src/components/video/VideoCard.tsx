@@ -22,12 +22,10 @@ function VideoCardInner({ video }: { video: VideoProps }) {
 
     const previewSrc = video.videoUrl;
 
-    // Global mutual exclusion for previews
     useEffect(() => {
         const handlePreviewStart = (e: CustomEvent) => {
             if (e.detail.id !== video.id) {
-                // Wrap in condition to fix ESLint error
-                setShowPreview(prev => prev ? false : prev);
+                if (showPreview) setShowPreview(false);
                 if (videoRef.current) {
                     videoRef.current.pause();
                     videoRef.current.removeAttribute('src');
@@ -38,7 +36,7 @@ function VideoCardInner({ video }: { video: VideoProps }) {
 
         window.addEventListener('juneteenth:preview-start', handlePreviewStart as EventListener);
         return () => window.removeEventListener('juneteenth:preview-start', handlePreviewStart as EventListener);
-    }, [video.id]);
+    }, [video.id, showPreview]);
 
     const startPreview = useCallback(() => {
         if (typeof window !== 'undefined') {
@@ -47,7 +45,6 @@ function VideoCardInner({ video }: { video: VideoProps }) {
         setShowPreview(true);
     }, [video.id]);
 
-    // When showPreview becomes true AND we have a video ref, start playing
     useEffect(() => {
         if (showPreview && videoRef.current && previewSrc) {
             videoRef.current.src = previewSrc;
@@ -55,16 +52,17 @@ function VideoCardInner({ video }: { video: VideoProps }) {
         }
     }, [showPreview, previewSrc]);
 
-    // Detect hover capability
+    // FIXED: Corrected setCanHover to avoid cascading renders
     useEffect(() => {
         const hoverQuery = window.matchMedia("(hover: hover)");
-        setCanHover(hoverQuery.matches);
+        if (canHover !== hoverQuery.matches) {
+            setCanHover(hoverQuery.matches);
+        }
         const handler = (e: MediaQueryListEvent) => setCanHover(e.matches);
         hoverQuery.addEventListener("change", handler);
         return () => hoverQuery.removeEventListener("change", handler);
-    }, []);
+    }, [canHover]);
 
-    // Desktop hover preview — FIXED ESLINT ERROR HERE
     useEffect(() => {
         if (!canHover) return;
 
@@ -78,11 +76,9 @@ function VideoCardInner({ video }: { video: VideoProps }) {
                 }
             }, 600);
         } else {
-            // FIX: Wrap in a check to ensure we only update if currently true
             if (showPreview) {
                 setShowPreview(false);
             }
-            
             if (videoRef.current) {
                 videoRef.current.pause();
                 videoRef.current.removeAttribute('src');
@@ -90,9 +86,8 @@ function VideoCardInner({ video }: { video: VideoProps }) {
             }
         }
         return () => clearTimeout(timeout);
-    }, [isHovered, canHover, startPreview, showPreview]); // Added showPreview to dependencies
+    }, [isHovered, canHover, startPreview, showPreview]);
 
-    // Touch handlers
     const handleTouchStart = useCallback(() => {
         if (!previewSrc) return;
         preventNavigationRef.current = false;
