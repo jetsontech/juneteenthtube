@@ -30,6 +30,14 @@ export function Navbar({ onMenuClick }: NavbarProps) {
     const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
     const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
     const userMenuRef = useRef<HTMLDivElement>(null);
+    const thumbnailInputRef = useRef<HTMLInputElement>(null);
+
+    // Multi-step Upload State
+    const [uploadStep, setUploadStep] = useState<1 | 2>(1);
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const [selectedThumbnail, setSelectedThumbnail] = useState<File | null>(null);
+    const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
+
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -47,19 +55,10 @@ export function Navbar({ onMenuClick }: NavbarProps) {
     };
 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        // Clear input value to allow re-selection, but keep reference to file
         const input = e.target;
         const file = input.files?.[0];
-        // Reset immediately so the user can select the same file again if they want
-        // (Wait a tick might be safer, but this usually works if we grabbed the file ref)
-        // input.value = ""; // Doing this at the end or validation might be better
+        if (!file) return;
 
-        if (!file) {
-            alert("Caught input change, but NO file found in target.files"); // Debug
-            return;
-        }
-
-        // Detect file type
         const isImage = file.type.startsWith("image/");
         const isVideo = file.type.startsWith("video/");
 
@@ -69,56 +68,81 @@ export function Navbar({ onMenuClick }: NavbarProps) {
             return;
         }
 
-        alert(`Selected: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)\nType: ${isImage ? "Image" : "Video"}\nStarting Upload...`);
-
-        try {
-            // Route to appropriate upload function based on file type
-            if (isImage) {
-                // For images, use uploadPhoto with optional caption
+        if (isVideo) {
+            // For videos, go to step 2 to select metadata and thumbnail
+            setSelectedFile(file);
+            setUploadStep(2);
+        } else if (isImage) {
+            // Standard photo upload for direct image selection in Step 1
+            try {
                 await uploadPhoto(file, selectedCategory, selectedUploadState.code);
-            } else {
-                // For videos, use uploadVideo
-                await uploadVideo(file, selectedCategory, selectedUploadState.code);
+                setIsUploadOpen(false);
+                setSelectedCategory("All");
+                setSelectedUploadState(DEFAULT_STATE);
+                input.value = "";
+                if (confirm(`Upload Successful! Press OK to refresh and see your photo.`)) {
+                    window.location.reload();
+                }
+            } catch (err) {
+                console.error("Photo upload failed:", err);
+                alert("Photo upload failed");
             }
-
-            setIsUploadOpen(false);
-            setSelectedCategory("All"); // Reset category after upload
-            setSelectedUploadState(DEFAULT_STATE); // Reset state after upload
-            input.value = "";
-
-            const contentType = isImage ? "photo" : "video";
-            if (confirm(`Upload Successful! Press OK to refresh and see your ${contentType}.`)) {
-                window.location.reload();
-            }
-
-        } catch (error: unknown) {
-            input.value = "";
-            console.error("Upload error:", error);
-            // Don't alert if it was just cancelled
-            if (error instanceof Error && error.message === "Upload cancelled") return;
-
-            let errorMessage = "Unknown error occurred";
-            if (error instanceof Error) {
-                errorMessage = error.message;
-            } else if (typeof error === "object") {
-                errorMessage = JSON.stringify(error);
-            }
-
-            // Detailed error for user debugging
-            alert(`Upload Failed: ${errorMessage}\n\nCheck the Console (F12) for more details.`);
         }
     };
+
+    const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file && file.type.startsWith("image/")) {
+            setSelectedThumbnail(file);
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setThumbnailPreview(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const handleStartUpload = async () => {
+        if (!selectedFile) return;
+
+        try {
+            await uploadVideo(selectedFile, selectedThumbnail, selectedCategory, selectedUploadState.code);
+            setIsUploadOpen(false);
+            setUploadStep(1);
+            setSelectedFile(null);
+            setSelectedThumbnail(null);
+            setThumbnailPreview(null);
+            setSelectedCategory("All");
+            setSelectedUploadState(DEFAULT_STATE);
+
+            if (confirm(`Upload Successful! Your video is being processed. Press OK to refresh.`)) {
+                window.location.reload();
+            }
+        } catch (error: any) {
+            console.error("Upload error:", error);
+            if (error.message !== "Upload cancelled") {
+                alert(`Upload Failed: ${error.message}`);
+            }
+        }
+    };
+
 
     const handleClose = () => {
         if (isUploading) {
             if (confirm("Upload in progress. Are you sure you want to cancel?")) {
                 cancelUpload();
                 setIsUploadOpen(false);
+                setUploadStep(1);
             }
         } else {
             setIsUploadOpen(false);
+            setUploadStep(1);
+            setSelectedFile(null);
+            setSelectedThumbnail(null);
+            setThumbnailPreview(null);
         }
     };
+
 
     return (
         <>
@@ -311,82 +335,19 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                                 </button>
                             </div>
 
-                            <div className="p-12 flex flex-col items-center justify-center text-center gap-6">
-                                <div className="w-32 h-32 bg-black/40 rounded-full flex items-center justify-center mb-4">
-                                    <UploadCloud className="w-16 h-16 text-gray-500" />
-                                </div>
-
-                                {!isUploading ? (
-                                    <div>
-                                        <p className="text-lg text-white mb-2">Drag and drop files to upload</p>
-                                        <p className="text-sm text-gray-400">Photos and videos will be private until you publish them.</p>
-                                    </div>
-                                ) : (
-                                    <div className="w-full max-w-sm space-y-4">
-                                        <div className="flex justify-between text-sm text-white mb-1">
-                                            <span>Uploading...</span>
-                                            <span className="font-mono">{uploadProgress}%</span>
-                                        </div>
-                                        <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
-                                            <div
-                                                className={cn("h-full bg-j-red transition-all duration-300 ease-out progress-fill")}
-                                                ref={(el) => { if (el) el.style.setProperty('--progress-percent', `${uploadProgress}%`); }}
-                                            />
-                                        </div>
-                                        <p className="text-xs text-gray-400">
-                                            Please keep this tab open. Large files may take time.
-                                        </p>
-                                    </div>
-                                )}
-
-                                {/* Category Selector */}
-                                <div className="w-full max-w-xs">
-                                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                                        Category
-                                    </label>
-                                    <select
-                                        value={selectedCategory}
-                                        onChange={(e) => setSelectedCategory(e.target.value)}
-                                        className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-j-gold/50 focus:border-j-gold/50 transition-all"
-                                        disabled={isUploading}
-                                        aria-label="Select content category"
-                                    >
-                                        {CATEGORIES.map((cat) => (
-                                            <option key={cat} value={cat} className="bg-gray-900 text-white">
-                                                {cat}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-
-                                {/* State Selector */}
-                                <div className="w-full max-w-xs">
-                                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                                        State / Region
-                                    </label>
-                                    <select
-                                        value={selectedUploadState.code}
-                                        onChange={(e) => {
-                                            const state = US_STATES.find(s => s.code === e.target.value);
-                                            if (state) setSelectedUploadState(state);
-                                        }}
-                                        className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-j-gold/50 focus:border-j-gold/50 transition-all"
-                                        disabled={isUploading}
-                                        aria-label="Select content state/region"
-                                    >
-                                        {US_STATES.map((state) => (
-                                            <option key={state.code} value={state.code} className="bg-gray-900 text-white">
-                                                {state.name}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-
-                                {!isUploading ? (
+                            <div className="p-8 flex flex-col items-center justify-center text-center gap-6">
+                                {uploadStep === 1 && !isUploading ? (
                                     <>
+                                        <div className="w-32 h-32 bg-black/40 rounded-full flex items-center justify-center mb-4">
+                                            <UploadCloud className="w-16 h-16 text-gray-500" />
+                                        </div>
+                                        <div>
+                                            <p className="text-lg text-white mb-2">Drag and drop files to upload</p>
+                                            <p className="text-sm text-gray-400">Photos and videos will be private until you publish them.</p>
+                                        </div>
                                         <button
                                             onClick={() => fileInputRef.current?.click()}
-                                            className="bg-j-red text-white font-bold px-6 py-2.5 rounded-sm transition-colors uppercase text-sm tracking-wide cursor-pointer hover:bg-red-700"
+                                            className="bg-j-red text-white font-bold px-6 py-2.5 rounded-sm transition-colors uppercase text-sm tracking-wide cursor-pointer hover:bg-red-700 mt-4"
                                         >
                                             Select Files
                                         </button>
@@ -396,18 +357,138 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                                             accept="image/*,video/*"
                                             className="absolute w-0 h-0 opacity-0 overflow-hidden"
                                             onChange={handleFileChange}
-                                            aria-label="Upload photo or video file"
                                         />
                                     </>
+                                ) : uploadStep === 2 && !isUploading ? (
+                                    <div className="w-full space-y-6">
+                                        <div className="flex items-center gap-4 bg-black/20 p-4 rounded-xl border border-white/5">
+                                            <div className="w-12 h-12 bg-j-red/20 rounded-lg flex items-center justify-center">
+                                                <Video className="w-6 h-6 text-j-red" />
+                                            </div>
+                                            <div className="text-left flex-1 min-w-0">
+                                                <p className="text-white font-bold truncate text-sm">{selectedFile?.name}</p>
+                                                <p className="text-gray-500 text-xs uppercase tracking-widest mt-0.5">Ready to upload</p>
+                                            </div>
+                                            <button
+                                                onClick={() => { setSelectedFile(null); setUploadStep(1); }}
+                                                className="text-xs font-bold text-gray-400 hover:text-white uppercase tracking-widest"
+                                            >
+                                                Change
+                                            </button>
+                                        </div>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-left">
+                                            <div className="space-y-4">
+                                                <label className="block text-sm font-black text-white/40 uppercase tracking-[0.2em]">Thumbnail Selection</label>
+                                                <div
+                                                    className="w-full aspect-video bg-black/40 rounded-2xl border-2 border-dashed border-white/10 hover:border-j-gold/50 cursor-pointer overflow-hidden relative group transition-all"
+                                                    onClick={() => thumbnailInputRef.current?.click()}
+                                                >
+                                                    {thumbnailPreview ? (
+                                                        <Image src={thumbnailPreview} alt="Preview" fill className="object-cover" />
+                                                    ) : (
+                                                        <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
+                                                            <div className="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center group-hover:bg-j-gold/20 transition-colors">
+                                                                <Image src="/logo.svg" alt="" width={20} height={20} className="opacity-20 group-hover:opacity-100 transition-opacity" />
+                                                            </div>
+                                                            <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Add Custom Thumbnail</span>
+                                                        </div>
+                                                    )}
+                                                    {thumbnailPreview && (
+                                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity backdrop-blur-[2px]">
+                                                            <span className="text-[10px] font-black text-white uppercase tracking-widest bg-j-gold/80 px-3 py-1.5 rounded-full shadow-lg">Change Image</span>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <input
+                                                    ref={thumbnailInputRef}
+                                                    type="file"
+                                                    accept="image/*"
+                                                    className="hidden"
+                                                    onChange={handleThumbnailChange}
+                                                />
+                                            </div>
+
+                                            <div className="space-y-6">
+                                                {/* Category Selector */}
+                                                <div>
+                                                    <label className="block text-sm font-black text-white/40 uppercase tracking-[0.2em] mb-3">Content Category</label>
+                                                    <select
+                                                        value={selectedCategory}
+                                                        onChange={(e) => setSelectedCategory(e.target.value)}
+                                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-j-gold/30 transition-all appearance-none cursor-pointer"
+                                                        aria-label="Content Category"
+                                                    >
+
+                                                        {CATEGORIES.map((cat) => (
+                                                            <option key={cat} value={cat} className="bg-[#1e1e1e] text-white">
+                                                                {cat}
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+
+                                                {/* State Selector */}
+                                                <div>
+                                                    <label className="block text-sm font-black text-white/40 uppercase tracking-[0.2em] mb-3">Regional Tag</label>
+                                                    <select
+                                                        value={selectedUploadState.code}
+                                                        onChange={(e) => {
+                                                            const state = US_STATES.find(s => s.code === e.target.value);
+                                                            if (state) setSelectedUploadState(state);
+                                                        }}
+                                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-j-gold/30 transition-all appearance-none cursor-pointer"
+                                                        aria-label="State or Region"
+                                                    >
+
+                                                        {US_STATES.map((state) => (
+                                                            <option key={state.code} value={state.code} className="bg-[#1e1e1e] text-white">
+                                                                {state.name}
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="pt-4">
+                                            <button
+                                                onClick={handleStartUpload}
+                                                className="w-full bg-gradient-to-r from-j-red to-red-700 text-white font-black py-4 rounded-xl transition-all shadow-xl shadow-red-900/20 active:scale-95 uppercase tracking-widest text-sm"
+                                            >
+                                                Publish Video
+                                            </button>
+                                            <p className="mt-4 text-[10px] text-gray-500 font-medium">Final details can be changed later in Studio</p>
+                                        </div>
+                                    </div>
                                 ) : (
-                                    <button
-                                        onClick={cancelUpload}
-                                        className="flex items-center gap-2 px-6 py-2.5 border border-red-500/50 text-red-500 rounded-lg hover:bg-red-500/10 transition-colors font-medium text-sm"
-                                    >
-                                        <X className="w-4 h-4" /> Cancel Upload
-                                    </button>
+                                    <div className="w-full max-w-sm space-y-4 py-8">
+                                        <div className="flex justify-between text-sm text-white mb-1">
+                                            <span className="font-bold uppercase tracking-widest text-xs">Uploading...</span>
+                                            <span className="font-black text-j-gold">{uploadProgress}%</span>
+                                        </div>
+                                        <div className="w-full h-3 bg-white/5 rounded-full overflow-hidden border border-white/5 shadow-inner">
+                                            <div
+                                                className="h-full bg-gradient-to-r from-j-red via-j-gold to-j-green transition-all duration-300 ease-out"
+                                                style={{ width: `${uploadProgress}%` }}
+                                            />
+                                        </div>
+                                        <div className="flex items-center justify-center gap-3 pt-4">
+                                            <div className="w-2 h-2 bg-j-red animate-ping rounded-full" />
+                                            <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest">
+                                                Securing packet {Math.floor(uploadProgress * 12.4)}...
+                                            </p>
+                                        </div>
+                                        <button
+                                            onClick={cancelUpload}
+                                            className="mt-6 flex items-center gap-2 px-6 py-2 border border-red-500/20 text-red-500/50 rounded-lg hover:bg-red-500/10 hover:text-red-500 transition-all font-black text-[10px] uppercase tracking-widest mx-auto"
+                                        >
+                                            <X className="w-3 h-3" /> Terminate Session
+                                        </button>
+                                    </div>
                                 )}
                             </div>
+
 
                             <div className="p-4 border-t border-white/10 bg-black/20 text-center text-xs text-gray-500 rounded-b-2xl">
                                 By submitting your videos to Juneteenth Tube, you acknowledge that you agree to Net Post Media, llc&apos;s Terms of Service.

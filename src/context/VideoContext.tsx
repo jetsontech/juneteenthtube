@@ -162,8 +162,9 @@ const MOCK_VIDEOS: VideoProps[] = [
 
 interface VideoContextType {
     videos: VideoProps[];
-    uploadVideo: (file: File, category?: string, state?: string) => Promise<void>;
+    uploadVideo: (file: File, thumbnailFile?: File | null, category?: string, state?: string) => Promise<void>;
     uploadPhoto: (file: File, caption?: string, state?: string) => Promise<void>;
+
     getVideoById: (id: string) => VideoProps | undefined;
     isUploading: boolean;
     uploadProgress: number;
@@ -816,8 +817,9 @@ export function VideoProvider({ children }: { children: ReactNode }) {
     };
 
 
-    const uploadVideo = useCallback(async (file: File, category: string = "All", state: string = "GLOBAL") => {
-        console.log("uploadVideo called for:", file.name);
+    const uploadVideo = useCallback(async (file: File, thumbnailFile: File | null = null, category: string = "All", state: string = "GLOBAL") => {
+        console.log("uploadVideo called for:", file.name, "with thumbnail:", thumbnailFile?.name);
+
         console.trace("uploadVideo Call Stack");
         setIsUploading(true);
 
@@ -906,8 +908,37 @@ export function VideoProvider({ children }: { children: ReactNode }) {
                 console.warn("Could not capture duration", e);
             }
 
+            // 1. Upload Thumbnail if provided
+            let thumbnailPath = "";
+            if (thumbnailFile) {
+                console.log("Uploading custom thumbnail...");
+                const thumbRes = await fetch("/api/upload", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        filename: `thumb_${Date.now()}_${thumbnailFile.name}`,
+                        contentType: thumbnailFile.type || "image/jpeg",
+                    }),
+                    signal
+                });
+                if (thumbRes.ok) {
+                    const { signedUrl: thumbSignedUrl, publicUrl: thumbPublicUrl } = await thumbRes.json();
+                    await new Promise<void>((resolve, reject) => {
+                        const xhr = new XMLHttpRequest();
+                        xhr.open("PUT", thumbSignedUrl);
+                        xhr.setRequestHeader("Content-Type", thumbnailFile.type || "image/jpeg");
+                        xhr.onload = () => (xhr.status >= 200 && xhr.status < 300) ? resolve() : reject(new Error("Thumbnail upload failed"));
+                        xhr.onerror = () => reject(new Error("Network error during thumbnail upload"));
+                        xhr.send(thumbnailFile);
+                    });
+                    thumbnailPath = thumbPublicUrl;
+                    console.log("Custom thumbnail uploaded:", thumbnailPath);
+                }
+            }
+
             // CHECK: Is this an HEVC video (likely from iPhone)?
             const needsTranscoding = isLikelyHEVC(file.name, file.type);
+
 
             // FIX: Call the API instead of direct DB insert
             console.log('Calling API to create video record...');
@@ -917,13 +948,14 @@ export function VideoProvider({ children }: { children: ReactNode }) {
                 body: JSON.stringify({
                     title: file.name.replace(/\.[^/.]+$/, ""),
                     video_url: publicUrl,
-                    thumbnail_url: "",
+                    thumbnail_url: thumbnailPath || "",
                     category: category,
                     duration: duration,
                     state: state,
                     transcode_status: needsTranscoding ? 'pending' : null,
                     owner_id: user?.id
                 })
+
 
             });
 
