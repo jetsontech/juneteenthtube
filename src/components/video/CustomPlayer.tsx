@@ -139,12 +139,14 @@ export function CustomPlayer({ src, srcH264, poster }: CustomPlayerProps) {
             });
 
             // Reactive fallback: if primary source fails, try H.264 version
+            // This is the core of our cross-platform "and vice versa" strategy
             if ((error?.code === 3 || error?.code === 4) && srcH264 && !triedFallback) {
-                console.log('🔄 Trying H.264 fallback:', srcH264);
+                console.log('🔄 Secondary Source Fallback: Switching to H.264 compat-king version');
                 setTriedFallback(true);
                 setActiveSrc(srcH264);
+                setPlaybackError(null); // Clear error and try again
             } else if (error?.code === 3 || error?.code === 4) {
-                setPlaybackError('Video format may not be supported in this browser');
+                setPlaybackError('Video format not supported. Try viewing in Chrome or Safari.');
             }
             setIsBuffering(false);
         };

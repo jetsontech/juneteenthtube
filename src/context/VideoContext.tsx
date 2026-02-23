@@ -936,8 +936,8 @@ export function VideoProvider({ children }: { children: ReactNode }) {
                 }
             }
 
-            // CHECK: Is this an HEVC video (likely from iPhone)?
-            const needsTranscoding = isLikelyHEVC(file.name, file.type);
+            // UNIVERSAL TRANSCODING: Always trigger transcoding to H.264 for cross-platform compatibility
+            const needsTranscoding = true;
 
 
             // FIX: Call the API instead of direct DB insert
@@ -969,47 +969,44 @@ export function VideoProvider({ children }: { children: ReactNode }) {
             await fetchVideos();
 
             // TRIGGER TRANSCODING: If HEVC, start background transcoding
-            if (needsTranscoding && insertedVideo) {
-                console.log("🔄 HEVC detected - Starting transcoding for Android compatibility...");
+            console.log("🔄 Starting universal transcoding for cross-platform (iOS/Android) compatibility...");
 
-                // Extract R2 key from publicUrl
-                const urlParts = publicUrl.split('/');
-                const sourceKey = urlParts[urlParts.length - 1];
+            // Extract R2 key from publicUrl
+            const urlParts = publicUrl.split('/');
+            const sourceKey = urlParts[urlParts.length - 1];
 
-                // Fire-and-forget transcoding (runs in background)
-                fetch('/api/transcode', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        sourceKey: sourceKey,
-                        videoId: insertedVideo.id
-                    })
-                }).then(async (res) => {
-                    if (res.ok) {
-                        const { h264Url } = await res.json();
-                        // Update DB with H.264 URL
-                        await supabase.from('videos').update({
-                            video_url_h264: h264Url,
-                            transcode_status: 'completed'
-                        }).eq('id', insertedVideo.id);
-                        console.log("✅ Transcoding complete:", h264Url);
-                        // Refresh videos to show updated status
-                        fetchVideos();
-                    } else {
-                        // Mark as failed
-                        await supabase.from('videos').update({
-                            transcode_status: 'failed'
-                        }).eq('id', insertedVideo.id);
-                        console.error("❌ Transcoding failed");
-                    }
-                }).catch((err) => {
-                    console.error("❌ Transcoding error:", err);
-                    supabase.from('videos').update({
+            // Fire-and-forget transcoding (runs in background)
+            fetch('/api/transcode', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    sourceKey: sourceKey,
+                    videoId: insertedVideo.id
+                })
+            }).then(async (res) => {
+                if (res.ok) {
+                    const { h264Url } = await res.json();
+                    // Update DB with H.264 URL
+                    await supabase.from('videos').update({
+                        video_url_h264: h264Url,
+                        transcode_status: 'completed'
+                    }).eq('id', insertedVideo.id);
+                    console.log("✅ Transcoding complete:", h264Url);
+                    // Refresh videos to show updated status
+                    fetchVideos();
+                } else {
+                    // Mark as failed
+                    await supabase.from('videos').update({
                         transcode_status: 'failed'
                     }).eq('id', insertedVideo.id);
-                });
-            }
-
+                    console.error("❌ Transcoding failed");
+                }
+            }).catch((err) => {
+                console.error("❌ Transcoding error:", err);
+                supabase.from('videos').update({
+                    transcode_status: 'failed'
+                }).eq('id', insertedVideo.id);
+            });
         } catch (err: unknown) {
             if (abortControllerRef.current?.signal.aborted || (err instanceof Error && err.message === 'Upload cancelled')) {
                 console.log('Upload was cancelled');
