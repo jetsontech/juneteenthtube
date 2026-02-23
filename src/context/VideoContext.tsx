@@ -2,7 +2,9 @@
 
 import React, { createContext, useContext, useState, ReactNode, useEffect, useRef, useMemo, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/context/AuthContext';
 import pLimit from 'p-limit';
+
 
 export interface VideoProps {
     id: string;
@@ -19,7 +21,9 @@ export interface VideoProps {
     state?: string;
     videoUrlH264?: string;
     transcodeStatus?: 'pending' | 'processing' | 'completed' | 'failed' | null;
+    ownerId?: string;
 }
+
 
 // Initial Mock Data (Fallback) - Empty, user will upload their own content
 // Initial Mock Data (Fallback) - Populated with Public Domain Classics for instant playback
@@ -170,7 +174,9 @@ interface VideoContextType {
     updateVideoThumbnail: (id: string, file: File) => Promise<void>;
     updateVideoFile: (id: string, file: File) => Promise<void>;
     incrementView: (id: string) => Promise<void>;
+    updateUserAvatar: (publicUrl: string) => Promise<void>;
     // Photo Management Functions
+
     deletePhoto: (id: string) => Promise<void>;
     updatePhotoImage: (id: string, file: File) => Promise<void>;
     // Engagement
@@ -200,7 +206,9 @@ interface DBVideo {
     // HEVC Transcoding Support
     video_url_h264?: string;
     transcode_status?: 'pending' | 'processing' | 'completed' | 'failed' | null;
+    owner_id?: string;
 }
+
 
 const VideoContext = createContext<VideoContextType | undefined>(undefined);
 
@@ -227,7 +235,9 @@ const isLikelyHEVC = (filename: string, mimeType?: string): boolean => {
 };
 
 export function VideoProvider({ children }: { children: ReactNode }) {
+    const { user } = useAuth();
     const [videos, setVideos] = useState<VideoProps[]>([]);
+
     const [isLoading, setIsLoading] = useState(true);
     const [isUploading, setIsUploading] = useState(false);
     const [uploadProgress, setUploadProgress] = useState(0);
@@ -268,8 +278,10 @@ export function VideoProvider({ children }: { children: ReactNode }) {
                         state: video.state || "GLOBAL",
                         // HEVC Transcoding Support
                         videoUrlH264: video.video_url_h264,
-                        transcodeStatus: video.transcode_status
+                        transcodeStatus: video.transcode_status,
+                        ownerId: video.owner_id
                     };
+
                 });
                 setVideos(dbVideos);
             } else {
@@ -603,6 +615,16 @@ export function VideoProvider({ children }: { children: ReactNode }) {
         }
     }, []);
 
+    const updateUserAvatar = useCallback(async (publicUrl: string) => {
+        const response = await fetch('/api/user/metadata', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ avatar_url: publicUrl })
+        });
+        if (!response.ok) throw new Error("Failed to update user avatar");
+    }, []);
+
+
     // --- PHOTO MANAGEMENT FUNCTIONS ---
 
     const deletePhoto = useCallback(async (id: string) => {
@@ -899,8 +921,10 @@ export function VideoProvider({ children }: { children: ReactNode }) {
                     category: category,
                     duration: duration,
                     state: state,
-                    transcode_status: needsTranscoding ? 'pending' : null
+                    transcode_status: needsTranscoding ? 'pending' : null,
+                    owner_id: user?.id
                 })
+
             });
 
             if (!response.ok) {
@@ -1039,8 +1063,10 @@ export function VideoProvider({ children }: { children: ReactNode }) {
                         title: title,
                         photo_url: publicUrl,
                         caption: caption || "",
-                        state: state
+                        state: state,
+                        owner_id: user?.id
                     }
+
                 ])
                 .select()
                 .single();
@@ -1070,10 +1096,11 @@ export function VideoProvider({ children }: { children: ReactNode }) {
     const contextValue = useMemo(() => ({
         videos, uploadVideo, uploadPhoto, getVideoById, isUploading, uploadProgress, cancelUpload,
         deleteVideo, updateVideoTitle, updateVideoThumbnail, updateVideoFile, incrementView,
-        deletePhoto, updatePhotoImage,
+        deletePhoto, updatePhotoImage, updateUserAvatar,
         getVideoComments, postComment, getLikes, toggleLike, getSubscription, toggleSubscription,
         isLoading
-    }), [videos, isUploading, uploadProgress, isLoading, uploadVideo, uploadPhoto, getVideoById, cancelUpload, deleteVideo, updateVideoTitle, updateVideoThumbnail, updateVideoFile, incrementView, deletePhoto, updatePhotoImage, getVideoComments, postComment, getLikes, toggleLike, getSubscription, toggleSubscription]);
+    }), [videos, isUploading, uploadProgress, isLoading, uploadVideo, uploadPhoto, getVideoById, cancelUpload, deleteVideo, updateVideoTitle, updateVideoThumbnail, updateVideoFile, incrementView, deletePhoto, updatePhotoImage, updateUserAvatar, getVideoComments, postComment, getLikes, toggleLike, getSubscription, toggleSubscription]);
+
 
     return (
         <VideoContext.Provider value={contextValue}>

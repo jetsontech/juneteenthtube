@@ -4,7 +4,8 @@ import { supabaseAdmin } from '@/lib/supabase-admin';
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { title, video_url, thumbnail_url, category, duration, state, transcode_status } = body;
+    const { title, video_url, thumbnail_url, category, duration, state, transcode_status, owner_id } = body;
+
 
     const { data, error } = await supabaseAdmin
       .from('videos')
@@ -16,8 +17,10 @@ export async function POST(req: NextRequest) {
           category,
           duration,
           state,
-          transcode_status
+          transcode_status,
+          owner_id
         }
+
       ])
       .select()
       .single();

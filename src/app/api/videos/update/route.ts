@@ -11,7 +11,8 @@ export async function PATCH(req: NextRequest) {
 
     try {
         const body = await req.json();
-        const { id, title, thumbnail_url, views, video_url, duration } = body;
+        const { id, title, thumbnail_url, views, video_url, duration, owner_id } = body;
+
 
         if (!id) {
             return NextResponse.json({ error: 'Missing Video ID' }, { status: 400 });
@@ -23,7 +24,9 @@ export async function PATCH(req: NextRequest) {
             views?: number | string;
             video_url?: string;
             duration?: string;
+            owner_id?: string;
         }
+
 
         const updates: VideoUpdates = {};
         if (title !== undefined) updates.title = title;
@@ -40,6 +43,8 @@ export async function PATCH(req: NextRequest) {
             updates.duration = duration;
             console.log(`[API] Updating duration for ${id} to ${duration}`);
         }
+        if (owner_id !== undefined) updates.owner_id = owner_id;
+
 
         if (Object.keys(updates).length === 0) {
             return NextResponse.json({ message: 'No updates provided' });
