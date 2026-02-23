@@ -3,6 +3,7 @@
 import { use, useEffect, useState, useMemo } from "react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
+import Link from "next/link";
 import { CategoryBar } from "@/components/video/CategoryBar";
 import { ThumbsUp, ThumbsDown, Share2, MoreHorizontal } from "lucide-react";
 import { useVideo } from "@/context/VideoContext";
@@ -277,6 +278,34 @@ export default function WatchPage({
                     </div>
                 </div>
 
+                {/* Mobile Recommendations - Scroll under video like YouTube */}
+                <div className="mt-8 lg:hidden px-3 sm:px-0">
+                    <h3 className="text-lg font-bold text-white mb-4">Recommended for you</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {filteredSidebarVideos.map((v) => (
+                            <Link href={`/watch/${v.id}`} key={v.id} className="flex gap-3 cursor-pointer group">
+                                <div className="w-[160px] xs:w-[180px] aspect-video bg-gray-800 rounded-xl overflow-hidden flex-shrink-0 relative">
+                                    {v.thumbnail ? (
+                                        <Image src={v.thumbnail} fill sizes="(max-width: 640px) 160px, 180px" className="object-cover" alt={v.title} />
+                                    ) : (
+                                        <div className="w-full h-full bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center">
+                                            <span className="text-gray-500 text-xs text-center p-2">No Image</span>
+                                        </div>
+                                    )}
+                                    <div className="absolute bottom-1.5 right-1.5 bg-black/80 text-[10px] px-1.5 py-0.5 rounded text-white font-medium">
+                                        {v.duration}
+                                    </div>
+                                </div>
+                                <div className="flex-1 min-w-0 pr-2">
+                                    <h4 className="font-bold text-white text-sm line-clamp-2 mb-1 group-hover:text-j-gold transition-colors leading-tight">{v.title}</h4>
+                                    <p className="text-[12px] text-gray-400">{v.channelName}</p>
+                                    <p className="text-[12px] text-gray-400">{v.views} views • {v.postedAt}</p>
+                                </div>
+                            </Link>
+                        ))}
+                    </div>
+                    <div className="h-px bg-white/5 w-full mt-8"></div>
+                </div>
 
                 {/* Comments Section */}
                 <div className="mt-6 px-3 sm:px-0 max-w-4xl">

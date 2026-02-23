@@ -69,7 +69,7 @@ export function StateSelector({ selectedState, onStateChange }: StateSelectorPro
                 ) : (
                     <MapPin className="w-4 h-4 text-j-red" />
                 )}
-                <span className="hidden sm:inline max-w-[100px] truncate">
+                <span className="hidden sm:inline max-w-[150px] truncate">
                     {selectedState.name}
                 </span>
                 <span className="sm:hidden">

@@ -48,8 +48,9 @@ export async function POST(req: NextRequest) {
     const tempDir = join(tmpdir(), "transcode-" + randomUUID());
 
     // Define the heavy work as an async function
-    const runTranscoding = async () => {
+    const runTranscoding = async (): Promise<boolean> => {
       try {
+
         console.log(`--- [${videoId}] START TRANSCODE JOB ---`);
         console.log(`Source Key: ${sourceKey}`);
 
@@ -133,15 +134,15 @@ export async function POST(req: NextRequest) {
               "-vf", "scale='min(1280,iw)':-2",
               "-y", outputPath
             ],
-            { detached: true, stdio: 'ignore' }
+            { stdio: ['ignore', 'inherit', 'inherit'] }
           );
 
-          ffmpeg.unref();
 
           ffmpeg.on("close", (code) => {
             console.log(`--- [${videoId}] FFMPEG EXIT: ${code}`);
             res(code);
           });
+
 
           ffmpeg.on("error", (err) => {
             console.error("FFmpeg spawn error:", err);
@@ -150,8 +151,9 @@ export async function POST(req: NextRequest) {
         });
 
         // TIMEOUT SAFETY: Kill process if it takes too long
-        // Vercel Pro Function Limit is 300s, Hobby is 10s (but 60s for API)
-        const TIMEOUT_MS = 50000; // 50 seconds safety
+        // Vercel Pro Function Limit is 300s
+        const TIMEOUT_MS = 280000; // 4.6 minutes (slightly under 300s limit)
+
 
         const timeoutPromise = new Promise<number>((_, rej) => {
           setTimeout(() => {
@@ -220,6 +222,8 @@ export async function POST(req: NextRequest) {
 
         if (error) throw error;
         console.log(`--- [${videoId}] JOB COMPLETE (Success)`);
+        return true;
+
 
       } catch (e: unknown) {
         const error = e instanceof Error ? e : new Error(String(e));
@@ -227,6 +231,8 @@ export async function POST(req: NextRequest) {
 
         // Update status to failed
         await supabase.from("videos").update({ transcode_status: "failed" }).eq("id", videoId);
+        return false;
+
 
       } finally {
         // Cleanup Temp
@@ -243,14 +249,22 @@ export async function POST(req: NextRequest) {
     };
 
     // Await the transcoding task within the request handler
-    // This assumes the platform allows running for ~60s
-    await runTranscoding();
+    const success = await runTranscoding();
+
+    if (!success) {
+      return NextResponse.json({
+        success: false,
+        error: "Transcoding failed",
+        videoId
+      }, { status: 500 });
+    }
 
     return NextResponse.json({
       success: true,
       message: "Transcoding completed successfully",
       videoId
     });
+
 
   } catch (error) {
     console.error("Transcode Route Top-Level Error:", error);

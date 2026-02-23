@@ -128,17 +128,17 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                 {/* Navbar Content - Exactly 3.5rem (h-14) */}
                 <div className="h-14 w-full flex items-center justify-between pl-4 pr-4 sm:pl-6 sm:pr-8">
                     {/* Left Section */}
-                    <div className="flex items-center gap-2 sm:gap-4">
+                    <div className="flex items-center gap-3 sm:gap-6 shrink-0">
                         <button
                             onClick={onMenuClick}
-                            className="p-2 hover:bg-white/10 rounded-full transition-colors text-white"
+                            className="p-2 hover:bg-white/10 rounded-full transition-colors text-white mt-1"
                             aria-label="Toggle menu"
                         >
                             <Menu className="w-6 h-6" />
                         </button>
                         <Link href="/" className="flex items-center gap-2 group">
                             {/* Desktop Logo */}
-                            <div className="relative h-10 w-40 hidden sm:block">
+                            <div className="relative h-9 w-48 hidden sm:block">
                                 <Image
                                     src="/logo.svg"
                                     alt="JuneteenthTube"
@@ -148,24 +148,26 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                                 />
                             </div>
                             {/* Mobile Logo (Icon Only or Compact) */}
-                            <div className="relative h-8 w-32 sm:hidden">
+                            <div className="relative h-8 w-44 sm:hidden">
                                 <Image
                                     src="/logo.svg"
                                     alt="JuneteenthTube"
                                     fill
-                                    className="object-contain object-left drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]"
+                                    className="object-contain object-left"
                                     priority
                                 />
                             </div>
                         </Link>
-                        <StateSelector
-                            selectedState={selectedState}
-                            onStateChange={setSelectedState}
-                        />
+                        <div className="mt-1">
+                            <StateSelector
+                                selectedState={selectedState}
+                                onStateChange={setSelectedState}
+                            />
+                        </div>
                     </div>
 
                     {/* Middle Section - Search */}
-                    <div className="hidden md:flex flex-1 max-w-2xl mx-4">
+                    <div className="hidden md:flex flex-1 max-w-xl mx-4">
                         <form
                             onSubmit={(e) => {
                                 e.preventDefault();
