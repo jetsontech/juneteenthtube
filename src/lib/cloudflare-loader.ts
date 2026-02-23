@@ -1,13 +1,5 @@
 // Image Loader for Cloudflare Image Resizing
 // Docs: https://developers.cloudflare.com/images/image-resizing/integration-with-frameworks/#nextjs
-//
-// To enable Cloudflare Image Resizing:
-//   1. Cloudflare Dashboard -> Images -> Transformations -> Enable "Resize from any origin"
-//   2. Set NEXT_PUBLIC_CLOUDFLARE_IMAGE_RESIZING=true in your .env
-
-const normalizeSrc = (src: string) => {
-    return src.startsWith('/') ? src.slice(1) : src;
-};
 
 export default function cloudflareLoader({
     src,
@@ -32,11 +24,7 @@ export default function cloudflareLoader({
         params.push(`quality=${quality}`);
     }
 
-    // NOTE: This assumes you have 'Resize from any origin' enabled in Cloudflare
-    // Check: Cloudflare Dash -> Images -> Transformations -> Resize from any origin
-
     // R2 Domain Handling
-    // If the image is coming from your R2 bucket public domain:
     if (src.includes('r2.dev') || src.includes('pub-efcc4aa0b3b24e3d97760577b0ec20bd.r2.dev')) {
         const paramsString = params.join(',');
         return `https://juneteenthtube.com/cdn-cgi/image/${paramsString}/${encodeURIComponent(src)}`;
