@@ -50,3 +50,4 @@ next-env.d.ts
 # Allow example video for review
 !example_video.mp4
 .aider*
+venv/
