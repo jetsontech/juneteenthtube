@@ -1,0 +1,84 @@
+
+> juneteenthtube@0.1.0 build
+> next build
+
+   Ôû▓ Next.js 15.1.7
+   - Environments: .env.local
+
+   Creating an optimized production build ...
+ ÔÜá Compiled with warnings
+
+./src/components/interactive/LegacyVault.tsx
+Attempted import error: 'CivilRightsGallery' is not exported from '@/components/video/CivilRightsGallery' (imported as 'CivilRightsGallery').
+
+Import trace for requested module:
+./src/components/interactive/LegacyVault.tsx
+./src/app/vault/page.tsx
+
+ ÔÜá Compiled with warnings
+
+./src/components/interactive/LegacyVault.tsx
+Attempted import error: 'CivilRightsGallery' is not exported from '@/components/video/CivilRightsGallery' (imported as 'CivilRightsGallery').
+
+Import trace for requested module:
+./src/components/interactive/LegacyVault.tsx
+./src/app/vault/page.tsx
+
+ Ô£ô Compiled successfully
+   Skipping validation of types
+   Skipping linting
+   Collecting page data ...
+   Generating static pages (0/36) ...
+   Generating static pages (9/36) 
+   Generating static pages (18/36) 
+   Generating static pages (27/36) 
+ Ô£ô Generating static pages (36/36)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                              Size     First Load JS
+Ôöî Ôùï /                                    3.76 kB         190 kB
+Ôö£ Ôùï /_not-found                          983 B           106 kB
+Ôö£ Ôùï /admin                               5.45 kB         187 kB
+Ôö£ ãÆ /api/archive-proxy                   179 B           105 kB
+Ôö£ ãÆ /api/comments                        179 B           105 kB
+Ôö£ ãÆ /api/likes                           179 B           105 kB
+Ôö£ ãÆ /api/photos                          179 B           105 kB
+Ôö£ ãÆ /api/photos/update                   179 B           105 kB
+Ôö£ ãÆ /api/subscribe                       179 B           105 kB
+Ôö£ ãÆ /api/transcode                       179 B           105 kB
+Ôö£ ãÆ /api/transcode-batch                 179 B           105 kB
+Ôö£ ãÆ /api/upload                          179 B           105 kB
+Ôö£ ãÆ /api/upload-multipart                179 B           105 kB
+Ôö£ ãÆ /api/user/metadata                   179 B           105 kB
+Ôö£ ãÆ /api/videos                          179 B           105 kB
+Ôö£ ãÆ /api/videos/create                   179 B           105 kB
+Ôö£ ãÆ /api/videos/update                   179 B           105 kB
+Ôö£ ãÆ /channel/[name]                      3.62 kB         177 kB
+Ôö£ Ôùï /debug-upload                        2.49 kB         162 kB
+Ôö£ Ôùï /explore                             188 B           185 kB
+Ôö£ Ôùï /freedom-map                         5.4 kB          124 kB
+Ôö£ Ôùï /gallery                             4.07 kB         186 kB
+Ôö£ Ôùï /georgia-united                      4.34 kB         178 kB
+Ôö£ Ôùï /history                             344 B           185 kB
+Ôö£ Ôùï /library                             348 B           185 kB
+Ôö£ Ôùï /photos                              3.82 kB         174 kB
+Ôö£ Ôùï /playlist/watch-later                1.22 kB         107 kB
+Ôö£ Ôùï /research                            5.25 kB         119 kB
+Ôö£ Ôùï /settings                            5.6 kB          184 kB
+Ôö£ Ôùï /shorts                              417 B           187 kB
+Ôö£ ãÆ /shorts/[id]                         4.41 kB         178 kB
+Ôö£ Ôùï /studio                              5.59 kB         187 kB
+Ôö£ Ôùï /subscriptions                       1.29 kB         107 kB
+Ôö£ Ôùï /vault                               14.8 kB         134 kB
+Ôö£ ãÆ /watch/[id]                          6.43 kB         188 kB
+Ôöö Ôùï /you                                 2.67 kB         166 kB
++ First Load JS shared by all            105 kB
+  Ôö£ chunks/1517-f4b91249182c3915.js      50.3 kB
+  Ôö£ chunks/4bd1b696-99329564ec3a8f01.js  52.9 kB
+  Ôöö other shared chunks (total)          2.01 kB
+
+
+Ôùï  (Static)   prerendered as static content
+ãÆ  (Dynamic)  server-rendered on demand
+

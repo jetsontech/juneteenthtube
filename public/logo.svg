@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg width="520" height="100" viewBox="0 0 520 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg width="650" height="100" viewBox="0 0 650 100" fill="none" xmlns="http://www.w3.org/2000/svg">
     <defs>
         <linearGradient id="gold-gradient" x1="0" y1="0" x2="520" y2="100" gradientUnits="userSpaceOnUse">
             <stop offset="0" stop-color="#FFD700" />
@@ -28,17 +28,17 @@
     <rect x="35" y="15" width="10" height="20" fill="url(#gold-gradient)" opacity="0.8" />
 
     <!-- Text: JUNETEENTH -->
-    <text x="110" y="65" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="48" letter-spacing="-1" fill="white">
+    <text x="100" y="65" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="52" letter-spacing="-1" fill="white">
         JUNETEENTH
     </text>
 
     <!-- Text: TUBE (Gold) -->
-    <text x="365" y="65" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="48" letter-spacing="-1" fill="url(#text-gold)">
+    <text x="430" y="65" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="52" letter-spacing="-1" fill="url(#text-gold)">
         TUBE
     </text>
     
     <!-- Subtitle -->
-    <text x="112" y="85" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="10" letter-spacing="6" fill="#888888" text-transform="uppercase">
-        Streaming Platform
+    <text x="102" y="88" font-family="Arial, Helvetica, sans-serif" font-weight="800" font-size="14" letter-spacing="4" fill="#bbbbbb" text-transform="uppercase">
+        Culture Streaming Platform
     </text>
 </svg>

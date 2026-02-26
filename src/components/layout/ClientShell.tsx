@@ -19,7 +19,6 @@ function ShellContent({ children }: { children: React.ReactNode }) {
     const isWatchPage = pathname?.startsWith('/watch/') || pathname?.startsWith('/shorts/');
 
     const [isLocked, setIsLocked] = useState(true); // Default to LOCKED
-    const [isChecking, setIsChecking] = useState(true); // Default to CHECKING
     const [touchStart, setTouchStart] = useState<{ x: number, y: number } | null>(null);
 
     // Gateway enabled - check sessionStorage
@@ -28,7 +27,6 @@ function ShellContent({ children }: { children: React.ReactNode }) {
         if (hasAccess === 'true') {
             setTimeout(() => setIsLocked(false), 0);
         }
-        setTimeout(() => setIsChecking(false), 0);
     }, []);
 
     // Lock body scroll on mobile when sidebar is open
@@ -107,8 +105,6 @@ function ShellContent({ children }: { children: React.ReactNode }) {
 
         setTouchStart(null);
     };
-
-    if (isChecking) return null;
 
     return (
         <div

@@ -437,17 +437,17 @@ function CinemaPlayer({ src, accent, onEnded, autoPlay }: { src: string; accent:
             <div className={cn("absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent px-4 pb-4 pt-10 transition-opacity duration-300",
                 showControls || !isPlaying ? "opacity-100" : "opacity-0")} onClick={(e) => e.stopPropagation()}>
                 <div className="h-1.5 bg-white/20 rounded-full mb-3 cursor-pointer group/bar hover:h-2.5 transition-all" onClick={handleSeek}>
-                    <div className={cn("h-full rounded-full relative", accentBarClass)} style={{ width: `${progress}%` }}>
+                    <div className={cn("h-full rounded-full relative progress-fill", accentBarClass)} style={{ "--progress-percent": `${progress}%` } as React.CSSProperties}>
                         <div className={cn("absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 rounded-full shadow-lg opacity-0 group-hover/bar:opacity-100 transition-opacity", accentDotClass)} />
                     </div>
                 </div>
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <button onClick={togglePlay} className="text-white hover:text-yellow-400 transition-colors">{isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}</button>
-                        <button onClick={toggleMute} className="text-white hover:text-yellow-400 transition-colors">{isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}</button>
+                        <button onClick={togglePlay} className="text-white hover:text-yellow-400 transition-colors" title={isPlaying ? "Pause" : "Play"} aria-label={isPlaying ? "Pause" : "Play"}>{isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}</button>
+                        <button onClick={toggleMute} className="text-white hover:text-yellow-400 transition-colors" title={isMuted ? "Unmute" : "Mute"} aria-label={isMuted ? "Unmute" : "Mute"}>{isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}</button>
                         <span className="text-xs text-gray-300 font-mono tabular-nums">{currentTime} / {totalDuration}</span>
                     </div>
-                    <button onClick={toggleFullscreen} className="text-white hover:text-yellow-400 transition-colors"><Maximize className="w-5 h-5" /></button>
+                    <button onClick={toggleFullscreen} className="text-white hover:text-yellow-400 transition-colors" title="Fullscreen" aria-label="Fullscreen"><Maximize className="w-5 h-5" /></button>
                 </div>
             </div>
         </div>

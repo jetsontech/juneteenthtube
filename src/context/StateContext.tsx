@@ -14,7 +14,6 @@ const STATE_STORAGE_KEY = "jtube_selected_state";
 
 export function StateProvider({ children }: { children: ReactNode }) {
     const [selectedState, setSelectedState] = useState<USState>(DEFAULT_STATE);
-    const [isHydrated, setIsHydrated] = useState(false);
 
     // Load saved state from localStorage on mount
     useEffect(() => {
@@ -25,7 +24,6 @@ export function StateProvider({ children }: { children: ReactNode }) {
                 setTimeout(() => setSelectedState(state), 0);
             }
         }
-        setTimeout(() => setIsHydrated(true), 0);
     }, []);
 
     // Save state to localStorage when it changes
@@ -33,11 +31,6 @@ export function StateProvider({ children }: { children: ReactNode }) {
         setSelectedState(state);
         localStorage.setItem(STATE_STORAGE_KEY, state.code);
     };
-
-    // Don't render children until hydrated to avoid mismatch
-    if (!isHydrated) {
-        return null;
-    }
 
     return (
         <StateContext.Provider value={{ selectedState, setSelectedState: handleSetState }}>

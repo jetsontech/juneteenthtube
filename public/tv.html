@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Juneteenth TV — 24/7 Black Cinema FAST Channel</title>
-    <meta name="description" content="Free 24/7 Black Cinema. Stream classic films from the Golden Age of Black filmmaking — public domain, ad-free, always on.">
+    <meta name="description"
+        content="Free 24/7 Black Cinema. Stream classic films from the Golden Age of Black filmmaking — public domain, ad-free, always on.">
 
     <!-- Video.js Core -->
     <link href="https://vjs.zencdn.net/8.10.0/video-js.css" rel="stylesheet">
@@ -17,7 +19,13 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
 
     <style>
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
         :root {
             --bg-primary: #0a0a0a;
@@ -46,31 +54,36 @@
             align-items: center;
             justify-content: space-between;
             padding: 12px 24px;
-            background: linear-gradient(180deg, rgba(0,0,0,0.9) 0%, transparent 100%);
+            background: linear-gradient(180deg, rgba(0, 0, 0, 0.9) 0%, transparent 100%);
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             z-index: 100;
         }
+
         .header-brand {
             display: flex;
             align-items: center;
             gap: 12px;
         }
+
         .header-brand svg {
             width: 28px;
             height: 28px;
             color: var(--accent);
         }
+
         .header-title {
             font-size: 18px;
             font-weight: 900;
             letter-spacing: -0.5px;
         }
+
         .header-title span {
             color: var(--accent-gold);
         }
+
         .fast-badge {
             display: inline-flex;
             align-items: center;
@@ -85,6 +98,7 @@
             text-transform: uppercase;
             letter-spacing: 1.5px;
         }
+
         .fast-badge .dot {
             width: 6px;
             height: 6px;
@@ -101,22 +115,27 @@
             min-height: 400px;
             background: #000;
         }
+
         .player-section .video-js {
             width: 100%;
             height: 100%;
         }
+
         .video-js .vjs-big-play-button {
             display: none !important;
         }
+
         .video-js .vjs-control-bar {
-            background: linear-gradient(0deg, rgba(0,0,0,0.85) 0%, transparent 100%);
+            background: linear-gradient(0deg, rgba(0, 0, 0, 0.85) 0%, transparent 100%);
             height: 50px;
             padding: 0 16px;
         }
+
         .video-js .vjs-play-progress,
         .video-js .vjs-volume-level {
             background: var(--accent) !important;
         }
+
         .video-js .vjs-slider:focus {
             box-shadow: 0 0 0 2px var(--accent-glow);
         }
@@ -131,14 +150,15 @@
             align-items: center;
             gap: 8px;
             background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
+            backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 10px;
             padding: 8px 14px;
             pointer-events: none;
             animation: fade-in 0.6s ease;
         }
+
         .live-dot {
             width: 8px;
             height: 8px;
@@ -147,6 +167,7 @@
             box-shadow: 0 0 8px var(--accent-glow);
             animation: pulse-dot 1.5s ease-in-out infinite;
         }
+
         .live-text {
             font-size: 11px;
             font-weight: 900;
@@ -167,10 +188,12 @@
             transform: translateY(10px);
             transition: opacity 0.5s, transform 0.5s;
         }
+
         .now-playing-overlay.visible {
             opacity: 1;
             transform: translateY(0);
         }
+
         .now-playing-tag {
             display: inline-flex;
             align-items: center;
@@ -186,19 +209,21 @@
             letter-spacing: 2px;
             margin-bottom: 8px;
         }
+
         .now-playing-title {
             font-size: 28px;
             font-weight: 900;
             line-height: 1.1;
-            text-shadow: 0 2px 20px rgba(0,0,0,0.8);
+            text-shadow: 0 2px 20px rgba(0, 0, 0, 0.8);
             margin-bottom: 6px;
         }
+
         .now-playing-desc {
             font-size: 13px;
             color: var(--text-secondary);
             max-width: 600px;
             line-height: 1.5;
-            text-shadow: 0 1px 8px rgba(0,0,0,0.8);
+            text-shadow: 0 1px 8px rgba(0, 0, 0, 0.8);
         }
 
         /* ── GUIDE SECTION ── */
@@ -207,12 +232,14 @@
             max-width: 1200px;
             margin: 0 auto;
         }
+
         .guide-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
             margin-bottom: 16px;
         }
+
         .guide-title {
             font-size: 16px;
             font-weight: 900;
@@ -223,11 +250,13 @@
             align-items: center;
             gap: 10px;
         }
+
         .guide-title svg {
             width: 18px;
             height: 18px;
             color: var(--accent);
         }
+
         .guide-count {
             font-size: 11px;
             color: var(--text-muted);
@@ -241,6 +270,7 @@
             grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
             gap: 12px;
         }
+
         .playlist-item {
             display: flex;
             align-items: center;
@@ -254,16 +284,19 @@
             position: relative;
             overflow: hidden;
         }
+
         .playlist-item:hover {
             background: var(--bg-card-hover);
-            border-color: rgba(255,255,255,0.12);
+            border-color: rgba(255, 255, 255, 0.12);
             transform: translateY(-2px);
-            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
         }
+
         .playlist-item.active {
             border-color: rgba(229, 57, 53, 0.4);
             background: rgba(229, 57, 53, 0.05);
         }
+
         .playlist-item.active::before {
             content: '';
             position: absolute;
@@ -274,6 +307,7 @@
             background: var(--accent);
             border-radius: 0 3px 3px 0;
         }
+
         .item-number {
             width: 32px;
             height: 32px;
@@ -281,20 +315,23 @@
             align-items: center;
             justify-content: center;
             border-radius: 10px;
-            background: rgba(255,255,255,0.05);
+            background: rgba(255, 255, 255, 0.05);
             font-size: 12px;
             font-weight: 700;
             color: var(--text-muted);
             flex-shrink: 0;
         }
+
         .playlist-item.active .item-number {
             background: rgba(229, 57, 53, 0.2);
             color: var(--accent);
         }
+
         .item-info {
             flex: 1;
             min-width: 0;
         }
+
         .item-name {
             font-size: 14px;
             font-weight: 700;
@@ -303,6 +340,7 @@
             text-overflow: ellipsis;
             margin-bottom: 4px;
         }
+
         .item-desc {
             font-size: 11px;
             color: var(--text-muted);
@@ -324,10 +362,12 @@
             background: #000;
             transition: opacity 1.2s ease;
         }
+
         .tune-in-splash.fade-out {
             opacity: 0;
             pointer-events: none;
         }
+
         .tune-in-icon {
             width: 80px;
             height: 80px;
@@ -340,11 +380,13 @@
             margin-bottom: 24px;
             animation: scale-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
+
         .tune-in-icon svg {
             width: 40px;
             height: 40px;
             color: #000;
         }
+
         .tune-in-ch {
             font-size: 13px;
             font-weight: 900;
@@ -353,16 +395,19 @@
             text-transform: uppercase;
             margin-bottom: 8px;
         }
+
         .tune-in-name {
             font-size: 42px;
             font-weight: 900;
             letter-spacing: -1px;
         }
+
         .tune-in-tagline {
             font-size: 14px;
             color: var(--text-secondary);
             margin-top: 8px;
         }
+
         .tune-in-fast {
             display: flex;
             align-items: center;
@@ -382,12 +427,14 @@
             border-top: 1px solid var(--border);
             margin-top: 24px;
         }
+
         .footer p {
             font-size: 10px;
             color: var(--text-muted);
             text-transform: uppercase;
             letter-spacing: 2px;
         }
+
         .footer .sources {
             display: flex;
             align-items: center;
@@ -395,10 +442,11 @@
             gap: 8px;
             margin-top: 8px;
         }
+
         .footer .sources span {
             font-size: 9px;
             padding: 3px 8px;
-            background: rgba(255,255,255,0.04);
+            background: rgba(255, 255, 255, 0.04);
             border: 1px solid var(--border);
             border-radius: 4px;
             color: var(--text-muted);
@@ -406,36 +454,87 @@
 
         /* ── ANIMATIONS ── */
         @keyframes pulse-dot {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.5; transform: scale(0.8); }
+
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.5;
+                transform: scale(0.8);
+            }
         }
+
         @keyframes fade-in {
-            from { opacity: 0; transform: translateY(-8px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(-8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
+
         @keyframes scale-in {
-            from { transform: scale(0.6); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
+            from {
+                transform: scale(0.6);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
         }
 
         /* ── RESPONSIVE ── */
         @media (max-width: 768px) {
-            .player-section { height: 56vw; min-height: 220px; }
-            .header { padding: 10px 16px; }
-            .header-title { font-size: 14px; }
-            .guide-section { padding: 16px; }
-            .playlist-grid { grid-template-columns: 1fr; }
-            .now-playing-title { font-size: 20px; }
-            .tune-in-name { font-size: 28px; }
+            .player-section {
+                height: 56vw;
+                min-height: 220px;
+            }
+
+            .header {
+                padding: 10px 16px;
+            }
+
+            .header-title {
+                font-size: 14px;
+            }
+
+            .guide-section {
+                padding: 16px;
+            }
+
+            .playlist-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .now-playing-title {
+                font-size: 20px;
+            }
+
+            .tune-in-name {
+                font-size: 28px;
+            }
         }
     </style>
 </head>
+
 <body>
 
     <!-- TUNE-IN SPLASH -->
     <div class="tune-in-splash" id="tuneSplash">
         <div class="tune-in-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"/><polyline points="17 2 12 7 7 2"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="7" width="20" height="15" rx="2" ry="2" />
+                <polyline points="17 2 12 7 7 2" />
+            </svg>
         </div>
         <div class="tune-in-ch">JUNETEENTH TV</div>
         <div class="tune-in-name">Black Cinema Classics</div>
@@ -448,7 +547,11 @@
     <!-- HEADER -->
     <header class="header">
         <div class="header-brand">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"/><polyline points="17 2 12 7 7 2"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="7" width="20" height="15" rx="2" ry="2" />
+                <polyline points="17 2 12 7 7 2" />
+            </svg>
             <div class="header-title"><span>Juneteenth</span> TV</div>
         </div>
         <div class="fast-badge">
@@ -483,7 +586,15 @@
     <section class="guide-section">
         <div class="guide-header">
             <div class="guide-title">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="8" y1="6" x2="21" y2="6" />
+                    <line x1="8" y1="12" x2="21" y2="12" />
+                    <line x1="8" y1="18" x2="21" y2="18" />
+                    <line x1="3" y1="6" x2="3.01" y2="6" />
+                    <line x1="3" y1="12" x2="3.01" y2="12" />
+                    <line x1="3" y1="18" x2="3.01" y2="18" />
+                </svg>
                 Program Guide
             </div>
             <div class="guide-count">6 FILMS • ALL PUBLIC DOMAIN</div>
@@ -509,175 +620,176 @@
     <script src="https://cdn.jsdelivr.net/npm/videojs-playlist-ui@4.1.0/dist/videojs-playlist-ui.min.js"></script>
 
     <script>
-    (function () {
-        'use strict';
+        (function () {
+            'use strict';
 
-        /* ═══════════════════════════════════════════
-           PLAYLIST DATA — 6 Black Cinema Classics
-           ═══════════════════════════════════════════ */
+            /* ═══════════════════════════════════════════
+               PLAYLIST DATA — 6 Black Cinema Classics
+               ═══════════════════════════════════════════ */
 
-        const playlistData = [
-            {
-                name: "The Blood of Jesus (1941)",
-                description: "Spencer Williams' masterpiece and the first race film inducted into the National Film Registry. A devout Baptist woman is accidentally shot and sent to a crossroads between Heaven and Hell.",
-                sources: [{ src: "https://archive.org/download/blood_of_jesus/blood_of_jesus.mp4", type: "video/mp4" }],
-                thumbnail: false
-            },
-            {
-                name: "Juke Joint (1947)",
-                description: "Classic comedy and music featuring Spencer Williams. A vivid snapshot of Black entertainment culture in the post-war era.",
-                sources: [{ src: "https://archive.org/download/juke_joint_1947/juke_joint_1947.mp4", type: "video/mp4" }],
-                thumbnail: false
-            },
-            {
-                name: "Hi-De-Ho (1947)",
-                description: "Musical extravaganza starring Cab Calloway. Jealousy, gangsters, and legendary scat singing in the golden era of Harlem nightclubs.",
-                sources: [{ src: "https://archive.org/download/hi_de_ho/Hi-De-Ho.mp4", type: "video/mp4" }],
-                thumbnail: false
-            },
-            {
-                name: "Within Our Gates (1920)",
-                description: "Directed by Oscar Micheaux. The oldest surviving film by an African-American director — a powerful response to D.W. Griffith's 'Birth of a Nation'.",
-                sources: [{ src: "https://archive.org/download/WithinOurGates/WithinOurGates_512kb.mp4", type: "video/mp4" }],
-                thumbnail: false
-            },
-            {
-                name: "Rock 'n' Roll Revue (1955)",
-                description: "Live from Harlem's Apollo Theater — Duke Ellington, Nat King Cole, Dinah Washington, and more. A vibrant celebration of Black musical talent.",
-                sources: [{ src: "https://archive.org/download/rock-n-roll-revue-1955/Rock%20%27n%27%20Roll%20Revue%20%281955%29.mp4", type: "video/mp4" }],
-                thumbnail: false
-            },
-            {
-                name: "Dark Manhattan (1937)",
-                description: "Hollywood's first all-Black gangster movie. Ralph Cooper stars as Curly Thorpe in this rare film that broke records at the Apollo Theater.",
-                sources: [{ src: "https://archive.org/download/dark-manhattan-1937/dark-manhattan-1937.mp4", type: "video/mp4" }],
-                thumbnail: false
-            }
-        ];
+            const playlistData = [
+                {
+                    name: "The Blood of Jesus (1941)",
+                    description: "Spencer Williams' masterpiece and the first race film inducted into the National Film Registry. A devout Baptist woman is accidentally shot and sent to a crossroads between Heaven and Hell.",
+                    sources: [{ src: "https://archive.org/download/blood_of_jesus/blood_of_jesus.mp4", type: "video/mp4" }],
+                    thumbnail: false
+                },
+                {
+                    name: "Juke Joint (1947)",
+                    description: "Classic comedy and music featuring Spencer Williams. A vivid snapshot of Black entertainment culture in the post-war era.",
+                    sources: [{ src: "https://archive.org/download/juke_joint_1947/juke_joint_1947.mp4", type: "video/mp4" }],
+                    thumbnail: false
+                },
+                {
+                    name: "Hi-De-Ho (1947)",
+                    description: "Musical extravaganza starring Cab Calloway. Jealousy, gangsters, and legendary scat singing in the golden era of Harlem nightclubs.",
+                    sources: [{ src: "https://archive.org/download/hi_de_ho/Hi-De-Ho.mp4", type: "video/mp4" }],
+                    thumbnail: false
+                },
+                {
+                    name: "Within Our Gates (1920)",
+                    description: "Directed by Oscar Micheaux. The oldest surviving film by an African-American director — a powerful response to D.W. Griffith's 'Birth of a Nation'.",
+                    sources: [{ src: "https://archive.org/download/WithinOurGates/WithinOurGates_512kb.mp4", type: "video/mp4" }],
+                    thumbnail: false
+                },
+                {
+                    name: "Rock 'n' Roll Revue (1955)",
+                    description: "Live from Harlem's Apollo Theater — Duke Ellington, Nat King Cole, Dinah Washington, and more. A vibrant celebration of Black musical talent.",
+                    sources: [{ src: "https://archive.org/download/rock-n-roll-revue-1955/Rock%20%27n%27%20Roll%20Revue%20%281955%29.mp4", type: "video/mp4" }],
+                    thumbnail: false
+                },
+                {
+                    name: "Dark Manhattan (1937)",
+                    description: "Hollywood's first all-Black gangster movie. Ralph Cooper stars as Curly Thorpe in this rare film that broke records at the Apollo Theater.",
+                    sources: [{ src: "https://archive.org/download/dark-manhattan-1937/dark-manhattan-1937.mp4", type: "video/mp4" }],
+                    thumbnail: false
+                }
+            ];
 
-        /* ═══════════════════════════════════════════
-           INITIALIZE VIDEO.JS + PLAYLIST
-           ═══════════════════════════════════════════ */
+            /* ═══════════════════════════════════════════
+               INITIALIZE VIDEO.JS + PLAYLIST
+               ═══════════════════════════════════════════ */
 
-        const player = videojs('juneteenthPlayer', {
-            autoplay: true,
-            controls: true,
-            fluid: true,
-            preload: 'auto',
-            playsinline: true,
-            html5: {
-                vhs: { overrideNative: true },
-                nativeVideoTracks: false,
-                nativeAudioTracks: false,
-                nativeTextTracks: false
-            }
-        });
+            const player = videojs('juneteenthPlayer', {
+                autoplay: true,
+                controls: true,
+                fluid: true,
+                preload: 'auto',
+                playsinline: true,
+                html5: {
+                    vhs: { overrideNative: true },
+                    nativeVideoTracks: false,
+                    nativeAudioTracks: false,
+                    nativeTextTracks: false
+                }
+            });
 
-        // Load the playlist
-        player.playlist(playlistData);
+            // Load the playlist
+            player.playlist(playlistData);
 
-        // Auto-advance: 0 = start next immediately when current ends
-        player.playlist.autoadvance(0);
+            // Auto-advance: 0 = start next immediately when current ends
+            player.playlist.autoadvance(0);
 
-        // Start the first item
-        player.playlist.currentItem(0);
+            // Start the first item
+            player.playlist.currentItem(0);
 
-        /* ═══════════════════════════════════════════
-           BUILD THE GUIDE UI
-           ═══════════════════════════════════════════ */
+            /* ═══════════════════════════════════════════
+               BUILD THE GUIDE UI
+               ═══════════════════════════════════════════ */
 
-        const grid = document.getElementById('playlistGrid');
-        const npTitle = document.getElementById('npTitle');
-        const npDesc = document.getElementById('npDesc');
-        const overlay = document.getElementById('nowPlayingOverlay');
+            const grid = document.getElementById('playlistGrid');
+            const npTitle = document.getElementById('npTitle');
+            const npDesc = document.getElementById('npDesc');
+            const overlay = document.getElementById('nowPlayingOverlay');
 
-        function buildGuide() {
-            grid.innerHTML = '';
-            const currentIdx = player.playlist.currentIndex();
-            playlistData.forEach((item, idx) => {
-                const el = document.createElement('div');
-                el.className = 'playlist-item' + (idx === currentIdx ? ' active' : '');
-                el.innerHTML = `
+            function buildGuide() {
+                grid.innerHTML = '';
+                const currentIdx = player.playlist.currentIndex();
+                playlistData.forEach((item, idx) => {
+                    const el = document.createElement('div');
+                    el.className = 'playlist-item' + (idx === currentIdx ? ' active' : '');
+                    el.innerHTML = `
                     <div class="item-number">${idx === currentIdx ? '▶' : idx + 1}</div>
                     <div class="item-info">
                         <div class="item-name">${item.name}</div>
                         <div class="item-desc">${item.description}</div>
                     </div>
                 `;
-                el.addEventListener('click', () => {
-                    player.playlist.currentItem(idx);
-                    player.play();
+                    el.addEventListener('click', () => {
+                        player.playlist.currentItem(idx);
+                        player.play();
+                    });
+                    grid.appendChild(el);
                 });
-                grid.appendChild(el);
-            });
-        }
-
-        function updateNowPlaying() {
-            const idx = player.playlist.currentIndex();
-            const item = playlistData[idx];
-            if (item) {
-                npTitle.textContent = item.name;
-                npDesc.textContent = item.description;
             }
-        }
 
-        // Show overlay briefly when a new movie starts
-        function flashNowPlaying() {
-            updateNowPlaying();
-            overlay.classList.add('visible');
-            setTimeout(() => overlay.classList.remove('visible'), 6000);
-        }
+            function updateNowPlaying() {
+                const idx = player.playlist.currentIndex();
+                const item = playlistData[idx];
+                if (item) {
+                    npTitle.textContent = item.name;
+                    npDesc.textContent = item.description;
+                }
+            }
 
-        // Listen for playlist item changes
-        player.on('playlistitem', () => {
+            // Show overlay briefly when a new movie starts
+            function flashNowPlaying() {
+                updateNowPlaying();
+                overlay.classList.add('visible');
+                setTimeout(() => overlay.classList.remove('visible'), 6000);
+            }
+
+            // Listen for playlist item changes
+            player.on('playlistitem', () => {
+                buildGuide();
+                flashNowPlaying();
+            });
+
+            // Initial build
             buildGuide();
             flashNowPlaying();
-        });
 
-        // Initial build
-        buildGuide();
-        flashNowPlaying();
+            /* ═══════════════════════════════════════════
+               TUNE-IN SPLASH — fade out after 2.5s
+               ═══════════════════════════════════════════ */
 
-        /* ═══════════════════════════════════════════
-           TUNE-IN SPLASH — fade out after 2.5s
-           ═══════════════════════════════════════════ */
+            const splash = document.getElementById('tuneSplash');
+            setTimeout(() => {
+                splash.classList.add('fade-out');
+                // Try to force play (some browsers block autoplay)
+                player.play().catch(() => {
+                    // If autoplay blocked, add click-to-play
+                    document.body.addEventListener('click', function handler() {
+                        player.play();
+                        document.body.removeEventListener('click', handler);
+                    }, { once: true });
+                });
+            }, 2500);
+            setTimeout(() => splash.remove(), 4000);
 
-        const splash = document.getElementById('tuneSplash');
-        setTimeout(() => {
-            splash.classList.add('fade-out');
-            // Try to force play (some browsers block autoplay)
-            player.play().catch(() => {
-                // If autoplay blocked, add click-to-play
-                document.body.addEventListener('click', function handler() {
-                    player.play();
-                    document.body.removeEventListener('click', handler);
-                }, { once: true });
+            /* ═══════════════════════════════════════════
+               HANDLE PLAYLIST END — loop back to start
+               ═══════════════════════════════════════════ */
+
+            player.on('playlistend', () => {
+                // Loop the whole playlist like a 24/7 channel
+                player.playlist.currentItem(0);
+                player.play();
             });
-        }, 2500);
-        setTimeout(() => splash.remove(), 4000);
 
-        /* ═══════════════════════════════════════════
-           HANDLE PLAYLIST END — loop back to start
-           ═══════════════════════════════════════════ */
+            /* ═══════════════════════════════════════════
+               ERROR HANDLING — skip broken sources
+               ═══════════════════════════════════════════ */
 
-        player.on('playlistend', () => {
-            // Loop the whole playlist like a 24/7 channel
-            player.playlist.currentItem(0);
-            player.play();
-        });
+            player.on('error', () => {
+                console.warn('Juneteenth TV: Skipping broken source, advancing to next...');
+                const nextIdx = (player.playlist.currentIndex() + 1) % playlistData.length;
+                player.playlist.currentItem(nextIdx);
+                player.play();
+            });
 
-        /* ═══════════════════════════════════════════
-           ERROR HANDLING — skip broken sources
-           ═══════════════════════════════════════════ */
-
-        player.on('error', () => {
-            console.warn('Juneteenth TV: Skipping broken source, advancing to next...');
-            const nextIdx = (player.playlist.currentIndex() + 1) % playlistData.length;
-            player.playlist.currentItem(nextIdx);
-            player.play();
-        });
-
-    })();
+        })();
     </script>
 </body>
+
 </html>

@@ -112,6 +112,9 @@ export async function POST(req: NextRequest) {
               "-preset", "ultrafast",
               "-crf", "28",
               "-vf", "scale='min(1280,iw)':-2",
+              "-c:a", "aac",
+              "-ac", "2",
+              "-b:a", "128k",
               "-y", outputPath
             ],
             { stdio: ['ignore', 'inherit', 'inherit'] }

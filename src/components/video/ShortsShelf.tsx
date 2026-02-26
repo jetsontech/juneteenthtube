@@ -157,8 +157,8 @@ function ShortCard({ short, onDelete, onChangeThumbnail, onChangeVideo, onRename
 
     return (
         <div className="group relative">
-            <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileChange} />
-            <input type="file" ref={videoFileInputRef} className="hidden" accept="video/*" onChange={handleVideoFileChange} />
+            <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileChange} title="Upload Thumbnail" aria-label="Upload Thumbnail" />
+            <input type="file" ref={videoFileInputRef} className="hidden" accept="video/*" onChange={handleVideoFileChange} title="Upload Video" aria-label="Upload Video" />
 
             <Link href={short.videoUrl ? `/shorts/${short.id}?mode=${landscapeMode ? 'landscape' : 'portrait'}` : "#"} className="block">
                 <div className={cn(
@@ -193,10 +193,13 @@ function ShortCard({ short, onDelete, onChangeThumbnail, onChangeVideo, onRename
                         value={editTitle}
                         onChange={(e) => setEditTitle(e.target.value)}
                         className="flex-1 bg-[#272727] text-white text-sm px-2 py-1 rounded border border-white/20 focus:outline-none focus:border-white/50"
+                        placeholder="Video title"
+                        title="Edit video title"
+                        aria-label="Edit video title"
                         autoFocus
                     />
-                    <button onClick={handleSaveTitle} className="p-1 hover:bg-white/10 rounded"><Check className="w-4 h-4 text-green-500" /></button>
-                    <button onClick={handleCancelEdit} className="p-1 hover:bg-white/10 rounded"><X className="w-4 h-4 text-red-500" /></button>
+                    <button onClick={handleSaveTitle} className="p-1 hover:bg-white/10 rounded" title="Save" aria-label="Save"><Check className="w-4 h-4 text-green-500" /></button>
+                    <button onClick={handleCancelEdit} className="p-1 hover:bg-white/10 rounded" title="Cancel" aria-label="Cancel"><X className="w-4 h-4 text-red-500" /></button>
                 </div>
             ) : (
                 <h3 className="mt-2 text-sm font-medium text-white line-clamp-2 group-hover:text-gray-300">{short.title}</h3>
@@ -206,6 +209,8 @@ function ShortCard({ short, onDelete, onChangeThumbnail, onChangeVideo, onRename
                 <button
                     className={cn("p-1 rounded-full bg-black/60 hover:bg-black/80 transition-all", isMenuOpen ? "opacity-100" : "opacity-0 group-hover:opacity-100")}
                     onClick={toggleMenu}
+                    title="Menu"
+                    aria-label="Menu"
                 >
                     <MoreVertical className="w-4 h-4 text-white" />
                 </button>

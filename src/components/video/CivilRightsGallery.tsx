@@ -488,19 +488,19 @@ function CivilRightsPlayer({ src, accent }: { src: string; accent: string }) {
             )}>
                 {/* Progress bar */}
                 <div className="w-full h-1.5 bg-white/20 rounded-full mb-3 cursor-pointer group/bar" onClick={handleSeek}>
-                    <div className={cn("h-full rounded-full transition-all", accentBar)} style={{ width: `${progress}%` }} />
+                    <div className={cn("h-full rounded-full transition-all progress-fill", accentBar)} style={{ "--progress-percent": `${progress}%` } as React.CSSProperties} />
                 </div>
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <button onClick={(e) => { e.stopPropagation(); togglePlay(); }} className="text-white hover:text-gray-300 transition">
+                        <button onClick={(e) => { e.stopPropagation(); togglePlay(); }} className="text-white hover:text-gray-300 transition" title={isPlaying ? "Pause" : "Play"} aria-label={isPlaying ? "Pause" : "Play"}>
                             {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
                         </button>
-                        <button onClick={toggleMute} className="text-white hover:text-gray-300 transition">
+                        <button onClick={toggleMute} className="text-white hover:text-gray-300 transition" title={isMuted ? "Unmute" : "Mute"} aria-label={isMuted ? "Unmute" : "Mute"}>
                             {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
                         </button>
                         <span className="text-xs text-gray-400 font-mono">{currentTime} / {totalDuration}</span>
                     </div>
-                    <button onClick={toggleFullscreen} className="text-white hover:text-gray-300 transition">
+                    <button onClick={toggleFullscreen} className="text-white hover:text-gray-300 transition" title="Fullscreen" aria-label="Fullscreen">
                         <Maximize className="w-5 h-5" />
                     </button>
                 </div>

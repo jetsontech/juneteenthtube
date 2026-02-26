@@ -48,7 +48,9 @@ async function transcodeFile(inputPath, outputPath) {
             '-c:v', 'libx264',
             '-crf', '23',
             '-preset', 'fast', // fast is fine locally
+            '-threads', '2', // Prevent memory over-saturation on large videos locally
             '-c:a', 'aac',
+            '-ac', '2',
             '-b:a', '128k',
             '-movflags', '+faststart',
             '-y',

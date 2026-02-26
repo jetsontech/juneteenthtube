@@ -127,7 +127,7 @@ export default function SettingsPage() {
                                         </div>
                                     )}
                                 </div>
-                                <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleAvatarChange} />
+                                <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleAvatarChange} title="Upload Avatar Image" aria-label="Upload Avatar Image" />
                             </div>
 
                             <div className="flex-1 text-center md:text-left">
@@ -180,10 +180,13 @@ export default function SettingsPage() {
                                                         value={editTitle}
                                                         onChange={(e) => setEditTitle(e.target.value)}
                                                         className="bg-black/40 border border-white/20 rounded-lg px-3 py-1 text-sm text-white focus:outline-none focus:ring-1 focus:ring-j-gold/50 flex-1"
+                                                        placeholder="Video title"
+                                                        title="Edit video title"
+                                                        aria-label="Edit video title"
                                                         autoFocus
                                                     />
-                                                    <button onClick={() => handleSaveTitle(v.id)} className="p-1 hover:bg-green-500/20 text-green-500 rounded"><Check className="w-4 h-4" /></button>
-                                                    <button onClick={() => setEditingVideoId(null)} className="p-1 hover:bg-red-500/20 text-red-500 rounded"><X className="w-4 h-4" /></button>
+                                                    <button onClick={() => handleSaveTitle(v.id)} className="p-1 hover:bg-green-500/20 text-green-500 rounded" title="Save changes" aria-label="Save changes"><Check className="w-4 h-4" /></button>
+                                                    <button onClick={() => setEditingVideoId(null)} className="p-1 hover:bg-red-500/20 text-red-500 rounded" title="Cancel edit" aria-label="Cancel edit"><X className="w-4 h-4" /></button>
                                                 </div>
                                             ) : (
                                                 <>
