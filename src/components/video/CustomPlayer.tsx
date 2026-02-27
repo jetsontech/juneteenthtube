@@ -29,9 +29,9 @@ interface HTMLVideoElementWithWebKit extends HTMLVideoElement {
 }
 
 export function CustomPlayer({ src, srcH264, poster }: CustomPlayerProps) {
-    // Always try the original source first — Chrome can play most formats
-    // Only fall back to H.264 if the primary source genuinely fails
-    const [activeSrc, setActiveSrc] = useState(src);
+    // PREFER H.264 when available — it's universally compatible (Android, iOS, Chrome, etc.)
+    // Only fall back to original source if H.264 isn't available yet (not transcoded)
+    const [activeSrc, setActiveSrc] = useState(srcH264 || src);
     const [triedFallback, setTriedFallback] = useState(false);
     const [playbackError, setPlaybackError] = useState<string | null>(null);
 
@@ -138,13 +138,17 @@ export function CustomPlayer({ src, srcH264, poster }: CustomPlayerProps) {
                 networkState: video.networkState
             });
 
-            // Reactive fallback: if primary source fails, try H.264 version
-            // This is the core of our cross-platform "and vice versa" strategy
-            if ((error?.code === 3 || error?.code === 4) && srcH264 && !triedFallback) {
-                console.log('🔄 Secondary Source Fallback: Switching to H.264 compat-king version');
-                setTriedFallback(true);
-                setActiveSrc(srcH264);
-                setPlaybackError(null); // Clear error and try again
+            // Reactive fallback: if H.264 source fails, try original source (or vice versa)
+            if ((error?.code === 3 || error?.code === 4) && !triedFallback) {
+                const fallbackSrc = activeSrc === srcH264 ? src : (srcH264 || null);
+                if (fallbackSrc && fallbackSrc !== activeSrc) {
+                    console.log('🔄 Fallback: Switching to alternate source');
+                    setTriedFallback(true);
+                    setActiveSrc(fallbackSrc);
+                    setPlaybackError(null); // Clear error and try again
+                } else {
+                    setPlaybackError('Video format not supported. Try viewing in Chrome or Safari.');
+                }
             } else if (error?.code === 3 || error?.code === 4) {
                 setPlaybackError('Video format not supported. Try viewing in Chrome or Safari.');
             }
