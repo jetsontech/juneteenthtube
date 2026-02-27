@@ -62,14 +62,14 @@ export function StateSelector({ selectedState, onStateChange }: StateSelectorPro
                     isOpen && "bg-white/10 border-j-gold/50"
                 )}
                 aria-label="Select state"
-                aria-expanded={isOpen}
+                aria-expanded={isOpen ? "true" : "false"}
             >
                 {isGlobal ? (
                     <Globe className="w-4 h-4 text-j-gold" />
                 ) : (
                     <MapPin className="w-4 h-4 text-j-red" />
                 )}
-                <span className="hidden sm:inline max-w-[240px] truncate">
+                <span className="hidden sm:inline max-w-[120px] truncate">
                     {selectedState.name}
                 </span>
                 <span className="sm:hidden">

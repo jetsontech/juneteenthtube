@@ -162,7 +162,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                         </button>
                         <Link href="/" className="flex items-center gap-1 sm:gap-2 group">
                             {/* Desktop Logo */}
-                            <div className="relative h-9 w-36 hidden sm:block">
+                            <div className="relative h-9 w-72 hidden sm:block">
                                 <Image
                                     src="/logo.svg"
                                     alt="JuneteenthTube"
@@ -172,7 +172,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                                 />
                             </div>
                             {/* Mobile Logo (Icon Only or Compact) */}
-                            <div className="relative h-8 w-24 sm:hidden">
+                            <div className="relative h-8 w-40 sm:hidden">
                                 <Image
                                     src="/logo.svg"
                                     alt="JuneteenthTube"
