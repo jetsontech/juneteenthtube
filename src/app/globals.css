@@ -314,6 +314,8 @@ html {
   background-color: #0f0f0f;
   min-height: -webkit-fill-available;
   min-height: 100dvh;
+  overflow-x: hidden;
+  overscroll-behavior: none;
 }
 
 body {
@@ -330,6 +332,8 @@ body {
   font-family: var(--font-sans), sans-serif;
   position: relative;
   -ms-overflow-style: none;
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
 
   @supports (scrollbar-width: none) {
     scrollbar-width: none;
