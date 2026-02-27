@@ -565,11 +565,13 @@ export function CustomPlayer({ src, srcH264, poster }: CustomPlayerProps) {
                             aria-label="Seek video"
                             min="0"
                             max={duration || 100}
+                            step="0.1"
                             value={currentTime}
                             onChange={handleSeek}
-                            className="
-                            absolute top-[-6px] left-0 w-full h-4 opacity-0 z-20 cursor-pointer
-                        "
+                            onInput={handleSeek}
+                            onPointerDown={() => resetControlsTimeout()}
+                            className="absolute top-[-12px] left-0 w-full h-8 opacity-0 z-20 cursor-pointer"
+                            style={{ touchAction: 'none' }}
                         />
 
                         {/* Visual Progress Fill */}
