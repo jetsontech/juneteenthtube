@@ -56,14 +56,15 @@ export default function AdminDashboard() {
 
     const handleReTriggerTranscode = async (videoId: string, sourceKey: string) => {
         try {
-            const res = await fetch('/api/transcode', {
-                method: 'POST',
-                body: JSON.stringify({ videoId, sourceKey })
+            const res = await fetch('/api/videos/update', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: videoId, transcode_status: 'pending' })
             });
-            if (res.ok) alert('Transcode re-triggered successfully!');
+            if (res.ok) alert('Transcode re-queued successfully! The worker will pick it up shortly.');
         } catch (e) {
             console.error(e);
-            alert('Failed to re-trigger transcode');
+            alert('Failed to re-queue transcode');
         }
     };
 

@@ -30,6 +30,29 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
+    // Trigger GitHub Actions transcoder via repository_dispatch
+    if (data?.id && process.env.GITHUB_DISPATCH_TOKEN) {
+      try {
+        await fetch(
+          'https://api.github.com/repos/jetsontech/juneteenthtube-gh-transcoder/dispatches',
+          {
+            method: 'POST',
+            headers: {
+              'Accept': 'application/vnd.github.v3+json',
+              'Authorization': `Bearer ${process.env.GITHUB_DISPATCH_TOKEN}`,
+            },
+            body: JSON.stringify({
+              event_type: 'transcode',
+              client_payload: { videoId: data.id },
+            }),
+          }
+        );
+        console.log(`Dispatched transcode job for video ${data.id}`);
+      } catch (dispatchErr) {
+        console.error('Failed to dispatch transcode:', dispatchErr);
+      }
+    }
+
     return NextResponse.json(data);
   } catch (err: unknown) {
     const errorMsg = err instanceof Error ? err.message : String(err);

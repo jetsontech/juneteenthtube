@@ -593,9 +593,8 @@ export function VideoProvider({ children }: { children: ReactNode }) {
             })()) : "";
 
             const res = await fetch('/api/videos/create', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: file.name.replace(/\.[^/.]+$/, ""), video_url: publicUrl, thumbnail_url: thumbUrl, category, duration: "0:00", state, transcode_status: 'pending', owner_id: user?.id }) });
-            const inserted = await res.json();
+            await res.json();
             fetchVideos();
-            fetch('/api/transcode', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sourceKey: publicUrl.split('/').pop(), videoId: inserted.id }) });
         } finally { setIsUploading(false); abortControllerRef.current = null; }
     }, [user?.id, uploadMultipart, fetchVideos]);
 
