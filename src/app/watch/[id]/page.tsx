@@ -159,8 +159,8 @@ export default function WatchPage({
         <div className="flex flex-col gap-0 mx-auto px-0 md:px-6 pt-2 md:pt-6 max-w-[1700px]">
             {/* Primary Column - Player & Info */}
             <div className="w-full">
-                {/* Player Container - Sticky on mobile so recs scroll under it */}
-                <div className="sticky top-14 z-30 sm:static sm:z-auto relative aspect-video bg-black sm:rounded-xl overflow-hidden sm:shadow-lg sm:ring-1 sm:ring-white/10">
+                {/* Player Container */}
+                <div className="relative aspect-video bg-black sm:rounded-xl overflow-hidden sm:shadow-lg sm:ring-1 sm:ring-white/10">
                     {video.videoUrl ? (
                         <CustomPlayer
                             src={video.videoUrl}
