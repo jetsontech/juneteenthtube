@@ -159,8 +159,10 @@ export default function WatchPage({
             <div className="absolute bottom-0 left-0 w-[80vw] sm:w-[50vw] h-[50vh] bg-[radial-gradient(circle_at_0%_100%,_#0a2f0a_0%,_transparent_70%)] opacity-30 pointer-events-none z-[-1]" />
 
             {/* Player - stays at top on mobile */}
-            <div className="flex-shrink-0 relative z-10">
-                <div className="relative aspect-video bg-black rounded-2xl overflow-hidden shadow-2xl ring-1 ring-white/10 m-2 sm:mx-6 sm:mt-6">
+            <div className="flex-shrink-0 relative z-10 pt-4 sm:pt-6">
+                <div className="relative aspect-video bg-black rounded-2xl overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.8)] sm:shadow-[0_30px_90px_rgba(0,0,0,0.9)] ring-1 ring-white/10 m-2 sm:mx-6 group">
+                    {/* Inner subtle glow for premium feel */}
+                    <div className="absolute inset-0 rounded-2xl pointer-events-none shadow-[inset_0_0_20px_rgba(255,255,255,0.05)] z-20" />
                     {video.videoUrl ? (
                         <CustomPlayer
                             src={video.videoUrl}
@@ -182,33 +184,34 @@ export default function WatchPage({
             </div>
 
             {/* Scrollable content - scrolls independently under the player on mobile */}
-            <div className="flex-1 overflow-y-auto sm:overflow-visible bg-transparent relative z-10">
+            {/* Added overscroll-y-contain to prevent scroll chaining/bouncing that causes shifting */}
+            <div className="flex-1 overflow-y-auto sm:overflow-visible bg-transparent relative z-10 overscroll-y-contain pb-10">
                 <div className="max-w-[1700px] mx-auto px-0 md:px-6">
                     {/* Video Info */}
-                    <div className="px-3 sm:px-0">
-                        <h1 className="mt-3 text-[18px] font-bold text-white line-clamp-2 leading-snug">
+                    <div className="px-3 sm:px-0 mt-4 sm:mt-6">
+                        <h1 className="text-[20px] sm:text-[24px] font-black text-white leading-tight tracking-tight drop-shadow-md">
                             {video.title}
                         </h1>
 
-                        <p className="mt-1 text-[12px] text-gray-400">
-                            {parseInt(video.views).toLocaleString()} views • {video.postedAt}
+                        <p className="mt-2 text-[13px] text-gray-400 font-medium tracking-wide">
+                            {parseInt(video.views).toLocaleString()} VIEWS • {video.postedAt.toUpperCase()}
                         </p>
 
                         {/* Actions Row */}
-                        <div className="flex items-center gap-2 mt-3 -mx-3 px-3 overflow-x-auto no-scrollbar pb-2">
-                            <div className="flex items-center bg-[#272727] rounded-full flex-shrink-0">
+                        <div className="flex items-center gap-3 mt-4 -mx-3 px-3 overflow-x-auto no-scrollbar pb-2">
+                            <div className="flex items-center bg-white/5 backdrop-blur-xl border border-white/10 rounded-full flex-shrink-0 shadow-lg">
                                 <button
                                     onClick={handleLike}
-                                    className="flex items-center gap-1.5 pl-4 pr-3 py-2 rounded-l-full hover:bg-[#3f3f3f] transition-colors"
+                                    className="flex items-center gap-2 pl-5 pr-4 py-2.5 rounded-l-full hover:bg-white/10 transition-colors"
                                     aria-label="Like video"
                                 >
                                     <ThumbsUp className={`w-5 h-5 ${liked ? "fill-white" : ""}`} />
-                                    <span className="text-[13px] font-medium">{likesCount}</span>
+                                    <span className="text-[13px] font-bold">{likesCount}</span>
                                 </button>
                                 <div className="w-px h-6 bg-white/20"></div>
                                 <button
                                     onClick={handleDislike}
-                                    className="pl-3 pr-4 py-2 rounded-r-full hover:bg-[#3f3f3f] transition-colors"
+                                    className="pl-4 pr-5 py-2.5 rounded-r-full hover:bg-white/10 transition-colors"
                                     aria-label="Dislike video"
                                 >
                                     <ThumbsDown className={`w-5 h-5 ${disliked ? "fill-white" : ""}`} />
@@ -217,7 +220,7 @@ export default function WatchPage({
 
                             <button
                                 onClick={handleShare}
-                                className="flex items-center gap-2 px-4 py-2 bg-[#272727] hover:bg-[#3f3f3f] rounded-full transition-colors text-white text-[13px] font-medium flex-shrink-0"
+                                className="flex items-center gap-2 px-5 py-2.5 bg-white/5 backdrop-blur-xl border border-white/10 hover:bg-white/10 rounded-full transition-all text-white text-[13px] font-bold flex-shrink-0 shadow-lg active:scale-95"
                             >
                                 <Share2 className="w-5 h-5" />
                                 <span>Share</span>
@@ -228,7 +231,7 @@ export default function WatchPage({
                                 download
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="flex items-center gap-2 px-4 py-2 bg-[#272727] text-white hover:bg-[#3f3f3f] rounded-full transition-colors text-[13px] font-medium flex-shrink-0"
+                                className="flex items-center gap-2 px-5 py-2.5 bg-white/5 backdrop-blur-xl border border-white/10 hover:bg-white/10 rounded-full transition-all text-white text-[13px] font-bold flex-shrink-0 shadow-lg active:scale-95"
                             >
                                 <MoreHorizontal className="w-5 h-5" />
                                 <span>More</span>
@@ -236,24 +239,24 @@ export default function WatchPage({
                         </div>
 
                         {/* Channel Row */}
-                        <div className="flex items-center gap-3 mt-3 py-3 border-t border-white/5">
-                            <div className="w-10 h-10 rounded-full bg-j-green flex-shrink-0 overflow-hidden cursor-pointer hover:opacity-90 relative">
+                        <div className="flex items-center gap-4 mt-6 py-4 px-4 bg-black/40 backdrop-blur-md rounded-2xl border border-white/5 shadow-inner">
+                            <div className="w-12 h-12 rounded-full bg-j-green flex-shrink-0 overflow-hidden cursor-pointer hover:scale-105 transition-transform relative ring-2 ring-white/10">
                                 {video.channelAvatar ? (
-                                    <Image src={video.channelAvatar} alt={video.channelName} fill sizes="40px" className="object-cover" />
+                                    <Image src={video.channelAvatar} alt={video.channelName} fill sizes="48px" className="object-cover" />
                                 ) : (
-                                    <div className="w-full h-full bg-gradient-to-br from-j-green to-j-gold flex items-center justify-center text-white font-bold">
+                                    <div className="w-full h-full bg-gradient-to-br from-j-green to-j-gold flex items-center justify-center text-white font-black text-lg">
                                         {video.channelName.charAt(0).toUpperCase()}
                                     </div>
                                 )}
                             </div>
                             <div className="flex flex-col min-w-0 flex-1">
-                                <h3 className="font-semibold text-white text-[14px] truncate hover:text-gray-200 cursor-pointer">{video.channelName}</h3>
-                                <p className="text-[12px] text-gray-400">1.2K subscribers</p>
+                                <h3 className="font-bold text-white text-[15px] truncate hover:text-j-gold transition-colors cursor-pointer">{video.channelName}</h3>
+                                <p className="text-[12px] text-gray-400 font-medium">1.2K subscribers</p>
                             </div>
                             <button
                                 onClick={handleSubscribe}
-                                className={`px-4 py-2 rounded-full text-[14px] font-semibold transition-all flex-shrink-0 ${isSubscribed
-                                    ? "bg-[#272727] text-white hover:bg-[#3f3f3f]"
+                                className={`px-5 py-2.5 rounded-full text-[13px] font-black uppercase tracking-wider transition-all flex-shrink-0 shadow-lg ${isSubscribed
+                                    ? "bg-white/10 text-white hover:bg-white/20 border border-white/10"
                                     : "bg-white text-black hover:bg-gray-200"
                                     }`}
                             >
@@ -262,25 +265,26 @@ export default function WatchPage({
                         </div>
 
                         {/* Description Box */}
-                        <div className="bg-[#272727] rounded-xl p-3 mt-1 text-sm hover:bg-[#3a3a3a] transition-colors cursor-pointer group">
-                            <div className="flex flex-wrap gap-x-2 gap-y-1 text-[13px] text-white mb-1">
-                                <span className="font-semibold">{parseInt(video.views).toLocaleString()} views</span>
-                                <span className="font-semibold">{video.postedAt}</span>
-                                <span className="text-gray-400">#Juneteenth #Atlanta</span>
+                        <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-4 mt-4 text-sm hover:bg-white/10 transition-colors cursor-pointer group shadow-lg">
+                            <div className="flex flex-wrap gap-x-3 gap-y-1 text-[13px] text-white mb-2">
+                                <span className="font-bold">{parseInt(video.views).toLocaleString()} views</span>
+                                <span className="font-bold">{video.postedAt}</span>
+                                <span className="text-j-gold font-medium">#Juneteenth #Atlanta</span>
                             </div>
-                            <p className="text-[14px] text-white/90 whitespace-pre-line leading-relaxed line-clamp-2 group-hover:line-clamp-none">
+                            <p className="text-[14px] text-white/90 whitespace-pre-line leading-relaxed line-clamp-2 group-hover:line-clamp-none font-medium">
                                 {video.videoUrl ?
                                     "Uploaded from your device. Watch and enjoy the highlights from this year's parade!" :
                                     "Experience the vibrant energy of the 2024 Juneteenth Atlanta Parade! Featuring marching bands, dance troupes, and community floats."}
                             </p>
-                            <button className="mt-2 text-white/60 text-[12px] group-hover:hidden">...more</button>
+                            <button className="mt-3 text-white/50 text-[12px] font-bold uppercase tracking-widest group-hover:hidden">Show More</button>
                         </div>
                     </div>
 
                     {/* Recommendations Section */}
-                    <div className="w-full mt-8 border-t border-white/5 pt-8">
-                        <div className="px-3 sm:px-0 mb-6 flex items-center justify-between">
-                            <h3 className="text-xl font-bold text-white">Recommended for you</h3>
+                    {/* Added min-h block to ensure layout stays stable even if grid reflows */}
+                    <div className="w-full mt-8 border-t border-white/5 pt-8 min-h-[50vh]">
+                        <div className="px-3 sm:px-0 mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <h3 className="text-xl font-bold text-white flex-shrink-0">Recommended for you</h3>
                             <CategoryBar
                                 categories={CATEGORIES}
                                 selectedCategory={sidebarCategory}
@@ -298,11 +302,13 @@ export default function WatchPage({
                                                 src={v.thumbnail}
                                                 fill
                                                 sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                                                className="object-cover group-hover:scale-105 transition-transform duration-500"
+                                                className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
                                                 alt={v.title}
+                                                // Priority true on first few items prevents CLS (Layout Shift)
+                                                priority={v === filteredSidebarVideos[0] || v === filteredSidebarVideos[1]}
                                             />
                                         ) : (
-                                            <div className="w-full h-full bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center">
+                                            <div className="w-full h-full bg-gradient-to-br from-gray-800 to-black flex items-center justify-center">
                                                 <span className="text-gray-500 text-xs">No Thumbnail</span>
                                             </div>
                                         )}
@@ -319,9 +325,9 @@ export default function WatchPage({
                                             )}
                                         </div>
                                         <div className="flex-1 min-w-0 pr-2">
-                                            <h4 className="font-bold text-white text-sm line-clamp-2 mb-1 group-hover:text-j-gold transition-colors leading-snug">{v.title}</h4>
-                                            <p className="text-[12px] text-gray-400 font-medium">{v.channelName}</p>
-                                            <p className="text-[12px] text-gray-400">{v.views} views • {v.postedAt}</p>
+                                            <h4 className="font-bold text-white text-[14px] line-clamp-2 mb-1 group-hover:text-j-gold transition-colors leading-snug">{v.title}</h4>
+                                            <p className="text-[12px] text-gray-400 font-medium truncate">{v.channelName}</p>
+                                            <p className="text-[12px] text-gray-400 truncate">{v.views} views • {v.postedAt}</p>
                                         </div>
                                     </div>
                                 </Link>
