@@ -152,10 +152,15 @@ export default function WatchPage({
     }
 
     return (
-        <div className="flex flex-col sm:block h-[calc(100dvh-3.5rem)] sm:h-auto overflow-hidden sm:overflow-visible">
+        <div className="flex flex-col sm:block h-[calc(100dvh-3.5rem)] sm:h-auto overflow-hidden sm:overflow-visible bg-transparent relative z-0">
+            {/* Ambient Home-style Background for Watch Page */}
+            <div className="absolute top-0 right-0 w-[80vw] sm:w-[50vw] h-[60vh] bg-[radial-gradient(circle_at_100%_0%,_#3f2e05_0%,_transparent_70%)] opacity-40 pointer-events-none z-[-1]" />
+            <div className="absolute top-[20vh] left-0 w-[100vw] h-[80vh] bg-[radial-gradient(circle_at_50%_50%,_#4a0000_0%,_transparent_60%)] opacity-20 pointer-events-none z-[-1]" />
+            <div className="absolute bottom-0 left-0 w-[80vw] sm:w-[50vw] h-[50vh] bg-[radial-gradient(circle_at_0%_100%,_#0a2f0a_0%,_transparent_70%)] opacity-30 pointer-events-none z-[-1]" />
+
             {/* Player - stays at top on mobile */}
-            <div className="flex-shrink-0">
-                <div className="relative aspect-video bg-black rounded-2xl overflow-hidden shadow-lg sm:shadow-2xl ring-1 ring-white/10 m-2 sm:mx-6 sm:mt-6">
+            <div className="flex-shrink-0 relative z-10">
+                <div className="relative aspect-video bg-black rounded-2xl overflow-hidden shadow-2xl ring-1 ring-white/10 m-2 sm:mx-6 sm:mt-6">
                     {video.videoUrl ? (
                         <CustomPlayer
                             src={video.videoUrl}
@@ -177,7 +182,7 @@ export default function WatchPage({
             </div>
 
             {/* Scrollable content - scrolls independently under the player on mobile */}
-            <div className="flex-1 overflow-y-auto sm:overflow-visible">
+            <div className="flex-1 overflow-y-auto sm:overflow-visible bg-transparent relative z-10">
                 <div className="max-w-[1700px] mx-auto px-0 md:px-6">
                     {/* Video Info */}
                     <div className="px-3 sm:px-0">

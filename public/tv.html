@@ -60,8 +60,8 @@
             left: 0;
             right: 0;
             z-index: 100;
-            backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
         }
 
         .header-brand {
@@ -114,7 +114,8 @@
             position: relative;
             width: calc(100% - 32px);
             max-width: 1600px;
-            margin: 16px auto;
+            margin: 96px auto 32px auto;
+            /* Increased top margin to clear header without inline style */
             border-radius: 24px;
             overflow: hidden;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
@@ -573,7 +574,7 @@
     </header>
 
     <!-- PLAYER -->
-    <div class="player-section" style="margin-top: 80px;">
+    <div class="player-section">
         <!-- LIVE NOW Badge -->
         <div class="live-badge">
             <div class="live-dot"></div>
