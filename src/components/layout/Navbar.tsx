@@ -471,8 +471,8 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                                         </div>
                                         <div className="w-full h-3 bg-white/5 rounded-full overflow-hidden border border-white/5 shadow-inner">
                                             <div
-                                                className="h-full bg-gradient-to-r from-j-red via-j-gold to-j-green transition-all duration-300 ease-out"
-                                                style={{ ["--progress" as string]: `${uploadProgress}%`, width: 'var(--progress)' } as React.CSSProperties}
+                                                className="h-full bg-gradient-to-r from-j-red via-j-gold to-j-green transition-all duration-300 ease-out progress-fill"
+                                                ref={(el) => { if (el) el.style.setProperty('--progress-percent', `${uploadProgress}%`); }}
                                             />
                                         </div>
                                         <div className="flex items-center justify-center gap-3 pt-4">

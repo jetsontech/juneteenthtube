@@ -570,8 +570,7 @@ export function CustomPlayer({ src, srcH264, poster }: CustomPlayerProps) {
                             onChange={handleSeek}
                             onInput={handleSeek}
                             onPointerDown={() => resetControlsTimeout()}
-                            className="absolute top-[-12px] left-0 w-full h-8 opacity-0 z-20 cursor-pointer"
-                            style={{ touchAction: 'none' }}
+                            className="absolute top-[-12px] left-0 w-full h-8 opacity-0 z-20 cursor-pointer touch-none"
                         />
 
                         {/* Visual Progress Fill */}

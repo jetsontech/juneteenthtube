@@ -437,7 +437,7 @@ function CinemaPlayer({ src, accent, onEnded, autoPlay }: { src: string; accent:
             <div className={cn("absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent px-4 pb-4 pt-10 transition-opacity duration-300",
                 showControls || !isPlaying ? "opacity-100" : "opacity-0")} onClick={(e) => e.stopPropagation()}>
                 <div className="h-1.5 bg-white/20 rounded-full mb-3 cursor-pointer group/bar hover:h-2.5 transition-all" onClick={handleSeek}>
-                    <div className={cn("h-full rounded-full relative progress-fill", accentBarClass)} style={{ "--progress-percent": `${progress}%` } as React.CSSProperties}>
+                    <div className={cn("h-full rounded-full relative progress-fill", accentBarClass)} ref={(el) => { if (el) el.style.setProperty('--progress-percent', `${progress}%`); }}>
                         <div className={cn("absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 rounded-full shadow-lg opacity-0 group-hover/bar:opacity-100 transition-opacity", accentDotClass)} />
                     </div>
                 </div>

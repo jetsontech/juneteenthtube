@@ -488,7 +488,7 @@ function CivilRightsPlayer({ src, accent }: { src: string; accent: string }) {
             )}>
                 {/* Progress bar */}
                 <div className="w-full h-1.5 bg-white/20 rounded-full mb-3 cursor-pointer group/bar" onClick={handleSeek}>
-                    <div className={cn("h-full rounded-full transition-all progress-fill", accentBar)} style={{ "--progress-percent": `${progress}%` } as React.CSSProperties} />
+                    <div className={cn("h-full rounded-full transition-all progress-fill", accentBar)} ref={(el) => { if (el) el.style.setProperty('--progress-percent', `${progress}%`); }} />
                 </div>
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">

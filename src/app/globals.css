@@ -333,7 +333,6 @@ body {
   position: relative;
   -ms-overflow-style: none;
   overscroll-behavior: none;
-  -webkit-overflow-scrolling: touch;
 
   @supports (scrollbar-width: none) {
     scrollbar-width: none;
