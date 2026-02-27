@@ -155,7 +155,7 @@ export default function WatchPage({
         <div className="flex flex-col sm:block h-[calc(100dvh-3.5rem)] sm:h-auto overflow-hidden sm:overflow-visible">
             {/* Player - stays at top on mobile */}
             <div className="flex-shrink-0">
-                <div className="relative aspect-video bg-black sm:rounded-xl overflow-hidden sm:shadow-lg sm:ring-1 sm:ring-white/10 sm:mx-6 sm:mt-6">
+                <div className="relative aspect-video bg-black rounded-2xl overflow-hidden shadow-lg sm:shadow-2xl ring-1 ring-white/10 m-2 sm:mx-6 sm:mt-6">
                     {video.videoUrl ? (
                         <CustomPlayer
                             src={video.videoUrl}

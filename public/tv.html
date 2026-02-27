@@ -60,6 +60,8 @@
             left: 0;
             right: 0;
             z-index: 100;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
         }
 
         .header-brand {
@@ -110,7 +112,13 @@
         /* ── PLAYER WRAPPER ── */
         .player-section {
             position: relative;
-            width: 100%;
+            width: calc(100% - 32px);
+            max-width: 1600px;
+            margin: 16px auto;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.05);
             height: 75vh;
             min-height: 400px;
             background: #000;
@@ -496,6 +504,10 @@
             .player-section {
                 height: 56vw;
                 min-height: 220px;
+                width: calc(100% - 16px);
+                margin: 80px auto 16px auto;
+                /* 80px top margin to clear the header */
+                border-radius: 16px;
             }
 
             .header {
@@ -561,7 +573,7 @@
     </header>
 
     <!-- PLAYER -->
-    <div class="player-section">
+    <div class="player-section" style="margin-top: 80px;">
         <!-- LIVE NOW Badge -->
         <div class="live-badge">
             <div class="live-dot"></div>
