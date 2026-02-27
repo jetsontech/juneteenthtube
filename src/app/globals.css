@@ -315,7 +315,7 @@ html {
   min-height: -webkit-fill-available;
   min-height: 100dvh;
   overflow-x: hidden;
-  overscroll-behavior: none;
+  overscroll-behavior-x: none;
 }
 
 body {
@@ -332,7 +332,7 @@ body {
   font-family: var(--font-sans), sans-serif;
   position: relative;
   -ms-overflow-style: none;
-  overscroll-behavior: none;
+  overscroll-behavior-x: none;
 
   @supports (scrollbar-width: none) {
     scrollbar-width: none;
