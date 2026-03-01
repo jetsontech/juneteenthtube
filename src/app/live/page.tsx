@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { LivePlayer } from "@/components/live/LivePlayer";
-import { EPG, Channel } from "@/components/live/EPG";
+import { EPG, Channel, Program } from "@/components/live/EPG";
 import Link from "next/link";
-import { ArrowLeft, Tv, ShieldAlert } from "lucide-react";
+import { ArrowLeft, Maximize2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
 export default function LiveTV() {
@@ -38,7 +38,6 @@ export default function LiveTV() {
 
                 if (epgError) throw epgError;
 
-                // If any EPG data contains video_ids, we need to fetch the actual video URLs
                 let videosData: any[] = [];
                 if (epgData) {
                     const videoIds = epgData.map(p => p.video_id).filter(id => id !== null);
@@ -51,13 +50,11 @@ export default function LiveTV() {
                     }
                 }
 
-                // Map EPG data to channels
                 if (channelData) {
                     const formattedChannels: Channel[] = channelData.map(c => {
                         const channelEpg = epgData ? epgData.filter(p => p.channel_id === c.id) : [];
                         let playlist: string[] | undefined = undefined;
 
-                        // If it's an internal VOD channel, map the scheduled programs to their actual MP4 URLs
                         if (c.is_internal_vod && channelEpg.length > 0) {
                             playlist = channelEpg
                                 .map(epg => {
@@ -70,6 +67,7 @@ export default function LiveTV() {
                         return {
                             id: c.id,
                             name: c.name,
+                            description: c.description,
                             logo_url: c.logo_url,
                             stream_url: c.is_internal_vod && playlist && playlist.length > 0 ? playlist[0] : c.stream_url,
                             playlist: playlist,
@@ -81,7 +79,6 @@ export default function LiveTV() {
                     setChannels(formattedChannels);
                     if (formattedChannels.length > 0) {
                         setCurrentChannel(prev => {
-                            // If a channel is already selected, try to maintain the selection with updated data
                             if (prev) {
                                 const updatedCurrent = formattedChannels.find(c => c.id === prev.id);
                                 return updatedCurrent || formattedChannels[0];
@@ -96,88 +93,117 @@ export default function LiveTV() {
         }
 
         fetchLiveTVData();
-
-        // Refresh EPG data every 5 minutes
         const interval = setInterval(fetchLiveTVData, 5 * 60 * 1000);
         return () => clearInterval(interval);
     }, []);
 
+    // Helper to get currently active program for the banner
+    const getCurrentProgram = (channel: Channel | null): Program | undefined => {
+        if (!channel || !channel.programs) return undefined;
+        const now = Date.now();
+        return channel.programs.find(p => {
+            const start = new Date(p.start_time).getTime();
+            const end = new Date(p.end_time).getTime();
+            return now >= start && now <= end;
+        });
+    };
+
     if (!currentChannel) {
         return (
-            <div className="min-h-screen bg-black flex items-center justify-center">
+            <div className="min-h-screen bg-[#050505] flex items-center justify-center">
                 <div className="flex flex-col items-center">
-                    <div className="w-12 h-12 rounded border-4 border-t-red-600 border-r-transparent border-b-transparent border-l-transparent animate-spin mb-4"></div>
-                    <p className="text-white/50 text-sm animate-pulse tracking-widest uppercase">Initializing Broadcast...</p>
+                    <div className="w-16 h-16 rounded-full border-4 border-white/10 border-t-white animate-spin mb-6"></div>
+                    <p className="text-white/60 text-xs font-bold uppercase tracking-[0.3em] animate-pulse">Initializing Samsung TV Plus</p>
                 </div>
             </div>
         );
     }
 
+    const currentProgram = getCurrentProgram(currentChannel);
+
     return (
-        <div className="h-[100dvh] w-full bg-black text-white flex flex-col font-sans overflow-hidden items-stretch selection:bg-red-500/30">
-            {/* Top Bar for Navigation and Status */}
-            <header className="h-16 bg-black border-b border-white/10 flex items-center justify-between px-4 sm:px-6 shrink-0 z-30 relative">
-                <Link
-                    href="/"
-                    className="flex items-center bg-white/5 hover:bg-white/10 backdrop-blur-md px-3 sm:px-4 py-2 rounded-full border border-white/10 transition-all group"
-                >
-                    <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 mr-2 group-hover:-translate-x-1 transition-transform text-white" />
-                    <span className="text-xs sm:text-sm font-bold text-white">Back</span>
-                </Link>
+        <div className="h-[100dvh] w-full bg-[#050505] text-white flex flex-col font-sans overflow-hidden selection:bg-white/20">
 
-                <div className="flex items-center bg-red-600/90 backdrop-blur-md px-2 sm:px-3 py-1 sm:py-1.5 rounded-sm shadow-xl">
-                    <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-white animate-pulse mr-1.5 sm:mr-2"></span>
-                    <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-white">Live • {currentChannel.name}</span>
+            {/* Absolute Top Navigation Overlay */}
+            <div className="absolute top-0 left-0 right-0 h-24 z-30 pointer-events-none bg-gradient-to-b from-black/80 to-transparent flex">
+                <div className="px-6 py-6 pointer-events-auto w-full flex justify-between items-start">
+                    <Link
+                        href="/"
+                        className="flex items-center bg-black/40 hover:bg-white/10 backdrop-blur-md px-4 py-2.5 rounded-full border border-white/5 transition-all group shadow-2xl"
+                    >
+                        <ArrowLeft className="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-transform text-white/90" />
+                        <span className="text-sm font-bold text-white/90 tracking-wide">Exit TV</span>
+                    </Link>
+
+                    {/* Samsung Style Channel Identifier Pill */}
+                    <div className="flex items-center justify-end pointer-events-auto group cursor-pointer transition-transform hover:scale-105">
+                        <div className="flex items-center bg-black/50 backdrop-blur-xl px-2 py-1.5 rounded-l-full border border-r-0 border-white/10 shadow-2xl pr-3">
+                            {currentChannel.logo_url ? (
+                                <img src={currentChannel.logo_url} alt={currentChannel.name} className="w-7 h-7 rounded-full mr-2 object-cover border border-white/20" />
+                            ) : (
+                                <div className="w-7 h-7 rounded-full bg-red-600 flex items-center justify-center mr-2 text-[10px] font-bold">
+                                    {currentChannel.name.charAt(0)}
+                                </div>
+                            )}
+                            <div className="flex flex-col">
+                                <span className="text-[10px] text-white/60 uppercase font-bold tracking-widest leading-none mb-0.5">Watching</span>
+                                <span className="text-xs font-bold text-white leading-none tracking-wide">{currentChannel.name}</span>
+                            </div>
+                        </div>
+                        <div className="bg-white text-black font-black uppercase tracking-widest text-[10px] px-3 py-1.5 h-full rounded-r-full flex items-center justify-center border border-white border-l-0">
+                            Live
+                        </div>
+                    </div>
                 </div>
-            </header>
+            </div>
 
-            {/* Main Player Area - Responsive Height (Smaller on mobile, full flex on desktop) */}
-            <main className="h-[35vh] md:h-auto md:flex-1 relative bg-black flex flex-col justify-center shrink-0">
-                {/* Edge-to-Edge Player Context */}
-                <div className="w-full h-full relative z-10 bg-black">
+            {/* Cinematic Player Area - Taking up almost 50% on desktop */}
+            <main className="relative shrink-0 flex flex-col justify-start bg-black w-full" style={{ height: "45vh", minHeight: "250px" }}>
+                <div className="w-full h-full relative z-10">
                     <LivePlayer streamUrl={currentChannel.stream_url} playlist={currentChannel.playlist} />
+                </div>
+
+                {/* Information Overlay Banner (Samsung TV Plus aesthetic) */}
+                <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-zinc-950 via-zinc-950/80 to-transparent z-20 pointer-events-none flex items-end px-8 pb-6">
+                    <div className="flex flex-col max-w-2xl drop-shadow-2xl">
+                        <h1 className="text-3xl md:text-5xl font-black text-white tracking-tight leading-none mb-2 text-shadow-lg">
+                            {currentProgram ? currentProgram.title : currentChannel.name}
+                        </h1>
+                        <p className="text-white/70 text-sm md:text-base font-medium line-clamp-2 max-w-xl text-shadow">
+                            {currentProgram ? currentProgram.description : currentChannel.description}
+                        </p>
+                    </div>
                 </div>
             </main>
 
-            {/* Premium EPG / TV Guide Section */}
-            <div className="flex-1 z-20 relative bg-zinc-950 flex flex-col min-h-0">
-                {/* Guide Toolbar */}
-                <div className="h-14 bg-zinc-900 border-b border-black flex items-center px-6 shrink-0 relative z-30 shadow-lg">
-                    {/* Category Filter Tabs */}
-                    <div className="flex items-center space-x-2 overflow-x-auto custom-scrollbar flex-1">
-                        {categories.map(cat => (
-                            <button
-                                key={cat}
-                                onClick={() => setActiveCategory(cat)}
-                                className={`px-5 py-2 rounded-full text-[11px] font-bold uppercase tracking-wider whitespace-nowrap transition-colors ${activeCategory === cat
-                                    ? 'bg-white text-black'
-                                    : 'bg-white/5 text-white/50 hover:bg-white/10 hover:text-white'
-                                    }`}
-                            >
-                                {cat}
-                            </button>
-                        ))}
-                    </div>
-
-                    {/* Time indicator (Right aligned) */}
-                    <div className="font-mono text-xs font-bold text-white/40 tracking-widest shrink-0 ml-6 hidden md:block uppercase bg-black/40 px-3 py-1.5 rounded">
-                        {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} PST
-                    </div>
+            {/* Categories Bar */}
+            <div className="h-12 bg-zinc-950 flex items-center px-4 md:px-8 shrink-0 relative z-30 border-b border-white/10 overflow-hidden shrink-0">
+                <div className="flex items-center space-x-1.5 overflow-x-auto custom-scrollbar flex-1 pb-2 pt-2">
+                    {categories.map(cat => (
+                        <button
+                            key={cat}
+                            onClick={() => setActiveCategory(cat)}
+                            className={`px-4 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-widest whitespace-nowrap transition-all duration-300 ${activeCategory === cat
+                                ? 'bg-white text-black scale-105 shadow-[0_0_15px_rgba(255,255,255,0.3)]'
+                                : 'bg-transparent text-white/50 hover:bg-white/10 hover:text-white'
+                                }`}
+                        >
+                            {cat}
+                        </button>
+                    ))}
                 </div>
+            </div>
 
-                {/* The Scrolling Grid */}
-                <div className="flex-1 overflow-hidden relative">
-                    <div className="absolute inset-0 overflow-y-auto custom-scrollbar">
-                        <EPG
-                            channels={channels}
-                            currentChannelId={currentChannel.id}
-                            onChannelSelect={(c) => setCurrentChannel(c)}
-                            categories={categories}
-                            activeCategory={activeCategory}
-                            onCategorySelect={setActiveCategory}
-                        />
-                    </div>
-                </div>
+            {/* Dynamic Guide Wrapper */}
+            <div className="flex-1 overflow-hidden relative bg-zinc-950">
+                <EPG
+                    channels={channels}
+                    currentChannelId={currentChannel.id}
+                    onChannelSelect={(c) => setCurrentChannel(c)}
+                    categories={categories}
+                    activeCategory={activeCategory}
+                    onCategorySelect={setActiveCategory}
+                />
             </div>
         </div>
     );
