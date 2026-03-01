@@ -12,19 +12,27 @@ interface LivePlayerProps {
 }
 
 export function LivePlayer({ streamUrl, posterUrl, playlist }: LivePlayerProps) {
-    const videoRef = useRef<HTMLVideoElement>(null);
+    const videoParentRef = useRef<HTMLDivElement>(null);
     const playerRef = useRef<Player | null>(null);
     const currentPlaylistIndex = useRef(0);
 
     useEffect(() => {
-        if (!videoRef.current) return;
+        if (!videoParentRef.current) return;
+
+        // Prevent double initialization in React Strict Mode
+        if (playerRef.current) return;
+
+        // Create the video element dynamically to avoid DOM mismatch issues after `dispose()`
+        const videoElement = document.createElement("video-js");
+        videoElement.classList.add('vjs-big-play-centered');
+        videoParentRef.current.appendChild(videoElement);
 
         // Initialize Video.js player
-        playerRef.current = videojs(videoRef.current, {
+        const player = playerRef.current = videojs(videoElement, {
             controls: true,
             autoplay: true,
-            muted: true, // Required for most browsers to autoplay
-            fluid: true,
+            muted: false,
+            fill: true,
             liveui: true, // Shows "LIVE" indicator
             poster: posterUrl,
             controlBar: {
@@ -38,10 +46,12 @@ export function LivePlayer({ streamUrl, posterUrl, playlist }: LivePlayerProps) 
                     type: streamUrl.endsWith(".m3u8") ? "application/x-mpegURL" : "video/mp4",
                 },
             ],
+        }, () => {
+            player.log('player is ready');
         });
 
         // Listen for VOD end to simulate continuous broadcasting
-        playerRef.current.on('ended', () => {
+        player.on('ended', () => {
             if (playlist && playlist.length > 0 && playerRef.current) {
                 // Move to next video in the playlist
                 currentPlaylistIndex.current = (currentPlaylistIndex.current + 1) % playlist.length;
@@ -51,12 +61,12 @@ export function LivePlayer({ streamUrl, posterUrl, playlist }: LivePlayerProps) 
                     src: nextUrl,
                     type: nextUrl?.endsWith(".m3u8") ? "application/x-mpegURL" : "video/mp4"
                 });
-                playerRef.current.play().catch(e => console.error("Autoplay prevented on continuity switch:", e));
+                playerRef.current?.play()?.catch(e => console.error("Autoplay prevented on continuity switch:", e));
             }
         });
 
         return () => {
-            if (playerRef.current) {
+            if (playerRef.current && !playerRef.current.isDisposed()) {
                 playerRef.current.dispose();
                 playerRef.current = null;
             }
@@ -71,13 +81,13 @@ export function LivePlayer({ streamUrl, posterUrl, playlist }: LivePlayerProps) 
                 src: streamUrl,
                 type: streamUrl.endsWith(".m3u8") ? "application/x-mpegURL" : "video/mp4",
             });
-            playerRef.current.play().catch(e => console.error("Autoplay prevented on channel switch:", e));
+            playerRef.current?.play()?.catch(e => console.error("Autoplay prevented on channel switch:", e));
         }
     }, [streamUrl]);
 
     return (
         <div data-vjs-player className="w-full h-full bg-black flex items-center justify-center rounded-xl overflow-hidden shadow-2xl ring-1 ring-white/10">
-            <video ref={videoRef} className="video-js vjs-big-play-centered" playsInline />
+            <div ref={videoParentRef} className="w-full h-full" />
             <style jsx global>{`
                 .video-js .vjs-tech {
                     object-fit: contain;

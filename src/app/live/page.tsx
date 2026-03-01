@@ -108,85 +108,58 @@ export default function LiveTV() {
 
     return (
         <div className="h-screen w-full bg-black text-white flex flex-col font-sans overflow-hidden items-stretch selection:bg-red-500/30">
-            {/* Header */}
-            <header className="h-[72px] border-b border-white/10 flex items-center justify-between px-6 shrink-0 z-30 bg-black/80 backdrop-blur-xl sticky top-0">
-                <div className="flex items-center">
-                    <Link href="/" className="flex items-center text-white/50 hover:text-white transition-colors mr-6 shrink-0 group">
-                        <ArrowLeft className="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-transform" />
-                        <span className="hidden sm:inline">Back to On Demand</span>
-                    </Link>
-                    <div className="h-6 w-px bg-white/10 mr-6"></div>
-                    <div className="flex items-center text-xl font-bold tracking-tight bg-gradient-to-r from-red-500 to-amber-500 text-transparent bg-clip-text drop-shadow-[0_0_15px_rgba(239,68,68,0.5)]">
-                        <Tv className="w-6 h-6 mr-2 text-white drop-shadow-none" />
-                        Live TV
-                    </div>
-                </div>
+            {/* Main Player Area - Full Width & Height on Top */}
+            <main className="flex-1 relative bg-black flex flex-col justify-center">
+                {/* Subtle Overlay Back Button */}
+                <Link
+                    href="/"
+                    className="absolute top-6 left-6 z-30 flex items-center bg-black/40 hover:bg-black/80 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 transition-all group"
+                >
+                    <ArrowLeft className="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-transform text-white" />
+                    <span className="text-sm font-bold text-white">Back</span>
+                </Link>
 
-                {/* Status Indicator */}
-                <div className="hidden md:flex items-center px-4 py-1.5 rounded-full bg-green-500/10 border border-green-500/20 text-green-400 text-xs font-bold uppercase tracking-widest">
-                    <div className="w-2 h-2 rounded-full bg-green-500 mr-2 shadow-[0_0_8px_rgba(34,197,94,0.8)] animate-pulse"></div>
-                    System Operational
-                </div>
-            </header>
+                {/* Edge-to-Edge Player Context */}
+                <div className="w-full h-full relative z-10 bg-black">
+                    <LivePlayer streamUrl={currentChannel.stream_url} playlist={currentChannel.playlist} />
 
-            {/* Main Player Area */}
-            <main className="flex-1 relative flex flex-col items-center justify-center bg-black overflow-hidden group">
-                {/* Immersive Background Blur extracted from video.js (Aesthetic only) */}
-                <div className="absolute inset-0 bg-gradient-to-br from-red-900/10 via-black to-blue-900/10 z-0 pointer-events-none"></div>
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-white/5 blur-[120px] rounded-full pointer-events-none z-0 mix-blend-screen opacity-50"></div>
-
-                <div className="w-full max-w-7xl h-full lg:max-h-[75vh] relative z-10 flex items-center justify-center p-0 lg:p-8">
-                    <div className="w-full h-full lg:rounded-2xl overflow-hidden shadow-[0_0_60px_rgba(0,0,0,0.8)] ring-1 ring-white/10 bg-black relative">
-                        {/* Live Player Core Component */}
-                        <LivePlayer streamUrl={currentChannel.stream_url} />
-
-                        {/* Live Badge Overlay */}
-                        <div className="absolute top-6 left-6 z-20 flex items-center bg-black/50 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/20 shadow-2xl transition-opacity opacity-100 lg:group-hover:opacity-100 lg:opacity-0">
-                            <span className="w-2.5 h-2.5 rounded-full bg-red-600 animate-pulse mr-2 shadow-[0_0_8px_rgba(220,38,38,0.9)]"></span>
-                            <span className="text-[11px] font-bold uppercase tracking-widest text-white/90">Live • {currentChannel.name}</span>
-                        </div>
+                    {/* Minimalist Live TV Badge */}
+                    <div className="absolute top-6 right-6 z-20 flex items-center bg-red-600/90 backdrop-blur-md px-3 py-1.5 rounded-sm shadow-xl">
+                        <span className="w-2 h-2 rounded-full bg-white animate-pulse mr-2"></span>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-white">Live • {currentChannel.name}</span>
                     </div>
                 </div>
             </main>
 
-            {/* EPG / TV Guide Section */}
-            <div className="shrink-0 z-20 relative">
+            {/* Premium EPG / TV Guide Section */}
+            <div className="shrink-0 z-20 relative h-[45vh] lg:h-[40vh] bg-zinc-950 flex flex-col">
                 {/* Guide Toolbar */}
-                <div className="h-14 bg-black border-t border-white/10 flex items-center justify-between px-6 sticky top-0 z-50 shadow-2xl">
-                    <div className="flex items-center space-x-6 w-full overflow-hidden">
-                        <h2 className="hidden lg:flex text-[11px] font-bold text-white/70 uppercase tracking-[0.2em] items-center shrink-0">
-                            <ShieldAlert className="w-4 h-4 mr-2 text-red-500" />
-                            Program Guide
-                        </h2>
-
-                        <div className="w-px h-6 bg-white/10 hidden lg:block"></div>
-
-                        {/* Category Filter Tabs */}
-                        <div className="flex items-center space-x-2 overflow-x-auto custom-scrollbar pb-1">
-                            {categories.map(cat => (
-                                <button
-                                    key={cat}
-                                    onClick={() => setActiveCategory(cat)}
-                                    className={`px-4 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors border ${activeCategory === cat
-                                        ? 'bg-white text-black border-white'
-                                        : 'bg-white/5 border-white/10 text-white/60 hover:bg-white/10 hover:text-white'
-                                        }`}
-                                >
-                                    {cat}
-                                </button>
-                            ))}
-                        </div>
+                <div className="h-14 bg-zinc-900 border-b border-black flex items-center px-6 shrink-0 relative z-30 shadow-lg">
+                    {/* Category Filter Tabs */}
+                    <div className="flex items-center space-x-2 overflow-x-auto custom-scrollbar flex-1">
+                        {categories.map(cat => (
+                            <button
+                                key={cat}
+                                onClick={() => setActiveCategory(cat)}
+                                className={`px-5 py-2 rounded-full text-[11px] font-bold uppercase tracking-wider whitespace-nowrap transition-colors ${activeCategory === cat
+                                    ? 'bg-white text-black'
+                                    : 'bg-white/5 text-white/50 hover:bg-white/10 hover:text-white'
+                                    }`}
+                            >
+                                {cat}
+                            </button>
+                        ))}
                     </div>
 
-                    {/* Time indicator */}
-                    <div className="font-mono text-xs text-white/50 tracking-wider shrink-0 ml-6 hidden md:block">
+                    {/* Time indicator (Right aligned) */}
+                    <div className="font-mono text-xs font-bold text-white/40 tracking-widest shrink-0 ml-6 hidden md:block uppercase bg-black/40 px-3 py-1.5 rounded">
                         {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} PST
                     </div>
                 </div>
 
                 {/* The Scrolling Grid */}
-                <div className="bg-black/80 backdrop-blur-xl h-64 lg:h-80 overflow-hidden relative border-t border-white/5">
-                    <div className="absolute inset-0 top-0 overflow-y-auto custom-scrollbar">
+                <div className="flex-1 overflow-hidden relative">
+                    <div className="absolute inset-0 overflow-y-auto custom-scrollbar">
                         <EPG
                             channels={channels}
                             currentChannelId={currentChannel.id}

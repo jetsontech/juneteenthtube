@@ -33,37 +33,21 @@ export function EPG({ channels, currentChannelId, onChannelSelect, categories, a
     const nowHours = Date.now();
 
     return (
-        <div className="w-full bg-black/90 backdrop-blur-xl border-t border-white/10 flex flex-col h-[300px]">
-            {/* Category Filter Bar */}
-            <div className="flex items-center space-x-2 px-4 py-3 bg-black/50 border-b border-white/5 overflow-x-auto custom-scrollbar shrink-0">
-                {categories.map(cat => (
-                    <button
-                        key={cat}
-                        onClick={() => onCategorySelect(cat)}
-                        className={`px-4 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all border ${activeCategory === cat
-                                ? 'bg-red-600 text-white border-red-500 shadow-[0_0_15px_rgba(220,38,38,0.5)]'
-                                : 'bg-white/5 border-white/10 text-white/60 hover:bg-white/10 hover:text-white'
-                            }`}
-                    >
-                        {cat}
-                    </button>
-                ))}
-            </div>
-
+        <div className="w-full bg-zinc-950 flex flex-col h-full">
             {/* Guide Grid */}
             <div className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar">
                 {channels.map((channel) => (
                     <div
                         key={channel.id}
-                        className={`flex items-stretch border-b border-white/5 transition-colors group ${currentChannelId === channel.id ? "bg-white/10" : "hover:bg-white/5"
+                        className={`flex items-stretch border-b border-white/5 transition-colors group ${currentChannelId === channel.id ? "bg-white/5" : "hover:bg-white/[0.02]"
                             }`}
                     >
                         {/* ... Channel Column ... */}
                         <div
                             onClick={() => onChannelSelect(channel)}
-                            className="w-[200px] sm:w-[280px] shrink-0 flex items-center p-4 border-r border-white/5 cursor-pointer z-10 bg-black/50 sticky left-0 filter backdrop-blur-xl"
+                            className="w-[200px] sm:w-[280px] shrink-0 flex items-center p-4 border-r border-white/5 cursor-pointer z-10 bg-zinc-900 sticky left-0 filter"
                         >
-                            <div className="w-12 h-12 rounded bg-white/5 flex items-center justify-center shrink-0 mr-4 overflow-hidden border border-white/10">
+                            <div className="w-12 h-12 rounded bg-black/50 flex items-center justify-center shrink-0 mr-4 overflow-hidden border border-white/5">
                                 {channel.logo_url ? (
                                     <img src={channel.logo_url} alt={channel.name} className="w-full h-full object-cover" />
                                 ) : (
