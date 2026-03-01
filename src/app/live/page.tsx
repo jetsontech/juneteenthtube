@@ -107,9 +107,9 @@ export default function LiveTV() {
     }
 
     return (
-        <div className="h-screen w-full bg-black text-white flex flex-col font-sans overflow-hidden items-stretch selection:bg-red-500/30">
-            {/* Main Player Area - Full Width & Height on Top */}
-            <main className="flex-1 relative bg-black flex flex-col justify-center">
+        <div className="h-[100dvh] w-full bg-black text-white flex flex-col font-sans overflow-hidden items-stretch selection:bg-red-500/30">
+            {/* Main Player Area - Responsive Height (Smaller on mobile, full flex on desktop) */}
+            <main className="h-[35vh] md:h-auto md:flex-1 relative bg-black flex flex-col justify-center shrink-0">
                 {/* Subtle Overlay Back Button */}
                 <Link
                     href="/"
@@ -132,7 +132,7 @@ export default function LiveTV() {
             </main>
 
             {/* Premium EPG / TV Guide Section */}
-            <div className="shrink-0 z-20 relative h-[45vh] lg:h-[40vh] bg-zinc-950 flex flex-col">
+            <div className="flex-1 z-20 relative bg-zinc-950 flex flex-col min-h-0">
                 {/* Guide Toolbar */}
                 <div className="h-14 bg-zinc-900 border-b border-black flex items-center px-6 shrink-0 relative z-30 shadow-lg">
                     {/* Category Filter Tabs */}

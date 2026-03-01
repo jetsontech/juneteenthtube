@@ -16,6 +16,7 @@ export type Channel = {
     name: string;
     logo_url?: string;
     stream_url: string;
+    playlist?: string[];
     programs: Program[];
 };
 
@@ -45,20 +46,20 @@ export function EPG({ channels, currentChannelId, onChannelSelect, categories, a
                         {/* ... Channel Column ... */}
                         <div
                             onClick={() => onChannelSelect(channel)}
-                            className="w-[200px] sm:w-[280px] shrink-0 flex items-center p-4 border-r border-white/5 cursor-pointer z-10 bg-zinc-900 sticky left-0 filter"
+                            className="w-[110px] md:w-[200px] lg:w-[280px] shrink-0 flex flex-col md:flex-row items-center md:items-start p-2 md:p-4 border-r border-white/5 cursor-pointer z-10 bg-zinc-900 sticky left-0 filter text-center md:text-left justify-center md:justify-start"
                         >
-                            <div className="w-12 h-12 rounded bg-black/50 flex items-center justify-center shrink-0 mr-4 overflow-hidden border border-white/5">
+                            <div className="w-10 h-10 md:w-12 md:h-12 rounded bg-black/50 flex items-center justify-center shrink-0 mb-2 md:mb-0 md:mr-4 overflow-hidden border border-white/5 mx-auto md:mx-0">
                                 {channel.logo_url ? (
                                     <img src={channel.logo_url} alt={channel.name} className="w-full h-full object-cover" />
                                 ) : (
-                                    <span className="font-bold text-lg text-white/50">{channel.name.charAt(0)}</span>
+                                    <span className="font-bold text-sm md:text-lg text-white/50">{channel.name.charAt(0)}</span>
                                 )}
                             </div>
-                            <div className="flex-1 min-w-0">
-                                <h3 className="font-semibold text-white truncate group-hover:text-red-400 transition-colors">{channel.name}</h3>
+                            <div className="flex-1 min-w-0 w-full">
+                                <h3 className="font-semibold text-white truncate group-hover:text-red-400 transition-colors text-[10px] md:text-base leading-tight md:leading-normal">{channel.name}</h3>
                                 {currentChannelId === channel.id && (
-                                    <span className="text-red-500 text-[10px] font-bold uppercase tracking-widest flex items-center mt-1">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-red-500 mr-1.5 animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)]"></span>
+                                    <span className="text-red-500 text-[8px] md:text-[10px] font-bold uppercase tracking-widest flex items-center justify-center md:justify-start mt-1">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-red-500 mr-1 md:mr-1.5 animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)]"></span>
                                         On Air
                                     </span>
                                 )}
@@ -84,7 +85,7 @@ export function EPG({ channels, currentChannelId, onChannelSelect, categories, a
                                     return (
                                         <div
                                             key={prog.id}
-                                            className={`min-w-[320px] border-r border-white/5 p-4 flex flex-col justify-center relative cursor-pointer hover:bg-white/10 transition-colors ${isNowPlaying ? 'bg-white/5' : ''
+                                            className={`min-w-[200px] md:min-w-[320px] border-r border-white/5 p-3 md:p-4 flex flex-col justify-center relative cursor-pointer hover:bg-white/10 transition-colors ${isNowPlaying ? 'bg-white/5' : ''
                                                 }`}
                                             onClick={() => onChannelSelect(channel)}
                                         >
