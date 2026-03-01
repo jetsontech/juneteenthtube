@@ -157,19 +157,25 @@ export default function LiveTV() {
                 </div>
             </div>
 
-            {/* Cinematic Player Area - Taking up almost 50% on desktop */}
-            <main className="relative shrink-0 flex flex-col justify-start bg-black w-full" style={{ height: "45vh", minHeight: "250px" }}>
-                <div className="w-full h-full relative z-10">
+            {/* Cinematic Player Area */}
+            <main className="shrink-0 flex flex-col justify-start bg-zinc-950 w-full">
+                <div className="w-full relative z-10 bg-black" style={{ height: "45vh", minHeight: "250px", maxHeight: "55vh" }}>
                     <LivePlayer streamUrl={currentChannel.stream_url} playlist={currentChannel.playlist} />
                 </div>
 
-                {/* Information Overlay Banner (Samsung TV Plus aesthetic) */}
-                <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-zinc-950 via-zinc-950/80 to-transparent z-20 pointer-events-none flex items-end px-8 pb-6">
-                    <div className="flex flex-col max-w-2xl drop-shadow-2xl">
-                        <h1 className="text-3xl md:text-5xl font-black text-white tracking-tight leading-none mb-2 text-shadow-lg">
+                {/* Information Banner (Moved below player to avoid overlapping video) */}
+                <div className="w-full bg-gradient-to-b from-zinc-900 to-zinc-950 border-b border-white/5 px-6 md:px-8 py-5 flex items-start justify-between shadow-inner z-20">
+                    <div className="flex flex-col max-w-4xl">
+                        <h1 className="text-xl md:text-3xl font-black text-white tracking-tight leading-none mb-1.5">
                             {currentProgram ? currentProgram.title : currentChannel.name}
                         </h1>
-                        <p className="text-white/70 text-sm md:text-base font-medium line-clamp-2 max-w-xl text-shadow">
+                        {currentProgram && (
+                            <div className="text-red-400 text-[10px] md:text-xs font-bold uppercase tracking-widest mb-1.5 font-mono flex items-center">
+                                <span className="w-1.5 h-1.5 rounded-full bg-red-500 mr-2 animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)]"></span>
+                                {new Date(currentProgram.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {new Date(currentProgram.end_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </div>
+                        )}
+                        <p className="text-white/60 text-xs md:text-sm font-medium line-clamp-2 mt-1">
                             {currentProgram ? currentProgram.description : currentChannel.description}
                         </p>
                     </div>
