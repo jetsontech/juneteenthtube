@@ -258,6 +258,8 @@ export function LegacyVault() {
                                         <button
                                             onClick={() => setIsPlaying(true)}
                                             className="p-4 bg-white/10 backdrop-blur-md rounded-full border border-white/20 hover:scale-110 hover:bg-yellow-600 hover:text-black hover:border-transparent transition-all cursor-pointer group-hover:shadow-[0_0_30px_rgba(234,179,8,0.4)]"
+                                            title="Play video"
+                                            aria-label="Play video"
                                         >
                                             <Play className="w-8 h-8 fill-current" />
                                         </button>

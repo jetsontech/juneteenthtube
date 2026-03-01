@@ -33,6 +33,7 @@
 }
 
 
+/*noinspection CssUnknownAtRule*/
 @theme {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
