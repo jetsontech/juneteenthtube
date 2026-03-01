@@ -32,6 +32,15 @@ export function AdminLiveStudio() {
     const [channels, setChannels] = useState<Channel[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [newChannel, setNewChannel] = useState({
+        name: "",
+        stream_url: "",
+        logo_url: "",
+        category: "Entertainment",
+        description: ""
+    });
 
     // Status counts
     const activeCount = channels.filter(c => c.status === 'active').length;
@@ -109,6 +118,49 @@ export function AdminLiveStudio() {
         (c.description && c.description.toLowerCase().includes(searchQuery.toLowerCase()))
     );
 
+    const handleAddChannel = async () => {
+        if (!newChannel.name || !newChannel.stream_url) return;
+        setIsSubmitting(true);
+
+        try {
+            // Find highest order index to place this at the end
+            const maxOrder = channels.reduce((max, c) => Math.max(max, c.order_index || 0), 0);
+
+            const channelData = {
+                id: crypto.randomUUID(), // Fallback if DB doesn't gen
+                name: newChannel.name,
+                stream_url: newChannel.stream_url,
+                logo_url: newChannel.logo_url || null,
+                category: newChannel.category,
+                description: newChannel.description || null,
+                status: 'active',
+                order_index: maxOrder + 1,
+                is_internal_vod: false // Manual additions are external live streams
+            };
+
+            const { error } = await supabase
+                .from('channels')
+                .insert([channelData]);
+
+            if (error) throw error;
+
+            // Success: Reset form, close modal, refresh grid
+            setNewChannel({ name: "", stream_url: "", logo_url: "", category: "Entertainment", description: "" });
+            setIsAddModalOpen(false);
+            await fetchChannels();
+
+            // Note: We don't generate EPG data here. We'll show a fallback "Live Broadcast" in the grid 
+            // until a future backend script populates actual guide data, or we could add dummy data.
+            // For now, EPG handles empty programs gracefully.
+
+        } catch (error) {
+            console.error("Error creating channel:", error);
+            alert("Failed to create channel: " + (error as any).message);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
     return (
         <div className="space-y-6">
             {/* Live TV Stats Grid */}
@@ -142,7 +194,7 @@ export function AdminLiveStudio() {
                 </div>
 
                 <button
-                    onClick={() => alert("Manual channel addition panel coming soon to Phase 4.")}
+                    onClick={() => setIsAddModalOpen(true)}
                     className="flex items-center justify-center gap-2 px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-2xl transition-all font-bold text-sm shrink-0 shadow-[0_0_15px_rgba(220,38,38,0.3)]"
                 >
                     <Plus className="w-4 h-4" /> Add IPTV Stream
@@ -238,6 +290,103 @@ export function AdminLiveStudio() {
                     </tbody>
                 </table>
             </div>
+
+            {/* Add Channel Modal */}
+            {isAddModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm shadow-[0_0_60px_rgba(0,0,0,0.8)]">
+                    <div className="w-full max-w-lg bg-zinc-950 border border-white/10 rounded-3xl p-6 sm:p-8 shadow-2xl overflow-y-auto max-h-[90vh] custom-scrollbar">
+                        <div className="flex justify-between items-center mb-6 border-b border-white/10 pb-4">
+                            <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                                <Plus className="text-red-500 w-6 h-6" /> Add New Broadcast
+                            </h3>
+                            <button
+                                onClick={() => setIsAddModalOpen(false)}
+                                className="text-white/50 hover:text-white transition-colors bg-white/5 p-2 rounded-full"
+                                title="Close Modal"
+                                aria-label="Close add channel modal"
+                            >
+                                <XCircle className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        <div className="space-y-5">
+                            <div>
+                                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Channel Name <span className="text-red-500">*</span></label>
+                                <input
+                                    type="text"
+                                    value={newChannel.name}
+                                    onChange={e => setNewChannel({ ...newChannel, name: e.target.value })}
+                                    className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-red-500/50 focus:outline-none transition-all placeholder:text-white/20"
+                                    placeholder="e.g. CNN International"
+                                    required
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Stream URL (M3U8) <span className="text-red-500">*</span></label>
+                                <input
+                                    type="text"
+                                    value={newChannel.stream_url}
+                                    onChange={e => setNewChannel({ ...newChannel, stream_url: e.target.value })}
+                                    className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-red-500/50 focus:outline-none transition-all placeholder:text-white/20 font-mono text-sm"
+                                    placeholder="https://example.com/stream.m3u8"
+                                    required
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Category</label>
+                                <select
+                                    value={newChannel.category}
+                                    onChange={e => setNewChannel({ ...newChannel, category: e.target.value })}
+                                    className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-red-500/50 focus:outline-none transition-all appearance-none"
+                                    title="Select Category"
+                                    aria-label="Channel Category"
+                                >
+                                    {["Entertainment", "Movies", "News", "Music", "Kids", "Sports", "Local"].map(cat => (
+                                        <option key={cat} value={cat}>{cat}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Logo URL (Optional)</label>
+                                <input
+                                    type="text"
+                                    value={newChannel.logo_url}
+                                    onChange={e => setNewChannel({ ...newChannel, logo_url: e.target.value })}
+                                    className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-red-500/50 focus:outline-none transition-all placeholder:text-white/20"
+                                    placeholder="https://example.com/logo.png"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Description (Optional)</label>
+                                <textarea
+                                    value={newChannel.description}
+                                    onChange={e => setNewChannel({ ...newChannel, description: e.target.value })}
+                                    className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-red-500/50 focus:outline-none transition-all placeholder:text-white/20 h-24 resize-none"
+                                    placeholder="Short description of the broadcast..."
+                                />
+                            </div>
+
+                            <div className="pt-4 flex gap-3">
+                                <button
+                                    onClick={handleAddChannel}
+                                    disabled={!newChannel.name || !newChannel.stream_url || isSubmitting}
+                                    className="flex-1 flex justify-center items-center gap-2 bg-red-600 hover:bg-red-700 disabled:bg-white/5 disabled:text-white/30 text-white py-4 rounded-xl font-bold transition-all shadow-[0_0_15px_rgba(220,38,38,0.3)] disabled:shadow-none"
+                                >
+                                    {isSubmitting ? (
+                                        <><RefreshCw className="w-5 h-5 animate-spin" /> Processing...</>
+                                    ) : (
+                                        <><Save className="w-5 h-5" /> Launch Broadcast Channel</>
+                                    )}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
