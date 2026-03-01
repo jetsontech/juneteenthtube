@@ -99,6 +99,7 @@ export function EPG({ channels, currentChannelId, onChannelSelect, categories, a
                                             {/* Now Playing Progress Bar Overlay */}
                                             {isNowPlaying && (
                                                 <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-white/10">
+                                                    {/* eslint-disable-next-line */}
                                                     <div className="h-full bg-red-600 shadow-[0_0_10px_rgba(220,38,38,0.8)]" style={{ width: `${progressPercent}%` }}></div>
                                                 </div>
                                             )}

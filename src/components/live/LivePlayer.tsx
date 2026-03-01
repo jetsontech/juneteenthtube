@@ -23,7 +23,8 @@ export function LivePlayer({ streamUrl, posterUrl, playlist }: LivePlayerProps) 
         if (playerRef.current) return;
 
         // Create the video element dynamically to avoid DOM mismatch issues after `dispose()`
-        const videoElement = document.createElement("video-js");
+        const videoElement = document.createElement("video");
+        videoElement.classList.add('video-js');
         videoElement.classList.add('vjs-big-play-centered');
         videoParentRef.current.appendChild(videoElement);
 

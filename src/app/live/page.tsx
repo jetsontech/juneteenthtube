@@ -80,7 +80,14 @@ export default function LiveTV() {
 
                     setChannels(formattedChannels);
                     if (formattedChannels.length > 0) {
-                        setCurrentChannel(formattedChannels[0]);
+                        setCurrentChannel(prev => {
+                            // If a channel is already selected, try to maintain the selection with updated data
+                            if (prev) {
+                                const updatedCurrent = formattedChannels.find(c => c.id === prev.id);
+                                return updatedCurrent || formattedChannels[0];
+                            }
+                            return formattedChannels[0];
+                        });
                     }
                 }
             } catch (err) {
@@ -108,26 +115,27 @@ export default function LiveTV() {
 
     return (
         <div className="h-[100dvh] w-full bg-black text-white flex flex-col font-sans overflow-hidden items-stretch selection:bg-red-500/30">
-            {/* Main Player Area - Responsive Height (Smaller on mobile, full flex on desktop) */}
-            <main className="h-[35vh] md:h-auto md:flex-1 relative bg-black flex flex-col justify-center shrink-0">
-                {/* Subtle Overlay Back Button */}
+            {/* Top Bar for Navigation and Status */}
+            <header className="h-16 bg-black border-b border-white/10 flex items-center justify-between px-4 sm:px-6 shrink-0 z-30 relative">
                 <Link
                     href="/"
-                    className="absolute top-6 left-6 z-30 flex items-center bg-black/40 hover:bg-black/80 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 transition-all group"
+                    className="flex items-center bg-white/5 hover:bg-white/10 backdrop-blur-md px-3 sm:px-4 py-2 rounded-full border border-white/10 transition-all group"
                 >
-                    <ArrowLeft className="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-transform text-white" />
-                    <span className="text-sm font-bold text-white">Back</span>
+                    <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 mr-2 group-hover:-translate-x-1 transition-transform text-white" />
+                    <span className="text-xs sm:text-sm font-bold text-white">Back</span>
                 </Link>
 
+                <div className="flex items-center bg-red-600/90 backdrop-blur-md px-2 sm:px-3 py-1 sm:py-1.5 rounded-sm shadow-xl">
+                    <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-white animate-pulse mr-1.5 sm:mr-2"></span>
+                    <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-white">Live • {currentChannel.name}</span>
+                </div>
+            </header>
+
+            {/* Main Player Area - Responsive Height (Smaller on mobile, full flex on desktop) */}
+            <main className="h-[35vh] md:h-auto md:flex-1 relative bg-black flex flex-col justify-center shrink-0">
                 {/* Edge-to-Edge Player Context */}
                 <div className="w-full h-full relative z-10 bg-black">
                     <LivePlayer streamUrl={currentChannel.stream_url} playlist={currentChannel.playlist} />
-
-                    {/* Minimalist Live TV Badge */}
-                    <div className="absolute top-6 right-6 z-20 flex items-center bg-red-600/90 backdrop-blur-md px-3 py-1.5 rounded-sm shadow-xl">
-                        <span className="w-2 h-2 rounded-full bg-white animate-pulse mr-2"></span>
-                        <span className="text-[10px] font-black uppercase tracking-widest text-white">Live • {currentChannel.name}</span>
-                    </div>
                 </div>
             </main>
 
