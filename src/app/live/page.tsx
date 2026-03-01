@@ -10,6 +10,8 @@ import { supabase } from "@/lib/supabase";
 export default function LiveTV() {
     const [channels, setChannels] = useState<Channel[]>([]);
     const [currentChannel, setCurrentChannel] = useState<Channel | null>(null);
+    const [categories] = useState(["All", "Entertainment", "Movies", "News", "Music", "Kids", "Sports", "Local"]);
+    const [activeCategory, setActiveCategory] = useState("All");
 
     useEffect(() => {
         async function fetchLiveTVData() {
@@ -36,15 +38,45 @@ export default function LiveTV() {
 
                 if (epgError) throw epgError;
 
+                // If any EPG data contains video_ids, we need to fetch the actual video URLs
+                let videosData: any[] = [];
+                if (epgData) {
+                    const videoIds = epgData.map(p => p.video_id).filter(id => id !== null);
+                    if (videoIds.length > 0) {
+                        const { data: vData } = await supabase
+                            .from('videos')
+                            .select('id, video_url')
+                            .in('id', videoIds);
+                        if (vData) videosData = vData;
+                    }
+                }
+
                 // Map EPG data to channels
                 if (channelData) {
-                    const formattedChannels: Channel[] = channelData.map(c => ({
-                        id: c.id,
-                        name: c.name,
-                        logo_url: c.logo_url,
-                        stream_url: c.stream_url,
-                        programs: epgData ? epgData.filter(p => p.channel_id === c.id) : []
-                    }));
+                    const formattedChannels: Channel[] = channelData.map(c => {
+                        const channelEpg = epgData ? epgData.filter(p => p.channel_id === c.id) : [];
+                        let playlist: string[] | undefined = undefined;
+
+                        // If it's an internal VOD channel, map the scheduled programs to their actual MP4 URLs
+                        if (c.is_internal_vod && channelEpg.length > 0) {
+                            playlist = channelEpg
+                                .map(epg => {
+                                    const video = videosData.find(v => v.id === epg.video_id);
+                                    return video?.video_url;
+                                })
+                                .filter(Boolean) as string[];
+                        }
+
+                        return {
+                            id: c.id,
+                            name: c.name,
+                            logo_url: c.logo_url,
+                            stream_url: c.is_internal_vod && playlist && playlist.length > 0 ? playlist[0] : c.stream_url,
+                            playlist: playlist,
+                            is_internal_vod: c.is_internal_vod,
+                            programs: channelEpg
+                        };
+                    });
 
                     setChannels(formattedChannels);
                     if (formattedChannels.length > 0) {
@@ -120,31 +152,48 @@ export default function LiveTV() {
             {/* EPG / TV Guide Section */}
             <div className="shrink-0 z-20 relative">
                 {/* Guide Toolbar */}
-                <div className="h-12 bg-black border-t border-white/10 flex items-center justify-between px-6 sticky top-0 z-50 shadow-2xl">
-                    <h2 className="text-[11px] font-bold text-white/70 uppercase tracking-[0.2em] flex items-center">
-                        <ShieldAlert className="w-4 h-4 mr-2 text-red-500" />
-                        Electronic Program Guide
-                    </h2>
+                <div className="h-14 bg-black border-t border-white/10 flex items-center justify-between px-6 sticky top-0 z-50 shadow-2xl">
+                    <div className="flex items-center space-x-6 w-full overflow-hidden">
+                        <h2 className="hidden lg:flex text-[11px] font-bold text-white/70 uppercase tracking-[0.2em] items-center shrink-0">
+                            <ShieldAlert className="w-4 h-4 mr-2 text-red-500" />
+                            Program Guide
+                        </h2>
+
+                        <div className="w-px h-6 bg-white/10 hidden lg:block"></div>
+
+                        {/* Category Filter Tabs */}
+                        <div className="flex items-center space-x-2 overflow-x-auto custom-scrollbar pb-1">
+                            {categories.map(cat => (
+                                <button
+                                    key={cat}
+                                    onClick={() => setActiveCategory(cat)}
+                                    className={`px-4 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors border ${activeCategory === cat
+                                        ? 'bg-white text-black border-white'
+                                        : 'bg-white/5 border-white/10 text-white/60 hover:bg-white/10 hover:text-white'
+                                        }`}
+                                >
+                                    {cat}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
 
                     {/* Time indicator */}
-                    <div className="font-mono text-xs text-white/50 tracking-wider">
+                    <div className="font-mono text-xs text-white/50 tracking-wider shrink-0 ml-6 hidden md:block">
                         {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} PST
                     </div>
                 </div>
 
                 {/* The Scrolling Grid */}
                 <div className="bg-black/80 backdrop-blur-xl h-64 lg:h-80 overflow-hidden relative border-t border-white/5">
-                    {/* Timeline Guide Header (Static for now) */}
-                    <div className="h-8 border-b border-white/5 flex items-center bg-white/5 text-[10px] text-white/50 font-mono uppercase tracking-widest sticky top-0 z-20">
-                        <div className="w-[200px] sm:w-[280px] shrink-0 border-r border-white/5 h-full flex items-center px-6">Channel Lineup</div>
-                        <div className="flex-1 px-6 h-full flex items-center">Current Programming Block</div>
-                    </div>
-
-                    <div className="absolute inset-0 top-8 overflow-y-auto custom-scrollbar">
+                    <div className="absolute inset-0 top-0 overflow-y-auto custom-scrollbar">
                         <EPG
                             channels={channels}
                             currentChannelId={currentChannel.id}
                             onChannelSelect={(c) => setCurrentChannel(c)}
+                            categories={categories}
+                            activeCategory={activeCategory}
+                            onCategorySelect={setActiveCategory}
                         />
                     </div>
                 </div>

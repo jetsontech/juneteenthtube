@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import { useVideo } from "@/context/VideoContext";
+import { AdminLiveStudio } from "@/components/admin/AdminLiveStudio";
 import {
     LayoutDashboard,
     Video,
@@ -20,7 +21,8 @@ import {
     Ban,
     UserCheck,
     MoreVertical,
-    FileVideo
+    FileVideo,
+    Tv
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
@@ -29,7 +31,7 @@ export default function AdminDashboard() {
     const { videos, deleteVideo } = useVideo();
     const [searchQuery, setSearchQuery] = useState("");
     const [filterStatus, setFilterStatus] = useState<string>("all");
-    const [activeTab, setActiveTab] = useState<"videos" | "users">("videos");
+    const [activeTab, setActiveTab] = useState<"videos" | "users" | "livetv">("videos");
 
     // Statistics
     const stats = {
@@ -112,11 +114,11 @@ export default function AdminDashboard() {
                 {/* Main Content Area */}
                 <div className="glass-card rounded-3xl border border-white/10 overflow-hidden bg-white/[0.01]">
                     {/* Tabs */}
-                    <div className="flex border-b border-white/10 bg-white/[0.02]">
+                    <div className="flex border-b border-white/10 bg-white/[0.02] overflow-x-auto custom-scrollbar">
                         <button
                             onClick={() => setActiveTab("videos")}
                             className={cn(
-                                "px-8 py-5 text-sm font-black uppercase tracking-widest transition-all relative",
+                                "px-8 py-5 text-sm font-black uppercase tracking-widest transition-all relative whitespace-nowrap",
                                 activeTab === "videos" ? "text-j-red" : "text-gray-500 hover:text-white"
                             )}
                         >
@@ -128,7 +130,7 @@ export default function AdminDashboard() {
                         <button
                             onClick={() => setActiveTab("users")}
                             className={cn(
-                                "px-8 py-5 text-sm font-black uppercase tracking-widest transition-all relative",
+                                "px-8 py-5 text-sm font-black uppercase tracking-widest transition-all relative whitespace-nowrap",
                                 activeTab === "users" ? "text-j-gold" : "text-gray-500 hover:text-white"
                             )}
                         >
@@ -136,6 +138,18 @@ export default function AdminDashboard() {
                                 <Users className="w-4 h-4" /> User Accounts
                             </span>
                             {activeTab === "users" && <div className="absolute bottom-0 left-0 right-0 h-1 bg-j-gold" />}
+                        </button>
+                        <button
+                            onClick={() => setActiveTab("livetv")}
+                            className={cn(
+                                "px-8 py-5 text-sm font-black uppercase tracking-widest transition-all relative whitespace-nowrap",
+                                activeTab === "livetv" ? "text-red-500" : "text-gray-500 hover:text-white"
+                            )}
+                        >
+                            <span className="flex items-center gap-2">
+                                <Tv className="w-4 h-4" /> 🔴 Live Studio
+                            </span>
+                            {activeTab === "livetv" && <div className="absolute bottom-0 left-0 right-0 h-1 shadow-[0_0_10px_rgba(220,38,38,0.8)] bg-red-500" />}
                         </button>
                     </div>
 
@@ -248,7 +262,7 @@ export default function AdminDashboard() {
                                 </table>
                             </div>
                         </>
-                    ) : (
+                    ) : activeTab === "users" ? (
                         <div className="overflow-x-auto">
                             <table className="w-full text-left">
                                 <thead className="bg-white/[0.03] text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">
@@ -302,6 +316,10 @@ export default function AdminDashboard() {
                                     ))}
                                 </tbody>
                             </table>
+                        </div>
+                    ) : (
+                        <div className="p-6">
+                            <AdminLiveStudio />
                         </div>
                     )}
                 </div>

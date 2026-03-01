@@ -8,11 +8,13 @@ import Player from "video.js/dist/types/player";
 interface LivePlayerProps {
     streamUrl: string;
     posterUrl?: string;
+    playlist?: string[]; // Array of VOD URLs for J-Tube Originals continuity
 }
 
-export function LivePlayer({ streamUrl, posterUrl }: LivePlayerProps) {
+export function LivePlayer({ streamUrl, posterUrl, playlist }: LivePlayerProps) {
     const videoRef = useRef<HTMLVideoElement>(null);
     const playerRef = useRef<Player | null>(null);
+    const currentPlaylistIndex = useRef(0);
 
     useEffect(() => {
         if (!videoRef.current) return;
@@ -38,17 +40,33 @@ export function LivePlayer({ streamUrl, posterUrl }: LivePlayerProps) {
             ],
         });
 
+        // Listen for VOD end to simulate continuous broadcasting
+        playerRef.current.on('ended', () => {
+            if (playlist && playlist.length > 0 && playerRef.current) {
+                // Move to next video in the playlist
+                currentPlaylistIndex.current = (currentPlaylistIndex.current + 1) % playlist.length;
+                const nextUrl = playlist[currentPlaylistIndex.current];
+
+                playerRef.current.src({
+                    src: nextUrl,
+                    type: nextUrl?.endsWith(".m3u8") ? "application/x-mpegURL" : "video/mp4"
+                });
+                playerRef.current.play().catch(e => console.error("Autoplay prevented on continuity switch:", e));
+            }
+        });
+
         return () => {
             if (playerRef.current) {
                 playerRef.current.dispose();
                 playerRef.current = null;
             }
         };
-    }, [streamUrl, posterUrl]);
+    }, [streamUrl, posterUrl, playlist]);
 
     // Handle prop URL changes without recreating entire player
     useEffect(() => {
         if (playerRef.current && streamUrl) {
+            currentPlaylistIndex.current = 0; // Reset continuity index on new channel
             playerRef.current.src({
                 src: streamUrl,
                 type: streamUrl.endsWith(".m3u8") ? "application/x-mpegURL" : "video/mp4",
