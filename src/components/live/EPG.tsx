@@ -143,7 +143,10 @@ export function EPG({ channels, currentChannelId, onChannelSelect, categories, a
                             </div>
 
                             {/* Programs Track */}
-                            <div className="flex relative items-stretch border-b border-white/5 bg-zinc-900/50">
+                            <div
+                                className="flex-1 relative border-b border-white/5 bg-zinc-900/50"
+                                style={{ minWidth: `${timeSlots.length * HALF_HOUR_WIDTH}px` }}
+                            >
                                 {channel.programs && channel.programs.length > 0 ? (
                                     channel.programs.map((prog, i) => {
                                         const tStart = new Date(prog.start_time).getTime();
