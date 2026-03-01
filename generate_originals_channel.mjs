@@ -42,11 +42,12 @@ async function generateOriginalsLive() {
             channelId = channelData.id;
         }
 
-        // 2. Fetch all public processed videos from the platform
+        // 2. Fetch all public processed videos from the platform (excluding Big Buck Bunny test data)
         const { data: videos, error: videosError } = await supabase
             .from('videos')
             .select('id, title, description, video_url, duration, thumbnail_url')
-            .not('video_url', 'is', null);
+            .not('video_url', 'is', null)
+            .not('title', 'ilike', '%Bunny%');
 
         if (videosError) throw videosError;
 

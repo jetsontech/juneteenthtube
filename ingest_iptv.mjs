@@ -27,8 +27,9 @@ async function fetchAndIngest() {
             }
         }
 
-        const targetCategories = new Set(['movies', 'documentary', 'news', 'music', 'lifestyle', 'culture', 'classic']);
-        const targetCountries = new Set(['US', 'UK', 'GB', 'CA', 'NG', 'ZA', 'GH', 'JM']);
+        const targetCategories = new Set(['movies', 'documentary', 'news', 'music', 'lifestyle', 'culture', 'classic', 'entertainment', 'comedy', 'sports']);
+        const targetCountries = new Set(['US', 'UK', 'CA']);
+        const targetLanguages = new Set(['eng']);
 
         const selectedChannels = [];
         let orderIndex = 3;
@@ -39,21 +40,30 @@ async function fetchAndIngest() {
 
             const categories = channel.categories || [];
             const country = channel.country || "";
+            const languages = channel.languages || [];
             const name = channel.name.toLowerCase();
 
             const isTargetCountry = targetCountries.has(country);
             const isTargetCategory = categories.some(c => targetCategories.has(c));
+            const isEnglish = languages.includes('eng') || languages.length === 0; // Default to assuming english if blank but US based
 
-            const hasGoodKeyword = name.includes('black') ||
-                name.includes('africa') ||
-                name.includes('urban') ||
-                name.includes('cinema') ||
-                name.includes('gospel') ||
+            // Look for premium networks similar to Pluto TV's lineup (News, Movies, Pop Culture)
+            const hasPremiumKeyword = name.includes('cbs') ||
+                name.includes('abc') ||
+                name.includes('nbc') ||
+                name.includes('fox') ||
+                name.includes('bloomberg') ||
+                name.includes('movie') ||
+                name.includes('comedy') ||
                 name.includes('bet') ||
+                name.includes('black') ||
+                name.includes('africa') ||
+                name.includes('vevo') ||
+                name.includes('music') ||
                 name.includes('news');
 
-            // Select it if it's from a target country in a target category OR has a really good keyword
-            if ((isTargetCountry && isTargetCategory) || hasGoodKeyword) {
+            // Must be english speaking AND either (from a target country + category) OR (has a premium recognized keyword)
+            if (isEnglish && ((isTargetCountry && isTargetCategory) || (isTargetCountry && hasPremiumKeyword))) {
                 if (channel.is_nsfw) continue;
 
                 selectedChannels.push({
