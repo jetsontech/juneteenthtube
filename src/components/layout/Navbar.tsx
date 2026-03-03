@@ -159,8 +159,19 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                             <rect y="12" width="20" height="2" rx="1" fill="currentColor" />
                         </svg>
                     </button>
-                    <Link href="/" className="logo-text">
-                        Juneteenth Tube
+                    <Link href="/" className="flex items-center gap-2 group">
+                        <div className="relative w-8 h-8 md:w-9 md:h-9">
+                            <Image
+                                src="/official-logo.png"
+                                alt="Logo"
+                                fill
+                                className="object-contain filter brightness-110 drop-shadow-[0_0_8px_rgba(234,179,8,0.3)]"
+                                priority
+                            />
+                        </div>
+                        <span className="logo-text pazzaz-text hidden sm:inline-block">
+                            Juneteenth Tube
+                        </span>
                     </Link>
                     <div style={{ display: 'flex', alignItems: 'center' }}>
                         <select

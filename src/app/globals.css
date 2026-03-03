@@ -148,6 +148,48 @@
       transform: translateX(150%) skewX(-12deg);
     }
   }
+
+  /* Pazzaz Text Styling */
+  .pazzaz-text {
+    background: linear-gradient(135deg, #FFD700 0%, #D4AF37 30%, #FEE101 50%, #B8860B 70%, #FFD700 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: 800;
+    text-shadow: 0 0 15px rgba(212, 175, 55, 0.4);
+    letter-spacing: -0.01em;
+    position: relative;
+    overflow: hidden;
+    display: inline-block;
+  }
+
+  .pazzaz-text::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg,
+        transparent,
+        rgba(255, 255, 255, 0.2),
+        transparent);
+    animation: shine 4s infinite;
+  }
+
+  @keyframes shine {
+    0% {
+      left: -100%;
+    }
+
+    20% {
+      left: 100%;
+    }
+
+    100% {
+      left: 100%;
+    }
+  }
 }
 
 /* Standard CSS Classes (satisfies validator while maintaining Tailwind v4 compatibility) */
