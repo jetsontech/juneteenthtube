@@ -184,28 +184,16 @@ export default function LiveTV() {
                 {/* Information Banner - Optimized padding and text sizes to conserve vertical space */}
                 <div className="w-full bg-gradient-to-b from-zinc-900 to-zinc-950 border-b border-white/5 px-4 md:px-8 py-3 flex flex-col shadow-inner z-20">
                     <div className="flex flex-col w-full">
-                        <div className="flex flex-row items-center justify-between gap-3 mb-1 w-full">
-                            <div className="flex items-center gap-3 min-w-0 flex-1">
-                                <h1 className="text-lg md:text-2xl font-black text-white tracking-tight leading-none truncate">
-                                    {currentProgram ? currentProgram.title : currentChannel.name}
-                                </h1>
-                                {currentProgram && (
-                                    <div className="text-red-400 text-[9px] md:text-[10px] font-bold uppercase tracking-widest font-mono flex items-center shrink-0 ml-2">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-red-500 mr-1.5 animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)]"></span>
-                                        {new Date(currentProgram.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {new Date(currentProgram.end_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                    </div>
-                                )}
-                            </div>
+                        <div className="flex flex-row items-center justify-start gap-4 mb-1 w-full">
 
-                            {/* Channel Controls */}
-                            <div className="flex items-center gap-6 shrink-0 ml-4">
+                            {/* Channel Controls (Moved to Left) */}
+                            <div className="flex items-center gap-4 shrink-0 mr-2 border-r border-white/10 pr-6 pl-1">
                                 <button
                                     onClick={handleChannelDown}
                                     className="relative w-16 h-16 rounded-2xl overflow-hidden hover:scale-110 active:scale-95 transition-all duration-300 cursor-pointer outline-none group shrink-0 shadow-lg"
                                     aria-label="Channel Down"
                                 >
                                     <div className="absolute inset-0 bg-white/0 group-active:bg-white/20 group-hover:bg-white/10 transition-colors z-10 pointer-events-none rounded-2xl"></div>
-                                    {/* Rotate 90 degrees to point down */}
                                     <img
                                         src="/channel-up-down.jpeg"
                                         alt="Channel Down"
@@ -218,7 +206,6 @@ export default function LiveTV() {
                                     aria-label="Channel Up"
                                 >
                                     <div className="absolute inset-0 bg-white/0 group-active:bg-white/20 group-hover:bg-white/10 transition-colors z-10 pointer-events-none rounded-2xl"></div>
-                                    {/* Rotate -90 degrees to point up */}
                                     <img
                                         src="/channel-up-down.jpeg"
                                         alt="Channel Up"
@@ -226,10 +213,26 @@ export default function LiveTV() {
                                     />
                                 </button>
                             </div>
+
+                            {/* Program Info (Moved to Right) */}
+                            <div className="flex flex-col min-w-0 flex-1">
+                                <div className="flex items-center gap-3 w-full">
+                                    <h1 className="text-lg md:text-2xl font-black text-white tracking-tight leading-none truncate">
+                                        {currentProgram ? currentProgram.title : currentChannel.name}
+                                    </h1>
+                                    {currentProgram && (
+                                        <div className="text-red-400 text-[9px] md:text-[10px] font-bold uppercase tracking-widest font-mono flex items-center shrink-0 ml-2">
+                                            <span className="w-1.5 h-1.5 rounded-full bg-red-500 mr-1.5 animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)]"></span>
+                                            {new Date(currentProgram.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {new Date(currentProgram.end_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                        </div>
+                                    )}
+                                </div>
+                                <p className="text-white/60 text-[10px] md:text-xs font-medium line-clamp-1 w-full max-w-4xl mt-1.5">
+                                    {currentProgram ? currentProgram.description : currentChannel.description}
+                                </p>
+                            </div>
+
                         </div>
-                        <p className="text-white/60 text-[10px] md:text-xs font-medium line-clamp-1 w-full max-w-4xl">
-                            {currentProgram ? currentProgram.description : currentChannel.description}
-                        </p>
                     </div>
                 </div>
             </main>
