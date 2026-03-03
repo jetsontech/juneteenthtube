@@ -121,7 +121,7 @@ export default function LiveTV() {
             <div className="min-h-screen bg-[#050505] flex items-center justify-center">
                 <div className="flex flex-col items-center">
                     <div className="w-16 h-16 rounded-full border-4 border-white/10 border-t-white animate-spin mb-6"></div>
-                    <p className="text-white/60 text-xs font-bold uppercase tracking-[0.3em] animate-pulse">Initializing Samsung TV Plus</p>
+                    <p className="text-white/60 text-xs font-bold uppercase tracking-[0.3em] animate-pulse">Initializing Juneteenthtube</p>
                 </div>
             </div>
         );
