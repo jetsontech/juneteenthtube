@@ -44,7 +44,7 @@ export default function LiveTV() {
                     if (videoIds.length > 0) {
                         const { data: vData } = await supabase
                             .from('videos')
-                            .select('id, video_url')
+                            .select('id, video_url, video_url_h264')
                             .in('id', videoIds);
                         if (vData) videosData = vData;
                     }
@@ -59,7 +59,15 @@ export default function LiveTV() {
                             playlist = channelEpg
                                 .map(epg => {
                                     const video = videosData.find(v => v.id === epg.video_id);
-                                    return video?.video_url;
+                                    if (!video) return null;
+
+                                    // Make sure relative URLs are absolute for h264
+                                    let h264Url = video.video_url_h264;
+                                    if (h264Url && !h264Url.startsWith('http')) {
+                                        h264Url = `https://pub-efcc4aa0b3b24e3d97760577b0ec20bd.r2.dev/${h264Url}`;
+                                    }
+
+                                    return h264Url || video.video_url;
                                 })
                                 .filter(Boolean) as string[];
                         }
