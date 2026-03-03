@@ -204,28 +204,6 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* Official Logo Animation */
-@keyframes logo-pulse {
-  0% {
-    transform: scale(1);
-    filter: drop-shadow(0 0 5px rgba(220, 38, 38, 0.5));
-  }
-
-  50% {
-    transform: scale(1.08);
-    filter: drop-shadow(0 0 15px rgba(234, 179, 8, 0.8));
-  }
-
-  100% {
-    transform: scale(1);
-    filter: drop-shadow(0 0 5px rgba(220, 38, 38, 0.5));
-  }
-}
-
-.animate-logo-pulse {
-  animation: logo-pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
 /* glass class defined below in "Glassmorphism & Gloss System" section */
 
 .no-scrollbar {
