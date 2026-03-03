@@ -147,38 +147,7 @@ export default function LiveTV() {
     return (
         <div className="h-[100dvh] w-full bg-[#050505] text-white flex flex-col font-sans overflow-hidden selection:bg-white/20">
 
-            {/* Absolute Top Navigation Overlay */}
-            <div className="absolute top-0 left-0 right-0 h-24 z-30 pointer-events-none bg-gradient-to-b from-black/80 to-transparent flex">
-                <div className="px-6 py-6 pointer-events-auto w-full flex justify-between items-start">
-                    <Link
-                        href="/"
-                        className="flex items-center bg-black/40 hover:bg-white/10 backdrop-blur-md px-4 py-2.5 rounded-full border border-white/5 transition-all group shadow-2xl"
-                    >
-                        <ArrowLeft className="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-transform text-white/90" />
-                        <span className="text-sm font-bold text-white/90 tracking-wide">Exit TV</span>
-                    </Link>
-
-                    {/* Samsung Style Channel Identifier Pill */}
-                    <div className="flex items-center justify-end pointer-events-auto group cursor-pointer transition-transform hover:scale-105">
-                        <div className="flex items-center bg-black/50 backdrop-blur-xl px-2 py-1.5 rounded-l-full border border-r-0 border-white/10 shadow-2xl pr-3">
-                            {currentChannel.logo_url ? (
-                                <img src={currentChannel.logo_url} alt={currentChannel.name} className="w-7 h-7 rounded-full mr-2 object-cover border border-white/20" />
-                            ) : (
-                                <div className="w-7 h-7 rounded-full bg-red-600 flex items-center justify-center mr-2 text-[10px] font-bold">
-                                    {currentChannel.name.charAt(0)}
-                                </div>
-                            )}
-                            <div className="flex flex-col">
-                                <span className="text-[10px] text-white/60 uppercase font-bold tracking-widest leading-none mb-0.5">Watching</span>
-                                <span className="text-xs font-bold text-white leading-none tracking-wide">{currentChannel.name}</span>
-                            </div>
-                        </div>
-                        <div className="bg-white text-black font-black uppercase tracking-widest text-[10px] px-3 py-1.5 h-full rounded-r-full flex items-center justify-center border border-white border-l-0">
-                            Live
-                        </div>
-                    </div>
-                </div>
-            </div>
+            {/* Cinematic Player Area */}
 
             {/* Cinematic Player Area */}
             <main className="shrink-0 flex flex-col justify-start bg-zinc-950 w-full">

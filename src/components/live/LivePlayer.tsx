@@ -229,14 +229,6 @@ export function LivePlayer({ streamUrl, posterUrl, playlist }: LivePlayerProps) 
                 controls
                 className="w-full h-full object-contain bg-black"
             />
-
-            {/* LIVE Badge (top-left) - keep this for aesthetic */}
-            {isLive && isPlaying && (
-                <div className="absolute top-4 left-4 z-20 flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-red-600 shadow-lg pointer-events-none">
-                    <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
-                    <span className="text-white text-[10px] font-black uppercase tracking-widest">Live</span>
-                </div>
-            )}
         </div>
     );
 }
