@@ -24,6 +24,125 @@ export interface VideoProps {
 }
 
 const MOCK_VIDEOS: VideoProps[] = [
+    // ── User's Juneteenth Reference Content ──────────────────────────────
+    {
+        id: "juneteenth-parade-houston",
+        title: "Juneteenth Parade Houston 2024 — Full Coverage",
+        thumbnail: "https://picsum.photos/seed/jun1/640/360",
+        channelName: "Texas Heritage TV",
+        channelAvatar: "",
+        views: "142K",
+        postedAt: "2 weeks ago",
+        duration: "28:14",
+        videoUrl: "",
+        category: "Parade",
+        state: "TX"
+    },
+    {
+        id: "freedom-songs-south",
+        title: "Freedom Songs of the South: A Musical Journey",
+        thumbnail: "https://picsum.photos/seed/jun2/640/360",
+        channelName: "Black Music Archive",
+        channelAvatar: "",
+        views: "89K",
+        postedAt: "1 month ago",
+        duration: "45:02",
+        videoUrl: "",
+        category: "Music",
+        state: "GA"
+    },
+    {
+        id: "dr-opal-lee",
+        title: "Dr. Opal Lee: The Grandmother of Juneteenth",
+        thumbnail: "https://picsum.photos/seed/jun3/640/360",
+        channelName: "Civil Rights Now",
+        channelAvatar: "",
+        views: "214K",
+        postedAt: "3 days ago",
+        duration: "12:38",
+        videoUrl: "",
+        category: "History",
+        state: "TX"
+    },
+    {
+        id: "galveston-celebration",
+        title: "Galveston Island Celebration: Where It All Began",
+        thumbnail: "https://picsum.photos/seed/jun4/640/360",
+        channelName: "Lone Star Stories",
+        channelAvatar: "",
+        views: "67K",
+        postedAt: "5 days ago",
+        duration: "19:55",
+        videoUrl: "",
+        category: "History",
+        state: "TX"
+    },
+    {
+        id: "juneteenth-foods",
+        title: "Traditional Juneteenth Foods & Their African Roots",
+        thumbnail: "https://picsum.photos/seed/jun5/640/360",
+        channelName: "Soul Food Stories",
+        channelAvatar: "",
+        views: "103K",
+        postedAt: "1 week ago",
+        duration: "22:47",
+        videoUrl: "",
+        category: "Food",
+        state: "GLOBAL"
+    },
+    {
+        id: "atlanta-freedom-fest",
+        title: "Atlanta Freedom Fest: Full Keynote Address",
+        thumbnail: "https://picsum.photos/seed/jun6/640/360",
+        channelName: "Georgia United",
+        channelAvatar: "",
+        views: "55K",
+        postedAt: "2 days ago",
+        duration: "1:02:19",
+        videoUrl: "",
+        category: "Speeches",
+        state: "GA"
+    },
+    {
+        id: "chicago-block-party",
+        title: "Chicago South Side Block Party 2024",
+        thumbnail: "https://picsum.photos/seed/jun7/640/360",
+        channelName: "Chi-Town Culture",
+        channelAvatar: "",
+        views: "78K",
+        postedAt: "3 weeks ago",
+        duration: "31:08",
+        videoUrl: "",
+        category: "Parade",
+        state: "IL"
+    },
+    {
+        id: "spoken-word-freedom",
+        title: "Spoken Word: Letters to Freedom",
+        thumbnail: "https://picsum.photos/seed/jun8/640/360",
+        channelName: "The Black Poets Collective",
+        channelAvatar: "",
+        views: "41K",
+        postedAt: "6 days ago",
+        duration: "18:23",
+        videoUrl: "",
+        category: "Music",
+        state: "GLOBAL"
+    },
+    {
+        id: "emancipation-proclamation",
+        title: "The Emancipation Proclamation: History Explained",
+        thumbnail: "https://picsum.photos/seed/jun9/640/360",
+        channelName: "Black History 365",
+        channelAvatar: "",
+        views: "189K",
+        postedAt: "2 months ago",
+        duration: "34:11",
+        videoUrl: "",
+        category: "History",
+        state: "GLOBAL"
+    },
+    // ── Archive.org Playable Content ─────────────────────────────────────
     {
         id: "within-our-gates",
         title: "Within Our Gates",
@@ -254,7 +373,10 @@ export function VideoProvider({ children }: { children: ReactNode }) {
                         ownerId: video.owner_id
                     };
                 });
-                setVideos(dbVideos);
+                // Always merge mock content with DB videos (DB first, then mock)
+                const dbIds = new Set(dbVideos.map(v => v.id));
+                const uniqueMocks = MOCK_VIDEOS.filter(m => !dbIds.has(m.id));
+                setVideos([...dbVideos, ...uniqueMocks]);
             } else {
                 setVideos(MOCK_VIDEOS);
             }

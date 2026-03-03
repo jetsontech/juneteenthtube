@@ -96,23 +96,31 @@ export function EPG({ channels, currentChannelId, onChannelSelect, categories, a
 
                     {/* Timeline */}
                     <div className="flex relative items-end">
-                        {timeSlots.map((time, i) => (
-                            <div
-                                key={i}
-                                className="shrink-0 flex items-center px-4 border-l border-white/10 text-xs font-bold text-white/60 tracking-wider"
-                                style={{ width: `${HALF_HOUR_WIDTH}px` }}
-                            >
-                                {time}
-                            </div>
-                        ))}
+                        {timeSlots.map((time, i) => {
+                            const slotStyle = { width: `${HALF_HOUR_WIDTH}px` };
+                            return (
+                                <div
+                                    key={i}
+                                    className="shrink-0 flex items-center px-4 border-l border-white/10 text-xs font-bold text-white/60 tracking-wider"
+                                    style={slotStyle}
+                                >
+                                    {time}
+                                </div>
+                            );
+                        })}
 
                         {/* Current Time Vertical Line indicator */}
-                        <div
-                            className="absolute top-0 bottom-0 w-[2px] bg-red-600/80 shadow-[0_0_8px_rgba(220,38,38,1)] z-30 transition-all duration-1000 pointer-events-none"
-                            style={{ left: `${currentTimeOffset}px`, height: '1000vh' }}
-                        >
-                            <div className="absolute -top-1 -left-1.5 w-3 h-3 bg-red-600 rounded-full shadow-[0_0_10px_rgba(220,38,38,1)]"></div>
-                        </div>
+                        {(() => {
+                            const indicatorStyle = { left: `${currentTimeOffset}px`, height: '1000vh' };
+                            return (
+                                <div
+                                    className="absolute top-0 bottom-0 w-[2px] bg-red-600/80 shadow-[0_0_8px_rgba(220,38,38,1)] z-30 transition-all duration-1000 pointer-events-none"
+                                    style={indicatorStyle}
+                                >
+                                    <div className="absolute -top-1 -left-1.5 w-3 h-3 bg-red-600 rounded-full shadow-[0_0_10px_rgba(220,38,38,1)]"></div>
+                                </div>
+                            );
+                        })()}
                     </div>
                 </div>
 
@@ -143,74 +151,83 @@ export function EPG({ channels, currentChannelId, onChannelSelect, categories, a
                             </div>
 
                             {/* Programs Track */}
-                            <div
-                                className="flex-1 relative border-b border-white/5 bg-zinc-900/50"
-                                style={{ minWidth: `${timeSlots.length * HALF_HOUR_WIDTH}px` }}
-                            >
-                                {channel.programs && channel.programs.length > 0 ? (
-                                    channel.programs.map((prog, i) => {
-                                        const tStart = new Date(prog.start_time).getTime();
-                                        const tEnd = new Date(prog.end_time).getTime();
-
-                                        // Ignore programs that ended before the grid starts
-                                        if (tEnd <= gridStartTime) return null;
-                                        // Ignore programs that start way after our 12 hour window
-                                        if (tStart >= gridStartTime + (12 * 60 * 60000)) return null;
-
-                                        // Calculate exact left offset and width
-                                        const isPast = tEnd < now;
-                                        const isNowPlaying = now >= tStart && now <= tEnd;
-
-                                        // Render logic based on start/end
-                                        const renderStart = Math.max(tStart, gridStartTime);
-                                        const offsetMinutes = (renderStart - gridStartTime) / 60000;
-                                        const durationMinutes = (tEnd - renderStart) / 60000;
-
-                                        const leftPos = offsetMinutes * PIXELS_PER_MINUTE;
-                                        const boxWidth = durationMinutes * PIXELS_PER_MINUTE;
-
-                                        return (
-                                            <div
-                                                key={prog.id}
-                                                onClick={() => onChannelSelect(channel)}
-                                                className={`absolute top-0 bottom-0 border-r border-white/10 p-3 md:p-4 flex flex-col justify-center cursor-pointer overflow-hidden backdrop-blur-sm transition-all
-                                                    ${isNowPlaying ? 'bg-white/10 shadow-[inset_0_0_20px_rgba(255,255,255,0.05)] hover:bg-white/15' :
-                                                        isPast ? 'bg-black/30 opacity-60' :
-                                                            'bg-transparent hover:bg-white/5'}
-                                                `}
-                                                style={{ left: `${leftPos}px`, width: `${boxWidth}px` }}
-                                            >
-                                                <div className={`text-[10px] mb-1.5 font-mono uppercase tracking-widest ${isNowPlaying ? 'text-white font-bold' : 'text-white/40'}`}>
-                                                    {new Date(prog.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                                </div>
-                                                <h4 className={`text-xs md:text-sm font-bold truncate tracking-wide ${isNowPlaying ? 'text-white' : 'text-white/80'}`}>{prog.title}</h4>
-
-                                                {/* Only show description if width is large enough (e.g., > 120px) */}
-                                                {boxWidth > 120 && (
-                                                    <p className="text-white/50 text-[10px] md:text-xs truncate mt-1">{prog.description}</p>
-                                                )}
-
-                                                {/* Play overlay */}
-                                                <div className="absolute inset-0 bg-red-600/0 hover:bg-red-600/10 transition-colors z-20 flex items-center justify-end px-4 opacity-0 hover:opacity-100">
-                                                    <Play className="w-6 h-6 text-white drop-shadow-lg" />
-                                                </div>
-                                            </div>
-                                        )
-                                    })
-                                ) : (
-                                    /* 24/7 Placeholder if no programs */
+                            {(() => {
+                                const trackStyle = { minWidth: `${timeSlots.length * HALF_HOUR_WIDTH}px` };
+                                return (
                                     <div
-                                        onClick={() => onChannelSelect(channel)}
-                                        className="absolute top-0 bottom-0 left-0 hover:bg-white/5 transition-colors cursor-pointer border-r border-white/10 flex items-center px-6"
-                                        style={{ width: `${12 * 60 * PIXELS_PER_MINUTE}px` }}
+                                        className="flex-1 relative border-b border-white/5 bg-zinc-900/50"
+                                        style={trackStyle}
                                     >
-                                        <div className="flex flex-col">
-                                            <h4 className="text-sm font-bold text-white/80">{channel.name} Broadcast</h4>
-                                            <p className="text-xs text-white/40 italic mt-1">24/7 Continuous Programming</p>
-                                        </div>
+                                        {channel.programs && channel.programs.length > 0 ? (
+                                            channel.programs.map((prog, i) => {
+                                                const tStart = new Date(prog.start_time).getTime();
+                                                const tEnd = new Date(prog.end_time).getTime();
+
+                                                // Ignore programs that ended before the grid starts
+                                                if (tEnd <= gridStartTime) return null;
+                                                // Ignore programs that start way after our 12 hour window
+                                                if (tStart >= gridStartTime + (12 * 60 * 60000)) return null;
+
+                                                // Calculate exact left offset and width
+                                                const isPast = tEnd < now;
+                                                const isNowPlaying = now >= tStart && now <= tEnd;
+
+                                                // Render logic based on start/end
+                                                const renderStart = Math.max(tStart, gridStartTime);
+                                                const offsetMinutes = (renderStart - gridStartTime) / 60000;
+                                                const durationMinutes = (tEnd - renderStart) / 60000;
+
+                                                const leftPos = offsetMinutes * PIXELS_PER_MINUTE;
+                                                const boxWidth = durationMinutes * PIXELS_PER_MINUTE;
+                                                const programStyle = { left: `${leftPos}px`, width: `${boxWidth}px` };
+
+                                                return (
+                                                    <div
+                                                        key={prog.id}
+                                                        onClick={() => onChannelSelect(channel)}
+                                                        className={`absolute top-0 bottom-0 border-r border-white/10 p-3 md:p-4 flex flex-col justify-center cursor-pointer overflow-hidden backdrop-blur-sm transition-all
+                                                    ${isNowPlaying ? 'bg-white/10 shadow-[inset_0_0_20px_rgba(255,255,255,0.05)] hover:bg-white/15' :
+                                                                isPast ? 'bg-black/30 opacity-60' :
+                                                                    'bg-transparent hover:bg-white/5'}
+                                                `}
+                                                        style={programStyle}
+                                                    >
+                                                        <div className={`text-[10px] mb-1.5 font-mono uppercase tracking-widest ${isNowPlaying ? 'text-white font-bold' : 'text-white/40'}`}>
+                                                            {new Date(prog.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                        </div>
+                                                        <h4 className={`text-xs md:text-sm font-bold truncate tracking-wide ${isNowPlaying ? 'text-white' : 'text-white/80'}`}>{prog.title}</h4>
+
+                                                        {/* Only show description if width is large enough (e.g., > 120px) */}
+                                                        {boxWidth > 120 && (
+                                                            <p className="text-white/50 text-[10px] md:text-xs truncate mt-1">{prog.description}</p>
+                                                        )}
+
+                                                        {/* Play overlay */}
+                                                        <div className="absolute inset-0 bg-red-600/0 hover:bg-red-600/10 transition-colors z-20 flex items-center justify-end px-4 opacity-0 hover:opacity-100">
+                                                            <Play className="w-6 h-6 text-white drop-shadow-lg" />
+                                                        </div>
+                                                    </div>
+                                                )
+                                            })
+                                        ) : (() => {
+                                            /* 24/7 Placeholder if no programs */
+                                            const fallbackStyle = { width: `${12 * 60 * PIXELS_PER_MINUTE}px` };
+                                            return (
+                                                <div
+                                                    onClick={() => onChannelSelect(channel)}
+                                                    className="absolute top-0 bottom-0 left-0 hover:bg-white/5 transition-colors cursor-pointer border-r border-white/10 flex items-center px-6"
+                                                    style={fallbackStyle}
+                                                >
+                                                    <div className="flex flex-col">
+                                                        <h4 className="text-sm font-bold text-white/80">{channel.name} Broadcast</h4>
+                                                        <p className="text-xs text-white/40 italic mt-1">24/7 Continuous Programming</p>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })()}
                                     </div>
-                                )}
-                            </div>
+                                );
+                            })()}
                         </div>
                     ))}
                 </div>

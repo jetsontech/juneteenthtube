@@ -1,14 +1,12 @@
 "use client";
 
-import { useState, useEffect, Suspense, useMemo, useRef, useCallback } from "react";
-import { VideoGrid } from "@/components/video/VideoGrid";
+import { useState, useEffect, Suspense, useMemo } from "react";
 import { VideoCard } from "@/components/video/VideoCard";
 import { type VideoProps, useVideo } from "@/context/VideoContext";
 import { ShortsShelf } from "@/components/video/ShortsShelf";
 import { useStateFilter } from "@/context/StateContext";
 import { useSearchParams } from "next/navigation";
 import { CategoryBar } from "@/components/video/CategoryBar";
-import { cn } from "@/lib/utils";
 
 const CATEGORIES = ["All", "Parade", "Music", "Food", "History", "Speeches", "Live", "2024"] as const;
 
@@ -65,50 +63,92 @@ function HomeContent() {
     return seededShuffle(filtered, shuffleSeed);
   }, [videos, selectedCategory, searchQuery, selectedState, shuffleSeed]);
 
-  // YouTube-style grid classes
-  const videoGridClass = cn(
-    "grid gap-x-4",
-    "gap-y-8 sm:gap-y-12 lg:gap-y-14",
-    "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
-  );
-
   return (
     <>
+      {/* Category Bar */}
       <CategoryBar
         categories={CATEGORIES}
         selectedCategory={selectedCategory}
         onCategoryChange={setSelectedCategory}
       />
 
-      <div className="px-0 sm:px-6 lg:px-8 py-4 sm:py-8 lg:py-10">
-        {/* First row of videos */}
-        <div className={videoGridClass}>
-          {filteredVideos.slice(0, 3).map(video => (
-            <VideoCard key={video.id} video={video} />
-          ))}
-        </div>
+      <div className="content">
 
-        {/* Shorts Section (Vertical) */}
-        {selectedCategory === "All" && (
-          <ShortsShelf title="Shorts" horizontal={true} offset={0} />
+        {/* Heritage Banner */}
+        {selectedCategory === "All" && !searchQuery && (
+          <div className="heritage-banner">
+            <div>
+              <div className="banner-title">Juneteenth — June 19, 1865</div>
+              <div className="banner-sub">
+                Celebrating the day enslaved people in Texas learned of their freedom. Browse thousands of cultural videos, history, music, and more.
+              </div>
+            </div>
+            <button className="banner-btn" onClick={() => setSelectedCategory("History")}>
+              Explore History
+            </button>
+          </div>
         )}
 
-        {/* Second row of videos */}
-        <div className={cn(videoGridClass, "mt-8 sm:mt-12 lg:mt-14")}>
-          {filteredVideos.slice(3, 6).map(video => (
-            <VideoCard key={video.id} video={video} />
-          ))}
-        </div>
-
-        {/* Landscape Shorts Section (16:9) */}
-        {selectedCategory === "All" && (
-          <ShortsShelf title="Cinema Shorts" offset={6} horizontal={true} landscapeMode={true} />
+        {/* Stats Row */}
+        {selectedCategory === "All" && !searchQuery && (
+          <div className="stats-row">
+            {[
+              { val: String(videos.length || "0"), lbl: "Videos Uploaded" },
+              { val: "50", lbl: "States Covered" },
+              { val: "2.1M", lbl: "Total Views" },
+              { val: "1865", lbl: "Year of Freedom" },
+            ].map(s => (
+              <div className="stat-chip" key={s.lbl}>
+                <div className="stat-val">{s.val}</div>
+                <div className="stat-lbl">{s.lbl}</div>
+              </div>
+            ))}
+          </div>
         )}
 
-        {/* Remaining Videos */}
-        {filteredVideos.length > 6 && (
-          <div className="mt-8 sm:mt-12 lg:mt-14">
-            <VideoGrid videos={filteredVideos.slice(6)} />
+        {/* Videos */}
+        {filteredVideos.length > 0 ? (
+          <>
+            <div className="section-header">
+              <div className="section-title">
+                {searchQuery ? `Results for "${searchQuery}"` : selectedCategory === "All" ? "Featured Videos" : selectedCategory}
+              </div>
+              <a className="see-all-btn">See all</a>
+            </div>
+
+            {/* First 3 Videos */}
+            <div className="video-grid">
+              {filteredVideos.slice(0, 3).map(v => (
+                <VideoCard key={v.id} video={v} />
+              ))}
+            </div>
+
+            {/* Shorts Section */}
+            {selectedCategory === "All" && !searchQuery && (
+              <div className="mt-8 mb-4">
+                <ShortsShelf title="Trending Shorts" horizontal={true} offset={0} />
+              </div>
+            )}
+
+            {/* Remaining Videos */}
+            {filteredVideos.length > 3 && (
+              <>
+                <div className="section-header" style={{ marginTop: 32 }}>
+                  <div className="section-title">More to Watch</div>
+                </div>
+                <div className="video-grid">
+                  {filteredVideos.slice(3).map(v => (
+                    <VideoCard key={v.id} video={v} />
+                  ))}
+                </div>
+              </>
+            )}
+          </>
+        ) : (
+          <div className="empty-state">
+            <div className="empty-icon">🎬</div>
+            <div className="empty-title">No videos found</div>
+            <div className="empty-sub">Try a different category or state filter</div>
           </div>
         )}
       </div>

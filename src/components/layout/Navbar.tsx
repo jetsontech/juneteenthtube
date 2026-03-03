@@ -146,169 +146,157 @@ export function Navbar({ onMenuClick }: NavbarProps) {
 
     return (
         <>
-            <nav
-                className="fixed top-0 left-0 right-0 z-50 flex flex-col glass-heavy transition-all duration-300 navbar-layout"
-            >
-                {/* Navbar Content - Exactly 3.5rem (h-14) */}
-                <div className="h-14 w-full flex items-center justify-between pl-2 pr-3 sm:pl-6 sm:pr-8">
-                    {/* Left Section */}
-                    <div className="flex items-center gap-1.5 sm:gap-6 shrink-0">
-                        <button
-                            onClick={onMenuClick}
-                            className="p-2 hover:bg-white/10 rounded-full transition-colors text-white mt-1"
-                            aria-label="Toggle menu"
-                        >
-                            <Menu className="w-6 h-6" />
-                        </button>
-                        <Link href="/" className="flex items-center gap-1 sm:gap-2 group">
-                            {/* Desktop Logo */}
-                            <div className="relative h-9 w-72 hidden sm:block">
-                                <Image
-                                    src="/logo.svg"
-                                    alt="JuneteenthTube"
-                                    fill
-                                    className="object-contain object-left drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]"
-                                    priority
-                                />
-                            </div>
-                            {/* Mobile Logo (Icon Only or Compact) */}
-                            <div className="relative h-8 w-40 sm:hidden">
-                                <Image
-                                    src="/logo.svg"
-                                    alt="JuneteenthTube"
-                                    fill
-                                    className="object-contain object-left"
-                                    priority
-                                />
-                            </div>
-                        </Link>
-                        <div className="mt-1">
-                            <StateSelector
-                                selectedState={selectedState}
-                                onStateChange={setSelectedState}
-                            />
-                        </div>
-                    </div>
-
-                    {/* Middle Section - Search */}
-                    <div className="hidden md:flex flex-1 max-w-xl mx-4">
-                        <form
-                            onSubmit={(e) => {
-                                e.preventDefault();
+            <nav className="navbar">
+                <div className="navbar-left">
+                    <button
+                        onClick={onMenuClick}
+                        className="menu-btn"
+                        aria-label="Toggle menu"
+                    >
+                        <svg width="20" height="14" viewBox="0 0 20 14" fill="none">
+                            <rect width="20" height="2" rx="1" fill="currentColor" />
+                            <rect y="6" width="14" height="2" rx="1" fill="currentColor" />
+                            <rect y="12" width="20" height="2" rx="1" fill="currentColor" />
+                        </svg>
+                    </button>
+                    <Link href="/" className="logo-text" style={{ display: 'flex', alignItems: 'flex-start', gap: 6 }}>
+                        JuneteenthTube
+                        <span className="logo-badge">BETA</span>
+                    </Link>
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                        <select
+                            title="State Selector"
+                            value={selectedState.code}
+                            onChange={(e) => {
+                                const state = US_STATES.find(s => s.code === e.target.value);
+                                if (state) setSelectedState(state);
                             }}
-                            className="flex w-full"
+                            className="bg-transparent border border-white/10 rounded-full px-3 py-1 text-gray-400 text-xs font-sans cursor-pointer outline-none ml-2"
                         >
-                            <div className="flex-1 flex items-center h-10 pl-4 glass rounded-l-full focus-within:border-j-gold/50 transition-colors">
-                                <Search className="w-5 h-5 text-gray-400" />
-                                <input
-                                    type="text"
-                                    placeholder="Search JuneteenthTube..."
-                                    className="w-full bg-transparent border-none outline-none px-4 py-2 text-white placeholder-gray-400"
-                                    aria-label="Search"
-                                    onChange={(e) => {
-                                        const params = new URLSearchParams(window.location.search);
-                                        if (e.target.value) {
-                                            params.set('q', e.target.value);
-                                        } else {
-                                            params.delete('q');
-                                        }
-                                        window.history.replaceState({}, '', `${window.location.pathname}?${params.toString()}`);
-                                    }}
-                                    onKeyDown={(e) => {
-                                        if (e.key === "Enter") {
-                                            const val = (e.target as HTMLInputElement).value;
-                                            window.location.href = `/?q=${encodeURIComponent(val)}`;
-                                        }
-                                    }}
-                                />
-                            </div>
-                            <button
-                                type="submit"
-                                className="px-6 h-10 bg-white/10 border border-l-0 border-white/10 rounded-r-full hover:bg-white/20 transition-colors flex items-center justify-center"
-                                aria-label="Search button"
-                            >
-                                <Search className="w-5 h-5 text-white" />
-                            </button>
-                        </form>
+                            <option value="GLOBAL" className="bg-[#111]">🌍 All States</option>
+                            {US_STATES.filter(s => s.code !== "GLOBAL").map(s => (
+                                <option key={s.code} value={s.code} className="bg-[#111]">{s.name}</option>
+                            ))}
+                        </select>
                     </div>
+                </div>
 
-                    {/* Right Section */}
-                    <div className="flex items-center gap-0.5 sm:gap-4 ml-auto">
-                        <button
-                            className="p-2 hover:bg-white/10 rounded-full transition-colors text-white"
-                            aria-label="Upload video"
-                            onClick={() => {
-                                if (!user) {
-                                    handleOpenAuth('login');
+                {/* Middle Section - Search */}
+                <div className="navbar-mid">
+                    <form
+                        onSubmit={(e) => {
+                            e.preventDefault();
+                        }}
+                        className="search-wrap"
+                    >
+                        <input
+                            type="text"
+                            placeholder="Search JuneteenthTube..."
+                            className="search-input"
+                            aria-label="Search"
+                            onChange={(e) => {
+                                const params = new URLSearchParams(window.location.search);
+                                if (e.target.value) {
+                                    params.set('q', e.target.value);
                                 } else {
-                                    setIsUploadOpen(true);
+                                    params.delete('q');
+                                }
+                                window.history.replaceState({}, '', `${window.location.pathname}?${params.toString()}`);
+                            }}
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                    const val = (e.target as HTMLInputElement).value;
+                                    window.location.href = `/?q=${encodeURIComponent(val)}`;
                                 }
                             }}
+                        />
+                        <button
+                            type="submit"
+                            className="search-btn"
+                            aria-label="Search button"
                         >
-                            <Video className="w-6 h-6" />
+                            <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
+                                <circle cx="9" cy="9" r="7" stroke="currentColor" strokeWidth="1.8" />
+                                <path d="M14 14l4 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+                            </svg>
                         </button>
-                        {!user ? (
-                            <div className="flex items-center gap-2">
-                                <button
-                                    onClick={() => handleOpenAuth('login')}
-                                    className="px-4 h-10 flex items-center text-sm font-medium text-j-gold hover:bg-j-gold/10 rounded-full border border-j-gold/50 transition-colors"
-                                >
-                                    Sign In
-                                </button>
-                            </div>
-                        ) : (
-                            <>
-                                <button
-                                    className="p-2 hover:bg-white/10 rounded-full transition-colors text-white"
-                                    aria-label="Notifications"
-                                >
-                                    <Bell className="w-6 h-6" />
-                                </button>
-                                <div className="relative" ref={userMenuRef}>
-                                    <button
-                                        onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                                        className="w-8 h-8 bg-j-green rounded-full flex items-center justify-center text-white font-bold overflow-hidden border border-white/20 hover:scale-105 transition-transform"
-                                        aria-label="User menu"
-                                    >
-                                        {user.email?.charAt(0).toUpperCase()}
-                                    </button>
+                    </form>
+                </div>
 
-                                    {isUserMenuOpen && (
-                                        <div className="absolute right-0 top-full mt-2 w-64 glass-heavy rounded-xl shadow-2xl py-2 z-[70] animate-in fade-in slide-in-from-top-2 duration-200">
-                                            <div className="px-4 py-3 border-b border-white/10 flex items-center gap-3">
-                                                <div className="w-10 h-10 bg-j-green rounded-full flex items-center justify-center text-white font-bold">
-                                                    {user.email?.charAt(0).toUpperCase()}
-                                                </div>
-                                                <div className="min-w-0">
-                                                    <p className="text-sm font-medium text-white truncate">{user.user_metadata?.full_name || 'User'}</p>
-                                                    <p className="text-xs text-gray-400 truncate">{user.email}</p>
-                                                </div>
-                                            </div>
-                                            <div className="py-2">
-                                                <Link href="/studio" className="flex items-center gap-3 px-4 py-2 hover:bg-white/10 transition-colors text-sm text-gray-200">
-                                                    <Video className="w-4 h-4" /> Juneteenth Studio
-                                                </Link>
-                                                <Link href="/settings" className="flex items-center gap-3 px-4 py-2 hover:bg-white/10 transition-colors text-sm text-gray-200">
-                                                    <User className="w-4 h-4" /> Settings
-                                                </Link>
-                                            </div>
-                                            <div className="border-t border-white/10 pt-2">
-                                                <button
-                                                    onClick={() => {
-                                                        signOut();
-                                                        setIsUserMenuOpen(false);
-                                                    }}
-                                                    className="w-full text-left flex items-center gap-3 px-4 py-2 hover:bg-white/10 transition-colors text-sm text-red-400"
-                                                >
-                                                    Sign Out
-                                                </button>
-                                            </div>
+                {/* Right Section */}
+                <div className="navbar-right">
+                    <button
+                        className="icon-btn"
+                        aria-label="Upload video"
+                        onClick={() => {
+                            if (!user) {
+                                handleOpenAuth('login');
+                            } else {
+                                setIsUploadOpen(true);
+                            }
+                        }}
+                    >
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                            <path d="M15 10l-3-3-3 3M12 7v10M4 17v1a2 2 0 002 2h12a2 2 0 002-2v-1" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                    </button>
+                    {!user ? (
+                        <button
+                            onClick={() => handleOpenAuth('login')}
+                            className="signin-btn"
+                        >
+                            Sign In
+                        </button>
+                    ) : (
+                        <>
+                            <button className="icon-btn" title="Notifications">
+                                🔔<span className="notif-dot" />
+                            </button>
+                            <div className="relative" ref={userMenuRef}>
+                                <button
+                                    onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                                    className="avatar-btn"
+                                    aria-label="User menu"
+                                >
+                                    {user.email?.charAt(0).toUpperCase()}
+                                </button>
+
+                                <div className={`user-menu ${isUserMenuOpen ? 'open' : ''}`}>
+                                    <div className="user-menu-header">
+                                        <div className="user-menu-avatar">
+                                            {user.email?.charAt(0).toUpperCase()}
                                         </div>
-                                    )}
+                                        <div className="min-w-0">
+                                            <div className="user-menu-name truncate">{user.user_metadata?.full_name || 'User'}</div>
+                                            <div className="user-menu-email truncate">{user.email}</div>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={() => { setIsUserMenuOpen(false); window.location.href = '/studio'; }}
+                                        className="user-menu-item"
+                                    >
+                                        <span>🎬</span> Juneteenth Studio
+                                    </button>
+                                    <button
+                                        onClick={() => { setIsUserMenuOpen(false); window.location.href = '/settings'; }}
+                                        className="user-menu-item"
+                                    >
+                                        <span>⚙️</span> Settings
+                                    </button>
+                                    <div style={{ height: 1, background: 'var(--border)', margin: '4px 0' }} />
+                                    <button
+                                        onClick={() => {
+                                            signOut();
+                                            setIsUserMenuOpen(false);
+                                        }}
+                                        className="user-menu-item danger"
+                                    >
+                                        <span>🚪</span> Sign Out
+                                    </button>
                                 </div>
-                            </>
-                        )}
-                    </div>
+                            </div>
+                        </>
+                    )}
                 </div>
             </nav>
 
@@ -320,185 +308,135 @@ export function Navbar({ onMenuClick }: NavbarProps) {
             />
 
             {/* Upload Modal */}
-            {
-                isUploadOpen && (
-                    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-                        <div className="bg-[#1e1e1e] border border-white/10 rounded-2xl w-full max-w-2xl shadow-2xl animate-in fade-in zoom-in duration-200">
-                            <div className="flex items-center justify-between p-4 border-b border-white/10">
-                                <h2 className="text-xl font-bold text-white">Upload content</h2>
-                                <button
-                                    onClick={handleClose}
-                                    className="p-2 hover:bg-white/10 rounded-full transition-colors text-gray-400 hover:text-white"
-                                    aria-label="Close upload modal"
-                                >
-                                    <X className="w-6 h-6" />
+            <div className={`modal-backdrop ${isUploadOpen ? 'open' : ''}`}>
+                <div className="modal">
+                    <div className="modal-header">
+                        <div className="modal-title">
+                            {uploadStep === 1 ? '📤 Upload Content' : uploadStep === 2 ? '🎬 Video Details' : '⚡ Uploading...'}
+                        </div>
+                        <button className="close-btn" onClick={handleClose}>✕</button>
+                    </div>
+
+                    {uploadStep === 1 && !isUploading && (
+                        <div className="modal-body">
+                            <div
+                                className="dropzone"
+                                onDragOver={e => { e.preventDefault(); }}
+                                onDrop={(e) => {
+                                    e.preventDefault();
+                                    const file = e.dataTransfer.files[0];
+                                    if (file) {
+                                        const mockEvent = { target: { files: [file] } } as unknown as React.ChangeEvent<HTMLInputElement>;
+                                        handleFileChange(mockEvent);
+                                    }
+                                }}
+                                onClick={() => fileInputRef.current?.click()}
+                            >
+                                <div className="dropzone-icon">☁️</div>
+                                <div className="dropzone-title">Drag & drop your file here</div>
+                                <div className="dropzone-sub">Photos and videos • Stays private until you publish</div>
+                                <button className="upload-btn" onClick={e => { e.stopPropagation(); fileInputRef.current?.click(); }}>
+                                    Select Files
                                 </button>
-                            </div>
-
-                            <div className="p-8 flex flex-col items-center justify-center text-center gap-6">
-                                {uploadStep === 1 && !isUploading ? (
-                                    <>
-                                        <div className="w-32 h-32 bg-black/40 rounded-full flex items-center justify-center mb-4">
-                                            <UploadCloud className="w-16 h-16 text-gray-500" />
-                                        </div>
-                                        <div>
-                                            <p className="text-lg text-white mb-2">Drag and drop files to upload</p>
-                                            <p className="text-sm text-gray-400">Photos and videos will be private until you publish them.</p>
-                                        </div>
-                                        <button
-                                            onClick={() => fileInputRef.current?.click()}
-                                            className="bg-j-red text-white font-bold px-6 py-2.5 rounded-sm transition-colors uppercase text-sm tracking-wide cursor-pointer hover:bg-red-700 mt-4"
-                                        >
-                                            Select Files
-                                        </button>
-                                        <input
-                                            ref={fileInputRef}
-                                            type="file"
-                                            accept="image/*,video/*"
-                                            className="absolute w-0 h-0 opacity-0 overflow-hidden"
-                                            onChange={handleFileChange}
-                                            title="File Selection"
-                                        />
-                                    </>
-                                ) : uploadStep === 2 && !isUploading ? (
-                                    <div className="w-full space-y-6">
-                                        <div className="flex items-center gap-4 bg-black/20 p-4 rounded-xl border border-white/5">
-                                            <div className="w-12 h-12 bg-j-red/20 rounded-lg flex items-center justify-center">
-                                                <Video className="w-6 h-6 text-j-red" />
-                                            </div>
-                                            <div className="text-left flex-1 min-w-0">
-                                                <p className="text-white font-bold truncate text-sm">{selectedFile?.name}</p>
-                                                <p className="text-gray-500 text-xs uppercase tracking-widest mt-0.5">Ready to upload</p>
-                                            </div>
-                                            <button
-                                                onClick={() => { setSelectedFile(null); setUploadStep(1); }}
-                                                className="text-xs font-bold text-gray-400 hover:text-white uppercase tracking-widest"
-                                            >
-                                                Change
-                                            </button>
-                                        </div>
-
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-left">
-                                            <div className="space-y-4">
-                                                <label className="block text-sm font-black text-white/40 uppercase tracking-[0.2em]">Thumbnail Selection</label>
-                                                <div
-                                                    className="w-full aspect-video bg-black/40 rounded-2xl border-2 border-dashed border-white/10 hover:border-j-gold/50 cursor-pointer overflow-hidden relative group transition-all"
-                                                    onClick={() => thumbnailInputRef.current?.click()}
-                                                >
-                                                    {thumbnailPreview ? (
-                                                        <Image src={thumbnailPreview} alt="Preview" fill className="object-cover" />
-                                                    ) : (
-                                                        <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
-                                                            <div className="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center group-hover:bg-j-gold/20 transition-colors">
-                                                                <Image src="/logo.svg" alt="" width={20} height={20} className="opacity-20 group-hover:opacity-100 transition-opacity" />
-                                                            </div>
-                                                            <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Add Custom Thumbnail</span>
-                                                        </div>
-                                                    )}
-                                                    {thumbnailPreview && (
-                                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity backdrop-blur-[2px]">
-                                                            <span className="text-[10px] font-black text-white uppercase tracking-widest bg-j-gold/80 px-3 py-1.5 rounded-full shadow-lg">Change Image</span>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                                <input
-                                                    ref={thumbnailInputRef}
-                                                    type="file"
-                                                    accept="image/*"
-                                                    className="hidden"
-                                                    onChange={handleThumbnailChange}
-                                                    title="Thumbnail Selection"
-                                                />
-                                            </div>
-
-                                            <div className="space-y-6">
-                                                {/* Category Selector */}
-                                                <div>
-                                                    <label className="block text-sm font-black text-white/40 uppercase tracking-[0.2em] mb-3">Content Category</label>
-                                                    <select
-                                                        value={selectedCategory}
-                                                        onChange={(e) => setSelectedCategory(e.target.value)}
-                                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-j-gold/30 transition-all appearance-none cursor-pointer"
-                                                        aria-label="Content Category"
-                                                    >
-
-                                                        {CATEGORIES.map((cat) => (
-                                                            <option key={cat} value={cat} className="bg-[#1e1e1e] text-white">
-                                                                {cat}
-                                                            </option>
-                                                        ))}
-                                                    </select>
-                                                </div>
-
-                                                {/* State Selector */}
-                                                <div>
-                                                    <label className="block text-sm font-black text-white/40 uppercase tracking-[0.2em] mb-3">Regional Tag</label>
-                                                    <select
-                                                        value={selectedUploadState.code}
-                                                        onChange={(e) => {
-                                                            const state = US_STATES.find(s => s.code === e.target.value);
-                                                            if (state) setSelectedUploadState(state);
-                                                        }}
-                                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-j-gold/30 transition-all appearance-none cursor-pointer"
-                                                        aria-label="State or Region"
-                                                    >
-
-                                                        {US_STATES.map((state) => (
-                                                            <option key={state.code} value={state.code} className="bg-[#1e1e1e] text-white">
-                                                                {state.name}
-                                                            </option>
-                                                        ))}
-                                                    </select>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div className="pt-4">
-                                            <button
-                                                onClick={handleStartUpload}
-                                                className="w-full bg-gradient-to-r from-j-red to-red-700 text-white font-black py-4 rounded-xl transition-all shadow-xl shadow-red-900/20 active:scale-95 uppercase tracking-widest text-sm"
-                                            >
-                                                Publish Video
-                                            </button>
-                                            <p className="mt-4 text-[10px] text-gray-500 font-medium">Final details can be changed later in Studio</p>
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <div className="w-full max-w-sm space-y-4 py-8">
-                                        <div className="flex justify-between text-sm text-white mb-1">
-                                            <span className="font-bold uppercase tracking-widest text-xs">Uploading...</span>
-                                            <span className="font-black text-j-gold">{uploadProgress}%</span>
-                                        </div>
-                                        <div className="w-full h-3 bg-white/5 rounded-full overflow-hidden border border-white/5 shadow-inner">
-                                            <div
-                                                className="h-full bg-gradient-to-r from-j-red via-j-gold to-j-green transition-all duration-300 ease-out progress-fill"
-                                                ref={(el) => { if (el) el.style.setProperty('--progress-percent', `${uploadProgress}%`); }}
-                                            />
-                                        </div>
-                                        <div className="flex items-center justify-center gap-3 pt-4">
-                                            <div className="w-2 h-2 bg-j-red animate-ping rounded-full" />
-                                            <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest">
-                                                Securing packet {Math.floor(uploadProgress * 12.4)}...
-                                            </p>
-                                        </div>
-                                        <button
-                                            onClick={cancelUpload}
-                                            className="mt-6 flex items-center gap-2 px-6 py-2 border border-red-500/20 text-red-500/50 rounded-lg hover:bg-red-500/10 hover:text-red-500 transition-all font-black text-[10px] uppercase tracking-widest mx-auto"
-                                        >
-                                            <X className="w-3 h-3" /> Terminate Session
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
-
-
-                            <div className="p-4 border-t border-white/10 bg-black/20 text-center text-xs text-gray-500 rounded-b-2xl">
-                                By submitting your videos to Juneteenth Tube, you acknowledge that you agree to Net Post Media, llc&apos;s Terms of Service.
+                                <input ref={fileInputRef} type="file" accept="image/*,video/*" hidden onChange={handleFileChange} />
                             </div>
                         </div>
+                    )}
+
+                    {uploadStep === 2 && !isUploading && selectedFile && (
+                        <div className="modal-body">
+                            <div className="upload-file-row">
+                                <div className="file-icon">🎥</div>
+                                <div>
+                                    <div className="file-name">{selectedFile.name}</div>
+                                    <div className="file-size">Ready to upload</div>
+                                </div>
+                                <button className="change-link" onClick={() => { setSelectedFile(null); setUploadStep(1); }}>Change</button>
+                            </div>
+
+                            <div className="form-grid">
+                                <div>
+                                    <div className="form-label">Thumbnail</div>
+                                    <div className="thumb-area" onClick={() => thumbnailInputRef.current?.click()}>
+                                        {thumbnailPreview
+                                            ? <Image src={thumbnailPreview} alt="thumb" fill className="object-cover" />
+                                            : <>
+                                                <div style={{ fontSize: 28 }}>🖼</div>
+                                                <div className="thumb-hint">Add Thumbnail</div>
+                                            </>
+                                        }
+                                        <input ref={thumbnailInputRef} type="file" accept="image/*" hidden onChange={handleThumbnailChange} />
+                                    </div>
+                                </div>
+
+                                <div className="form-side">
+                                    <div>
+                                        <label className="form-label">Content Category</label>
+                                        <select
+                                            title="Content Category"
+                                            className="form-select"
+                                            value={selectedCategory}
+                                            onChange={(e) => setSelectedCategory(e.target.value)}
+                                        >
+                                            {CATEGORIES.map(c => <option key={c} value={c} style={{ background: '#111' }}>{c}</option>)}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="form-label">Regional Tag</label>
+                                        <select
+                                            title="Regional Tag"
+                                            className="form-select"
+                                            value={selectedUploadState.code}
+                                            onChange={(e) => {
+                                                const state = US_STATES.find(s => s.code === e.target.value);
+                                                if (state) setSelectedUploadState(state);
+                                            }}
+                                        >
+                                            <option value="GLOBAL" style={{ background: '#111' }}>🌍 All States</option>
+                                            {US_STATES.filter(s => s.code !== "GLOBAL").map(s => (
+                                                <option key={s.code} value={s.code} style={{ background: '#111' }}>{s.name}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="form-label">Visibility</label>
+                                        <select title="Visibility" className="form-select" defaultValue="public">
+                                            {['Public', 'Unlisted', 'Private'].map(v => <option key={v} value={v.toLowerCase()} style={{ background: '#111' }}>{v}</option>)}
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button className="publish-btn" onClick={handleStartUpload}>🚀 Publish Video</button>
+                            <div style={{ fontSize: 11, color: 'var(--text-dim)', textAlign: 'center', marginTop: 8 }}>Details can be changed later in Studio</div>
+                        </div>
+                    )}
+
+                    {isUploading && (
+                        <div className="progress-wrap">
+                            <div style={{ fontSize: 48, margin: '12px 0' }}>⚡</div>
+                            <div className="progress-label">
+                                <span>Uploading</span>
+                                <span className="progress-pct">{Math.min(100, Math.floor(uploadProgress))}%</span>
+                            </div>
+                            <div className="progress-track">
+                                <div className="progress-fill" style={{ width: `${Math.min(100, uploadProgress)}%` }} />
+                            </div>
+                            <div className="progress-pulse">
+                                <div className="pulse-dot" />
+                                Securing packet {Math.floor(uploadProgress * 12.4)}...
+                            </div>
+                            <button className="cancel-link" onClick={() => { if (confirm("Upload in progress. Are you sure you want to cancel?")) { cancelUpload(); setIsUploadOpen(false); setUploadStep(1); } }}>
+                                ✕ Cancel Upload
+                            </button>
+                        </div>
+                    )}
+
+                    <div className="modal-footer">
+                        By uploading, you agree to Net Post Media, LLC's Terms of Service
                     </div>
-                )
-            }
+                </div>
+            </div>
         </>
     );
 }

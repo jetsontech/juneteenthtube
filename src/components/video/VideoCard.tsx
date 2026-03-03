@@ -130,80 +130,68 @@ function VideoCardInner({ video }: { video: VideoProps }) {
     return (
         <Link
             href={`/watch/${video.id}`}
-            className="group cursor-pointer"
+            className="vcard"
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
             onClick={handleClick}
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
+            onTouchCancel={handleTouchEnd}
+            onTouchMove={handleTouchMove}
         >
-            <div
-                ref={cardRef}
-                className={`video-card flex flex-col bg-white/[0.03] sm:bg-white/[0.04] backdrop-blur-sm sm:rounded-2xl sm:border sm:border-white/[0.06] overflow-hidden transition-colors duration-300 group-hover:bg-white/[0.06] ${isTouchPreviewing ? 'scale-[0.97] transition-transform' : ''}`}
-                onTouchStart={handleTouchStart}
-                onTouchEnd={handleTouchEnd}
-                onTouchCancel={handleTouchEnd}
-                onTouchMove={handleTouchMove}
-            >
-                <div className="relative aspect-video w-full overflow-hidden bg-zinc-900">
-                    <Image
-                        src={imgSrc}
-                        alt={video.title}
-                        fill
-                        className={`object-cover transition-transform duration-500 group-hover:scale-105 ${showPreview ? 'opacity-0' : 'opacity-100'}`}
-                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                        onError={() => {
-                            if (!hasError) {
-                                setImgSrc("/placeholder.svg");
-                                setHasError(true);
-                            }
-                        }}
+            <div ref={cardRef} className="vcard-content relative aspect-video w-full overflow-hidden bg-zinc-900 group">
+                <Image
+                    src={imgSrc}
+                    alt={video.title}
+                    fill
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    onError={() => {
+                        if (!hasError) {
+                            setImgSrc("/placeholder.svg");
+                            setHasError(true);
+                        }
+                    }}
+                />
+                {showPreview && previewSrc && (
+                    <video
+                        ref={videoRef}
+                        muted
+                        loop
+                        playsInline
+                        preload="none"
+                        className="absolute inset-0 w-full h-full object-cover pointer-events-none"
                     />
-                    {showPreview && previewSrc && (
-                        <video
-                            ref={videoRef}
-                            muted
-                            loop
-                            playsInline
-                            preload="none"
-                            className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+                )}
+                {isTouchPreviewing && (
+                    <div className="absolute top-2 left-2 z-10 flex items-center gap-1.5 bg-black/70 backdrop-blur-sm rounded-full px-2.5 py-1">
+                        <span className="w-1.5 h-1.5 bg-j-red rounded-full animate-pulse" />
+                        <span className="text-[10px] font-bold text-white uppercase tracking-wider">Preview</span>
+                    </div>
+                )}
+                <div className="category-tag">{video.category}</div>
+                <div className="duration-badge">{video.duration}</div>
+            </div>
+
+            <div className="vcard-body">
+                <div className="channel-avatar">
+                    {video.channelAvatar ? (
+                        <Image
+                            src={video.channelAvatar}
+                            alt={video.channelName}
+                            fill
+                            className="object-cover rounded-full border border-white/10"
                         />
+                    ) : (
+                        video.channelName.charAt(0).toUpperCase()
                     )}
-                    {isTouchPreviewing && (
-                        <div className="absolute top-2 left-2 z-10 flex items-center gap-1.5 bg-black/70 backdrop-blur-sm rounded-full px-2.5 py-1 animate-in fade-in duration-200">
-                            <span className="w-1.5 h-1.5 bg-j-red rounded-full animate-pulse" />
-                            <span className="text-[10px] font-bold text-white uppercase tracking-wider">Preview</span>
-                        </div>
-                    )}
-                    <div className="absolute bottom-2 right-2 rounded bg-black/80 backdrop-blur-md px-1.5 py-0.5 text-[11px] font-medium text-white border border-white/10">
-                        {video.duration}
-                    </div>
                 </div>
-                <div className="flex gap-3 p-3 sm:p-4">
-                    <div className="h-10 w-10 flex-shrink-0 rounded-full bg-zinc-800 overflow-hidden relative border border-white/5">
-                        {video.channelAvatar ? (
-                            <Image
-                                src={video.channelAvatar}
-                                alt={video.channelName}
-                                fill
-                                className="object-cover"
-                            />
-                        ) : (
-                            <div className="w-full h-full bg-j-green flex items-center justify-center text-white font-bold">
-                                {video.channelName.charAt(0).toUpperCase()}
-                            </div>
-                        )}
-                    </div>
-                    <div className="flex flex-col overflow-hidden">
-                        <h3 className="line-clamp-2 text-[14px] font-semibold text-white leading-snug group-hover:text-j-gold transition-colors">
-                            {video.title}
-                        </h3>
-                        <p className="mt-1 text-[12px] text-zinc-400 hover:text-white transition-colors">
-                            {video.channelName}
-                        </p>
-                        <div className="flex items-center text-[12px] text-zinc-400">
-                            <span>{video.views} views</span>
-                            <span className="mx-1">•</span>
-                            <span>{video.postedAt}</span>
-                        </div>
+                <div className="vcard-info">
+                    <h3 className="vcard-title">{video.title}</h3>
+                    <p className="vcard-channel">{video.channelName}</p>
+                    <div className="vcard-meta">
+                        <span>{video.views} views</span>
+                        <span>•</span>
+                        <span>{video.postedAt}</span>
                     </div>
                 </div>
             </div>

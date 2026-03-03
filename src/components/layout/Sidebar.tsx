@@ -32,26 +32,15 @@ const secondaryLinks = [
 
 import { useState, useEffect } from "react";
 import { useSidebar } from "@/context/SidebarContext";
+import { useAuth } from "@/context/AuthContext";
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
     const pathname = usePathname();
     const { isMobile, setIsOpen } = useSidebar();
-    const [isHovered, setIsHovered] = useState(false);
+    const { user } = useAuth();
 
-    const [isHoverSupported, setIsHoverSupported] = useState(false);
-
-    useEffect(() => {
-        const media = window.matchMedia('(hover: hover)');
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setIsHoverSupported(media.matches);
-
-        const listener = () => setIsHoverSupported(media.matches);
-        media.addEventListener('change', listener);
-        return () => media.removeEventListener('change', listener);
-    }, []);
-
-    // Visual state: Open if pinned (isOpen) OR (hovered AND hover is supported)
-    const isExpanded = isOpen || (isHovered && isHoverSupported);
+    // The visual state of the sidebar is dictated by context "isOpen"
+    // No hover mechanism needed for the new UI format, it acts as a drawer
 
     const handleMobileClose = () => {
         if (isMobile) {
@@ -61,87 +50,57 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
     return (
         <>
-            {/* Mobile Backdrop Overlay */}
-            {isOpen && (
-                <div
-                    className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[90] sm:hidden transition-opacity duration-300"
-                    onClick={onClose}
-                    aria-label="Close sidebar"
-                />
-            )}
+            {/* Backdrop overlay */}
+            <div
+                className={`sidebar-backdrop ${isOpen ? 'visible' : ''}`}
+                onClick={() => setIsOpen(false)}
+            />
 
-            {/* Sidebar */}
-            <aside
-                onMouseEnter={() => setIsHovered(true)}
-                onMouseLeave={() => setIsHovered(false)}
-                className={cn(
-                    "fixed left-0 bottom-0 z-[100] glass-heavy overflow-y-auto transition-all duration-300 scrollbar-none sidebar-layout",
-                    // Current page detection
-                    pathname?.startsWith('/watch/') || pathname?.startsWith('/shorts/') ? "is-watch-page" : "",
+            <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
+                <div className="sidebar-section-title">Discover</div>
 
-                    // Mobile: Slide in/out
-                    isOpen ? "translate-x-0 w-64" : "-translate-x-full w-64",
-
-                    // Desktop: 
-                    // On Watch pages, sidebar is ALWAYS hidden unless explicitly opened (overlay)
-                    // On Home/Browse pages, we follow the user's "collapsed doesn't push" so we hide it when closed
-                    "sm:translate-x-0",
-                    isOpen ? "sm:w-64 border-r border-white/5" : "sm:w-0 sm:-translate-x-full",
-                    (isHovered && !isOpen) && "shadow-2xl shadow-black/50 border-r border-white/5"
-                )}
-            >
-                <div className={cn(
-                    "sticky z-40 bg-[#0f0f0f] border-b border-white/5 sticky-nav-offset",
-                    "p-2 space-y-2" // Retain original padding and spacing
-                )}
-                >
-                    {mainLinks.map((link) => {
-                        const isActive = pathname === link.href;
-                        return (
-                            <Link
-                                key={link.href}
-                                href={link.href}
-                                onClick={handleMobileClose}
-                                className={cn(
-                                    "flex items-center gap-4 px-3 py-3 rounded-lg transition-all duration-200 hover:glass-button group",
-                                    isActive ? "glass-button border-l-2 border-l-j-red bg-white/5" : "text-gray-300 border-l-2 border-l-transparent"
-                                )}
-                            >
-                                <link.icon className={cn("w-6 h-6 shrink-0", isActive ? "text-j-red" : "group-hover:text-white")} />
-                                <span className={cn(
-                                    "text-sm font-medium whitespace-nowrap transition-opacity duration-200",
-                                    !isExpanded && "opacity-0 hidden",
-                                    isActive ? "text-white" : "text-gray-300 group-hover:text-white"
-                                )}>
-                                    {link.label}
-                                </span>
-                            </Link>
-                        );
-                    })}
-
-                    {isExpanded && <hr className="border-white/10 my-2 mx-4" />}
-
-                    {isExpanded && secondaryLinks.map((link) => (
+                {mainLinks.map((link) => {
+                    const isActive = pathname === link.href;
+                    return (
                         <Link
                             key={link.href}
                             href={link.href}
                             onClick={handleMobileClose}
-                            className="flex items-center gap-4 px-3 py-3 rounded-lg transition-colors hover:bg-white/10 text-gray-300 group"
+                            className={`nav-link ${isActive ? 'active' : ''}`}
                         >
-                            <link.icon className="w-6 h-6 group-hover:text-white" />
-                            <span className="text-sm font-medium text-gray-300 group-hover:text-white">
-                                {link.label}
-                            </span>
+                            <link.icon className="nav-icon" />
+                            {link.label}
                         </Link>
-                    ))}
+                    );
+                })}
 
-                    {isExpanded && (
-                        <div className="mt-4 px-4 text-xs text-gray-500">
-                            <p>© 2026 Net Post Media, llc</p>
-                        </div>
-                    )}
+                <div className="sidebar-divider" />
+                <div className="sidebar-section-title">Your Library</div>
+
+                {secondaryLinks.map((link) => {
+                    // Make some links require auth optionally if desired
+                    if (link.label === "Admin Panel" && !user) return null;
+
+                    const isActive = pathname === link.href;
+                    return (
+                        <Link
+                            key={link.href}
+                            href={link.href}
+                            onClick={handleMobileClose}
+                            className={`nav-link ${isActive ? 'active' : ''}`}
+                        >
+                            <link.icon className="nav-icon" />
+                            {link.label}
+                        </Link>
+                    );
+                })}
+
+                <div className="sidebar-footer">
+                    About • Contact <br />
+                    TOS • Privacy Policy <br />
+                    © 2026 Net Post Media
                 </div>
-            </aside >
+            </aside>
         </>
     );
 }
