@@ -149,50 +149,65 @@
     }
   }
 
-  /* Pazzaz Text Styling */
-  .pazzaz-text {
-    background: linear-gradient(135deg, #FFD700 0%, #D4AF37 30%, #FEE101 50%, #B8860B 70%, #FFD700 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    font-weight: 800;
-    text-shadow: 0 0 15px rgba(212, 175, 55, 0.4);
-    letter-spacing: -0.01em;
-    position: relative;
-    overflow: hidden;
-    display: inline-block;
-  }
+  @keyframes illuminating-shake {
 
-  .pazzaz-text::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg,
-        transparent,
-        rgba(255, 255, 255, 0.2),
-        transparent);
-    animation: shine 4s infinite;
-  }
-
-  @keyframes shine {
-    0% {
-      left: -100%;
-    }
-
-    20% {
-      left: 100%;
-    }
-
+    0%,
+    85%,
     100% {
-      left: 100%;
+      transform: rotate(0) scale(1);
+      filter: brightness(1) drop-shadow(0 0 0 transparent);
+    }
+
+    87% {
+      transform: rotate(3deg) scale(1.1);
+      filter: brightness(1.3) drop-shadow(0 0 15px rgba(255, 215, 0, 0.6));
+    }
+
+    90% {
+      transform: rotate(-3deg) scale(1.1);
+      filter: brightness(1.3) drop-shadow(0 0 15px rgba(255, 215, 0, 0.6));
+    }
+
+    93% {
+      transform: rotate(2deg) scale(1.1);
+      filter: brightness(1.3) drop-shadow(0 0 15px rgba(255, 215, 0, 0.6));
+    }
+
+    96% {
+      transform: rotate(0) scale(1.1);
+      filter: brightness(1.3) drop-shadow(0 0 15px rgba(255, 215, 0, 0.6));
     }
   }
 }
 
-/* Standard CSS Classes (satisfies validator while maintaining Tailwind v4 compatibility) */
+/* Global Utility Classes */
+.pazzaz-text {
+  font-family: 'Playfair Display', serif;
+  background: linear-gradient(to bottom,
+      #fef08a 0%,
+      #eab308 45%,
+      #a16207 55%,
+      #eab308 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 900;
+  font-style: italic;
+  font-size: 1.6rem;
+  letter-spacing: -0.02em;
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.4),
+    0 2px 4px rgba(0, 0, 0, 0.5);
+  display: inline-block;
+  line-height: 1;
+  padding-bottom: 2px;
+  filter: drop-shadow(0 0 2px rgba(234, 179, 8, 0.2));
+}
+
+.animate-illuminating-shake {
+  animation: illuminating-shake 8s ease-in-out infinite;
+}
+
 .animate-snippet-pulse {
   animation: snippet-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
@@ -220,16 +235,16 @@
   z-index: 50;
   box-shadow: 0 0 20px var(--heritage-gold);
   border: 2px solid white;
+}
 
-  &::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: 9999px;
-    background: inherit;
-    opacity: 0.5;
-    animation: snippet-pulse 2s infinite;
-  }
+.pulse-pin::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: inherit;
+  opacity: 0.5;
+  animation: snippet-pulse 2s infinite;
 }
 
 .sponsor-gradient {

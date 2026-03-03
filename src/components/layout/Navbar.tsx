@@ -160,16 +160,16 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                         </svg>
                     </button>
                     <Link href="/" className="flex items-center gap-2 group">
-                        <div className="relative w-8 h-8 md:w-9 md:h-9">
+                        <div className="relative w-8 h-8 md:w-9 md:h-9 animate-illuminating-shake">
                             <Image
                                 src="/official-logo.png"
                                 alt="Logo"
                                 fill
-                                className="object-contain filter brightness-110 drop-shadow-[0_0_8px_rgba(234,179,8,0.3)]"
+                                className="object-contain"
                                 priority
                             />
                         </div>
-                        <span className="logo-text pazzaz-text hidden sm:inline-block">
+                        <span className="logo-text pazzaz-text">
                             Juneteenth Tube
                         </span>
                     </Link>
