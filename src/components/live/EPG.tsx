@@ -19,6 +19,7 @@ export type Channel = {
     logo_url?: string;
     stream_url: string;
     playlist?: string[];
+    category: string;
     programs: Program[];
 };
 
@@ -126,7 +127,7 @@ export function EPG({ channels, currentChannelId, onChannelSelect, categories, a
 
                 {/* CHANNELS AND PROGRAMS GRID */}
                 <div className="flex flex-col relative pb-32">
-                    {channels.map((channel) => (
+                    {channels.filter(c => activeCategory === "All" || c.category === activeCategory).map((channel) => (
                         <div key={channel.id} className="flex relative group">
                             {/* Sticky Left Channel Info */}
                             <div
