@@ -77,6 +77,7 @@ export default function LiveTV() {
                             name: c.name,
                             description: c.description,
                             logo_url: c.logo_url,
+                            category: c.category || 'All',
                             stream_url: c.is_internal_vod && playlist && playlist.length > 0 ? playlist[0] : c.stream_url,
                             playlist: playlist,
                             is_internal_vod: c.is_internal_vod,
