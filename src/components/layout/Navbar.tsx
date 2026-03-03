@@ -159,9 +159,21 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                             <rect y="12" width="20" height="2" rx="1" fill="currentColor" />
                         </svg>
                     </button>
-                    <Link href="/" className="logo-text" style={{ display: 'flex', alignItems: 'flex-start', gap: 6 }}>
-                        JuneteenthTube
-                        <span className="logo-badge">BETA</span>
+                    <Link href="/" className="logo-text flex items-center gap-2 group">
+                        <div className="relative w-8 h-8 md:w-10 md:h-10 animate-logo-pulse">
+                            <Image
+                                src="/official-logo.png"
+                                alt="JuneteenthTube Official Logo"
+                                fill
+                                sizes="(max-width: 768px) 32px, 40px"
+                                className="object-contain"
+                                priority
+                            />
+                        </div>
+                        <div className="flex items-start gap-1.5">
+                            <span className="hidden sm:inline-block">JuneteenthTube</span>
+                            <span className="logo-badge">BETA</span>
+                        </div>
                     </Link>
                     <div style={{ display: 'flex', alignItems: 'center' }}>
                         <select
