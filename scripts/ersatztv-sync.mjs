@@ -26,6 +26,10 @@ const supabase = createClient(
 // ErsatzTV base URL — change this if running on a different host/port
 const ERSATZTV_URL = 'http://localhost:8409';
 
+// MediaMTX base URL — this is the streaming server that converts ErsatzTV's
+// MPEG-TS output into HLS/WebRTC. Channels are available at /etv-channel-{n}/index.m3u8
+const MEDIAMTX_HLS_URL = 'http://localhost:8888';
+
 /**
  * Fetch JSON from an HTTP endpoint
  */
@@ -91,7 +95,7 @@ function parseM3U(m3uContent) {
                     name: `[ETV] ${name}`,
                     description: `ErsatzTV Channel ${channelNumber} — Self-hosted linear broadcast`,
                     logo_url: logo,
-                    stream_url: streamUrl,
+                    stream_url: `${MEDIAMTX_HLS_URL}/etv-channel-${channelNumber}/index.m3u8`,
                     category: category,
                     order_index: channelNumber,
                     status: 'active',
