@@ -1,22 +1,20 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { LivePlayer } from "@/components/live/LivePlayer";
-import { EPG, Channel, Program } from "@/components/live/EPG";
+import { Channel, Program } from "@/components/live/EPG";
 import Link from "next/link";
-import { ArrowLeft, Maximize2 } from "lucide-react";
+import { ArrowLeft, ChevronLeft, ChevronRight, Play } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
 export default function LiveTV() {
     const [channels, setChannels] = useState<Channel[]>([]);
     const [currentChannel, setCurrentChannel] = useState<Channel | null>(null);
-    const [categories] = useState(["All", "Entertainment", "Movies", "News", "Music", "Kids", "Sports", "Local"]);
-    const [activeCategory, setActiveCategory] = useState("All");
+    const categories = ["All", "Entertainment", "Movies", "News", "Music", "Kids", "Sports"];
 
     useEffect(() => {
         async function fetchLiveTVData() {
             try {
-                // Fetch active channels
                 const { data: channelData, error: channelError } = await supabase
                     .from('channels')
                     .select('*')
@@ -25,7 +23,6 @@ export default function LiveTV() {
 
                 if (channelError) throw channelError;
 
-                // Fetch programming data for the next 24 hours
                 const now = new Date().toISOString();
                 const tomorrow = new Date(Date.now() + 86400000).toISOString();
 
@@ -60,13 +57,10 @@ export default function LiveTV() {
                                 .map(epg => {
                                     const video = videosData.find(v => v.id === epg.video_id);
                                     if (!video) return null;
-
-                                    // Make sure relative URLs are absolute for h264
                                     let h264Url = video.video_url_h264;
                                     if (h264Url && !h264Url.startsWith('http')) {
                                         h264Url = `https://pub-efcc4aa0b3b24e3d97760577b0ec20bd.r2.dev/${h264Url}`;
                                     }
-
                                     return h264Url || video.video_url;
                                 })
                                 .filter(Boolean) as string[];
@@ -77,7 +71,7 @@ export default function LiveTV() {
                             name: c.name,
                             description: c.description,
                             logo_url: c.logo_url,
-                            category: c.category || 'All',
+                            category: c.category || 'Entertainment',
                             stream_url: c.is_internal_vod && playlist && playlist.length > 0 ? playlist[0] : c.stream_url,
                             playlist: playlist,
                             is_internal_vod: c.is_internal_vod,
@@ -106,7 +100,6 @@ export default function LiveTV() {
         return () => clearInterval(interval);
     }, []);
 
-    // Helper to get currently active program for the banner
     const getCurrentProgram = (channel: Channel | null): Program | undefined => {
         if (!channel || !channel.programs) return undefined;
         const now = Date.now();
@@ -119,10 +112,10 @@ export default function LiveTV() {
 
     if (!currentChannel) {
         return (
-            <div className="min-h-screen bg-[#050505] flex items-center justify-center">
+            <div className="min-h-screen bg-[#141414] flex items-center justify-center">
                 <div className="flex flex-col items-center">
-                    <div className="w-16 h-16 rounded-full border-4 border-white/10 border-t-white animate-spin mb-6"></div>
-                    <p className="text-white/60 text-xs font-bold uppercase tracking-[0.3em] animate-pulse">Initializing Juneteenthtube</p>
+                    <div className="w-16 h-16 rounded-full border-4 border-white/10 border-t-red-600 animate-spin mb-6"></div>
+                    <p className="text-white/60 text-xs font-bold uppercase tracking-[0.3em] animate-pulse">Loading Juneteenthtube</p>
                 </div>
             </div>
         );
@@ -130,120 +123,247 @@ export default function LiveTV() {
 
     const currentProgram = getCurrentProgram(currentChannel);
 
-    const handleChannelUp = () => {
-        if (!currentChannel || channels.length === 0) return;
-        const currentIndex = channels.findIndex(c => c.id === currentChannel.id);
-        const nextIndex = (currentIndex + 1) % channels.length;
-        setCurrentChannel(channels[nextIndex]);
+    // Group channels by category
+    const channelsByCategory = categories
+        .filter(cat => cat !== "All")
+        .map(cat => ({
+            category: cat,
+            channels: channels.filter(c => c.category === cat)
+        }))
+        .filter(group => group.channels.length > 0);
+
+    return (
+        <div className="min-h-screen bg-[#141414] text-white font-sans">
+
+            {/* ═══════════════════════════════════════════════════════════ */}
+            {/* HERO SECTION — Currently playing channel                   */}
+            {/* ═══════════════════════════════════════════════════════════ */}
+            <div className="relative w-full">
+                {/* Video Player */}
+                <div className="w-full aspect-video max-h-[65vh] bg-black relative">
+                    <LivePlayer streamUrl={currentChannel.stream_url} playlist={currentChannel.playlist} />
+
+                    {/* Gradient overlay at bottom for text readability */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#141414] via-transparent to-transparent pointer-events-none" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-[#141414]/80 via-transparent to-transparent pointer-events-none" />
+                </div>
+
+                {/* Hero Info Overlay */}
+                <div className="absolute bottom-0 left-0 right-0 px-6 md:px-12 pb-8 z-20">
+                    {/* Back Button */}
+                    <Link
+                        href="/"
+                        className="inline-flex items-center text-white/70 hover:text-white text-sm mb-6 transition-colors group"
+                    >
+                        <ArrowLeft className="w-4 h-4 mr-1.5 group-hover:-translate-x-1 transition-transform" />
+                        <span>Back to Home</span>
+                    </Link>
+
+                    {/* Channel Info */}
+                    <div className="flex items-end gap-4 mb-4">
+                        {currentChannel.logo_url && (
+                            <img
+                                src={currentChannel.logo_url}
+                                alt={currentChannel.name}
+                                className="w-14 h-14 md:w-20 md:h-20 rounded-lg object-cover shadow-2xl border border-white/10"
+                            />
+                        )}
+                        <div className="flex flex-col">
+                            <div className="flex items-center gap-2 mb-1">
+                                <span className="bg-red-600 text-white text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded flex items-center gap-1.5">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                                    Live
+                                </span>
+                                <span className="text-white/40 text-xs font-medium">{currentChannel.category}</span>
+                            </div>
+                            <h1 className="text-2xl md:text-4xl font-black tracking-tight leading-none">
+                                {currentProgram ? currentProgram.title : currentChannel.name}
+                            </h1>
+                            <p className="text-white/50 text-sm md:text-base mt-1 line-clamp-1 max-w-xl">
+                                {currentProgram ? currentProgram.description : currentChannel.description}
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Channel Controls */}
+                    <div className="flex items-center gap-3">
+                        <button
+                            onClick={() => {
+                                const idx = channels.findIndex(c => c.id === currentChannel.id);
+                                setCurrentChannel(channels[(idx - 1 + channels.length) % channels.length]);
+                            }}
+                            className="flex items-center gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm px-5 py-2.5 rounded-md transition-all text-sm font-bold"
+                        >
+                            <img src="/official-logo.png" alt="Prev" className="w-5 h-5 rotate-90" />
+                            Prev Channel
+                        </button>
+                        <button
+                            onClick={() => {
+                                const idx = channels.findIndex(c => c.id === currentChannel.id);
+                                setCurrentChannel(channels[(idx + 1) % channels.length]);
+                            }}
+                            className="flex items-center gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm px-5 py-2.5 rounded-md transition-all text-sm font-bold"
+                        >
+                            Next Channel
+                            <img src="/official-logo.png" alt="Next" className="w-5 h-5 -rotate-90" />
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {/* ═══════════════════════════════════════════════════════════ */}
+            {/* CHANNEL ROWS — Grouped by category, Netflix-style           */}
+            {/* ═══════════════════════════════════════════════════════════ */}
+            <div className="relative z-30 -mt-4 pb-20">
+                {channelsByCategory.map(group => (
+                    <ChannelRow
+                        key={group.category}
+                        title={group.category}
+                        channels={group.channels}
+                        currentChannelId={currentChannel.id}
+                        onSelect={setCurrentChannel}
+                    />
+                ))}
+            </div>
+        </div>
+    );
+}
+
+/* ═══════════════════════════════════════════════════════════════════════ */
+/* CHANNEL ROW — Horizontal scrolling row of channel cards                */
+/* ═══════════════════════════════════════════════════════════════════════ */
+function ChannelRow({ title, channels, currentChannelId, onSelect }: {
+    title: string;
+    channels: Channel[];
+    currentChannelId: string;
+    onSelect: (c: Channel) => void;
+}) {
+    const scrollRef = useRef<HTMLDivElement>(null);
+    const [showLeft, setShowLeft] = useState(false);
+    const [showRight, setShowRight] = useState(true);
+
+    const checkScroll = () => {
+        const el = scrollRef.current;
+        if (!el) return;
+        setShowLeft(el.scrollLeft > 20);
+        setShowRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 20);
     };
 
-    const handleChannelDown = () => {
-        if (!currentChannel || channels.length === 0) return;
-        const currentIndex = channels.findIndex(c => c.id === currentChannel.id);
-        const prevIndex = (currentIndex - 1 + channels.length) % channels.length;
-        setCurrentChannel(channels[prevIndex]);
+    useEffect(() => {
+        checkScroll();
+        const el = scrollRef.current;
+        if (el) el.addEventListener('scroll', checkScroll);
+        return () => { if (el) el.removeEventListener('scroll', checkScroll); };
+    }, [channels]);
+
+    const scroll = (dir: 'left' | 'right') => {
+        const el = scrollRef.current;
+        if (!el) return;
+        const amount = el.clientWidth * 0.75;
+        el.scrollBy({ left: dir === 'left' ? -amount : amount, behavior: 'smooth' });
     };
 
     return (
-        <div className="h-[100dvh] w-full bg-[#050505] text-white flex flex-col font-sans overflow-hidden selection:bg-white/20">
+        <div className="mb-6 md:mb-8 group/row">
+            <h2 className="text-lg md:text-xl font-bold px-6 md:px-12 mb-2 md:mb-3 text-white/90 tracking-wide">
+                {title}
+            </h2>
 
-            {/* Cinematic Player Area */}
+            <div className="relative">
+                {/* Left Arrow */}
+                {showLeft && (
+                    <button
+                        onClick={() => scroll('left')}
+                        className="absolute left-0 top-0 bottom-0 z-20 w-12 md:w-16 bg-gradient-to-r from-[#141414] to-transparent flex items-center justify-center opacity-0 group-hover/row:opacity-100 transition-opacity cursor-pointer"
+                    >
+                        <ChevronLeft className="w-8 h-8 text-white" />
+                    </button>
+                )}
 
-            {/* Cinematic Player Area */}
-            <main className="shrink-0 flex flex-col justify-start bg-zinc-950 w-full">
-                {/* 
-                  Instead of pure vh that breaks different screens, use a balanced height 
-                  that ensures at least half the screen is preserved for the EPG guide.
-                */}
-                <div className="w-full relative z-10 bg-black aspect-video max-h-[40vh] md:max-h-[45vh] min-h-[220px]">
-                    <LivePlayer streamUrl={currentChannel.stream_url} playlist={currentChannel.playlist} />
-                </div>
-
-                {/* Information Banner - Optimized padding and text sizes to conserve vertical space */}
-                <div className="w-full bg-gradient-to-b from-zinc-900 to-zinc-950 border-b border-white/5 px-4 md:px-8 py-3 flex flex-col shadow-inner z-20">
-                    <div className="flex flex-col w-full">
-                        <div className="flex flex-row items-center justify-between gap-4 mb-1 w-full">
-
-                            {/* Program Info */}
-                            <div className="flex flex-col min-w-0 flex-1 order-2 md:order-1">
-                                <div className="flex items-center gap-3 w-full">
-                                    <h1 className="text-lg md:text-2xl font-black text-white tracking-tight leading-none truncate">
-                                        {currentProgram ? currentProgram.title : currentChannel.name}
-                                    </h1>
-                                    {currentProgram && (
-                                        <div className="text-red-400 text-[9px] md:text-[10px] font-bold uppercase tracking-widest font-mono flex items-center shrink-0 ml-2">
-                                            <span className="w-1.5 h-1.5 rounded-full bg-red-500 mr-1.5 animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)]"></span>
-                                            {new Date(currentProgram.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {new Date(currentProgram.end_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                        </div>
-                                    )}
-                                </div>
-                                <p className="text-white/60 text-[10px] md:text-xs font-medium line-clamp-1 w-full max-w-4xl mt-1.5">
-                                    {currentProgram ? currentProgram.description : currentChannel.description}
-                                </p>
-                            </div>
-
-                            {/* Channel Controls */}
-                            <div className="flex items-center gap-4 shrink-0 order-1 md:order-2 mr-2 md:mr-0 md:ml-2 border-r md:border-r-0 md:border-l border-white/10 pr-6 md:pr-1 pl-1 md:pl-6">
-                                <button
-                                    onClick={handleChannelUp}
-                                    className="relative w-16 h-16 rounded-2xl overflow-hidden hover:scale-110 active:scale-95 transition-all duration-300 cursor-pointer outline-none group shrink-0 shadow-lg"
-                                    aria-label="Channel Down"
-                                >
-                                    <div className="absolute inset-0 bg-white/0 group-active:bg-white/20 group-hover:bg-white/10 transition-colors z-10 pointer-events-none rounded-2xl"></div>
-                                    <img
-                                        src="/official-logo.png"
-                                        alt="Channel Down"
-                                        className="w-full h-full object-cover rounded-2xl rotate-90 scale-110 group-active:brightness-150 group-hover:brightness-125 transition-all duration-300 drop-shadow-[0_0_15px_rgba(255,215,0,0.5)]"
-                                    />
-                                </button>
-                                <button
-                                    onClick={handleChannelDown}
-                                    className="relative w-16 h-16 rounded-2xl overflow-hidden hover:scale-110 active:scale-95 transition-all duration-300 cursor-pointer outline-none group shrink-0 shadow-lg"
-                                    aria-label="Channel Up"
-                                >
-                                    <div className="absolute inset-0 bg-white/0 group-active:bg-white/20 group-hover:bg-white/10 transition-colors z-10 pointer-events-none rounded-2xl"></div>
-                                    <img
-                                        src="/official-logo.png"
-                                        alt="Channel Up"
-                                        className="w-full h-full object-cover rounded-2xl -rotate-90 scale-110 group-active:brightness-150 group-hover:brightness-125 transition-all duration-300 drop-shadow-[0_0_15px_rgba(255,215,0,0.5)]"
-                                    />
-                                </button>
-                            </div>
-
-                        </div>
-                    </div>
-                </div>
-            </main>
-
-            {/* Categories Bar */}
-            <div className="h-12 bg-zinc-950 flex items-center px-4 md:px-8 shrink-0 relative z-30 border-b border-white/10 overflow-hidden shrink-0">
-                <div className="flex items-center space-x-1.5 overflow-x-auto custom-scrollbar flex-1 pb-2 pt-2">
-                    {categories.map(cat => (
-                        <button
-                            key={cat}
-                            onClick={() => setActiveCategory(cat)}
-                            className={`px-4 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-widest whitespace-nowrap transition-all duration-300 ${activeCategory === cat
-                                ? 'bg-white text-black scale-105 shadow-[0_0_15px_rgba(255,255,255,0.3)]'
-                                : 'bg-transparent text-white/50 hover:bg-white/10 hover:text-white'
-                                }`}
-                        >
-                            {cat}
-                        </button>
+                {/* Scrollable Row */}
+                <div
+                    ref={scrollRef}
+                    className="flex gap-2 md:gap-3 overflow-x-auto scrollbar-hide px-6 md:px-12 scroll-smooth"
+                    style={{ scrollbarWidth: 'none' }}
+                >
+                    {channels.map(channel => (
+                        <ChannelCard
+                            key={channel.id}
+                            channel={channel}
+                            isActive={channel.id === currentChannelId}
+                            onSelect={() => onSelect(channel)}
+                        />
                     ))}
                 </div>
-            </div>
 
-            {/* Dynamic Guide Wrapper */}
-            <div className="flex-1 overflow-hidden relative bg-zinc-950">
-                <EPG
-                    channels={channels}
-                    currentChannelId={currentChannel.id}
-                    onChannelSelect={(c) => setCurrentChannel(c)}
-                    categories={categories}
-                    activeCategory={activeCategory}
-                    onCategorySelect={setActiveCategory}
-                />
+                {/* Right Arrow */}
+                {showRight && (
+                    <button
+                        onClick={() => scroll('right')}
+                        className="absolute right-0 top-0 bottom-0 z-20 w-12 md:w-16 bg-gradient-to-l from-[#141414] to-transparent flex items-center justify-center opacity-0 group-hover/row:opacity-100 transition-opacity cursor-pointer"
+                    >
+                        <ChevronRight className="w-8 h-8 text-white" />
+                    </button>
+                )}
             </div>
         </div>
+    );
+}
+
+/* ═══════════════════════════════════════════════════════════════════════ */
+/* CHANNEL CARD — Individual channel tile                                  */
+/* ═══════════════════════════════════════════════════════════════════════ */
+function ChannelCard({ channel, isActive, onSelect }: {
+    channel: Channel;
+    isActive: boolean;
+    onSelect: () => void;
+}) {
+    return (
+        <button
+            onClick={onSelect}
+            className={`group relative shrink-0 w-[160px] md:w-[220px] rounded-md overflow-hidden cursor-pointer transition-all duration-300 hover:scale-105 hover:z-10 outline-none
+                ${isActive ? 'ring-2 ring-red-500 scale-105 z-10' : 'ring-0'}
+            `}
+        >
+            {/* Card Image */}
+            <div className="aspect-video bg-zinc-800 relative overflow-hidden">
+                {channel.logo_url ? (
+                    <img
+                        src={channel.logo_url}
+                        alt={channel.name}
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    />
+                ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-zinc-700 to-zinc-900 flex items-center justify-center">
+                        <span className="text-3xl font-black text-white/30">{channel.name.charAt(0)}</span>
+                    </div>
+                )}
+
+                {/* Hover Play Overlay */}
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center">
+                    <div className="w-10 h-10 rounded-full bg-white/90 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all scale-50 group-hover:scale-100 shadow-xl">
+                        <Play className="w-5 h-5 text-black fill-black ml-0.5" />
+                    </div>
+                </div>
+
+                {/* Live indicator */}
+                {isActive && (
+                    <div className="absolute top-2 left-2 flex items-center gap-1 bg-red-600 rounded px-1.5 py-0.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                        <span className="text-[9px] font-black text-white uppercase tracking-wider">Live</span>
+                    </div>
+                )}
+            </div>
+
+            {/* Card Info */}
+            <div className="bg-zinc-800/80 px-3 py-2.5">
+                <h3 className={`text-xs md:text-sm font-bold truncate ${isActive ? 'text-white' : 'text-white/80'}`}>
+                    {channel.name}
+                </h3>
+                {channel.description && (
+                    <p className="text-white/40 text-[10px] md:text-xs truncate mt-0.5">{channel.description}</p>
+                )}
+            </div>
+        </button>
     );
 }
