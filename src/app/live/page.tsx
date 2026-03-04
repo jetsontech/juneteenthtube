@@ -320,8 +320,7 @@ function ChannelRow({
         {/* Scrollable Row */}
         <div
           ref={scrollRef}
-          className="flex gap-2 md:gap-3 overflow-x-auto scrollbar-hide px-6 md:px-12 scroll-smooth"
-          style={{ scrollbarWidth: "none" }}
+          className="flex gap-2 md:gap-3 overflow-x-auto scrollbar-hide px-6 md:px-12 scroll-smooth [-ms-overflow-style:none] [scrollbar-width:none]"
         >
           {channels.map((channel) => (
             <ChannelCard

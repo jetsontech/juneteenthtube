@@ -33,8 +33,7 @@ export function CategoryBar({
                                 onCategoryChange(category);
                             }
                         }}
-                        className={`cat-pill ${selectedCategory === category && !isLive ? 'active' : ''} ${isLive ? 'relative overflow-hidden border-red-500/30' : ''}`}
-                        style={isLive ? { boxShadow: '0 0 10px rgba(239,68,68,0.2)' } : undefined}
+                        className={`cat-pill ${selectedCategory === category && !isLive ? 'active' : ''} ${isLive ? 'relative overflow-hidden border-red-500/30 shadow-[0_0_10px_rgba(239,68,68,0.2)]' : ''}`}
                     >
                         {isLive && (
                             <div className="absolute inset-0 bg-gradient-to-r from-red-600/20 to-orange-500/20 opacity-0 hover:opacity-100 transition-opacity" />

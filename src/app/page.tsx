@@ -133,8 +133,9 @@ function HomeContent() {
             {/* Remaining Videos */}
             {filteredVideos.length > 3 && (
               <>
-                <div className="section-header" style={{ marginTop: 32 }}>
-                  <div className="section-title">More to Watch</div>
+                {/* Juneteenth Originals Hero */}
+                <div className="section-header mt-8">
+                  <h2 className="section-title">Juneteenth Originals</h2>
                 </div>
                 <div className="video-grid">
                   {filteredVideos.slice(3).map(v => (

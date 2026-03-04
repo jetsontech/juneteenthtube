@@ -103,7 +103,7 @@ export function EPG({ channels, currentChannelId, onChannelSelect, categories, a
                                 <div
                                     key={i}
                                     className="shrink-0 flex items-center px-4 border-l border-white/10 text-xs font-bold text-white/60 tracking-wider"
-                                    style={slotStyle}
+                                    {...{ style: slotStyle }}
                                 >
                                     {time}
                                 </div>
@@ -116,7 +116,7 @@ export function EPG({ channels, currentChannelId, onChannelSelect, categories, a
                             return (
                                 <div
                                     className="absolute top-0 bottom-0 w-[2px] bg-red-600/80 shadow-[0_0_8px_rgba(220,38,38,1)] z-30 transition-all duration-1000 pointer-events-none"
-                                    style={indicatorStyle}
+                                    {...{ style: indicatorStyle }}
                                 >
                                     <div className="absolute -top-1 -left-1.5 w-3 h-3 bg-red-600 rounded-full shadow-[0_0_10px_rgba(220,38,38,1)]"></div>
                                 </div>
@@ -157,7 +157,7 @@ export function EPG({ channels, currentChannelId, onChannelSelect, categories, a
                                 return (
                                     <div
                                         className="flex-1 relative border-b border-white/5 bg-zinc-900/50"
-                                        style={trackStyle}
+                                        {...{ style: trackStyle }}
                                     >
                                         {channel.programs && channel.programs.length > 0 ? (
                                             channel.programs.map((prog, i) => {
@@ -191,7 +191,7 @@ export function EPG({ channels, currentChannelId, onChannelSelect, categories, a
                                                                 isPast ? 'bg-black/30 opacity-60' :
                                                                     'bg-transparent hover:bg-white/5'}
                                                 `}
-                                                        style={programStyle}
+                                                        {...{ style: programStyle }}
                                                     >
                                                         <div className={`text-[10px] mb-1.5 font-mono uppercase tracking-widest ${isNowPlaying ? 'text-white font-bold' : 'text-white/40'}`}>
                                                             {new Date(prog.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -217,7 +217,7 @@ export function EPG({ channels, currentChannelId, onChannelSelect, categories, a
                                                 <div
                                                     onClick={() => onChannelSelect(channel)}
                                                     className="absolute top-0 bottom-0 left-0 hover:bg-white/5 transition-colors cursor-pointer border-r border-white/10 flex items-center px-6"
-                                                    style={fallbackStyle}
+                                                    {...{ style: fallbackStyle }}
                                                 >
                                                     <div className="flex flex-col">
                                                         <h4 className="text-sm font-bold text-white/80">{channel.name} Broadcast</h4>

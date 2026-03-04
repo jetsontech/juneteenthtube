@@ -173,7 +173,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                             Juneteenth Tube
                         </span>
                     </Link>
-                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <div className="flex items-center">
                         <select
                             title="State Selector"
                             value={selectedState.code}
@@ -293,7 +293,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                                     >
                                         <span>⚙️</span> Settings
                                     </button>
-                                    <div style={{ height: 1, background: 'var(--border)', margin: '4px 0' }} />
+                                    <div className="h-px bg-[var(--border)] my-1" />
                                     <button
                                         onClick={() => {
                                             signOut();
@@ -371,7 +371,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                                         {thumbnailPreview
                                             ? <Image src={thumbnailPreview} alt="thumb" fill className="object-cover" />
                                             : <>
-                                                <div style={{ fontSize: 28 }}>🖼</div>
+                                                <div className="text-[28px]">🖼</div>
                                                 <div className="thumb-hint">Add Thumbnail</div>
                                             </>
                                         }
@@ -388,7 +388,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                                             value={selectedCategory}
                                             onChange={(e) => setSelectedCategory(e.target.value)}
                                         >
-                                            {CATEGORIES.map(c => <option key={c} value={c} style={{ background: '#111' }}>{c}</option>)}
+                                            {CATEGORIES.map(c => <option key={c} value={c} className="bg-[#111]">{c}</option>)}
                                         </select>
                                     </div>
                                     <div>
@@ -402,34 +402,35 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                                                 if (state) setSelectedUploadState(state);
                                             }}
                                         >
-                                            <option value="GLOBAL" style={{ background: '#111' }}>🌍 All States</option>
+                                            <option value="GLOBAL" className="bg-[#111]">🌍 All States</option>
                                             {US_STATES.filter(s => s.code !== "GLOBAL").map(s => (
-                                                <option key={s.code} value={s.code} style={{ background: '#111' }}>{s.name}</option>
+                                                <option key={s.code} value={s.code} className="bg-[#111]">{s.name}</option>
                                             ))}
                                         </select>
                                     </div>
                                     <div>
                                         <label className="form-label">Visibility</label>
                                         <select title="Visibility" className="form-select" defaultValue="public">
-                                            {['Public', 'Unlisted', 'Private'].map(v => <option key={v} value={v.toLowerCase()} style={{ background: '#111' }}>{v}</option>)}
+                                            {['Public', 'Unlisted', 'Private'].map(v => <option key={v} value={v.toLowerCase()} className="bg-[#111]">{v}</option>)}
                                         </select>
                                     </div>
                                 </div>
                             </div>
 
                             <button className="publish-btn" onClick={handleStartUpload}>🚀 Publish Video</button>
-                            <div style={{ fontSize: 11, color: 'var(--text-dim)', textAlign: 'center', marginTop: 8 }}>Details can be changed later in Studio</div>
+                            <div className="text-[11px] text-[var(--text-dim)] text-center mt-2">Details can be changed later in Studio</div>
                         </div>
                     )}
 
                     {isUploading && (
                         <div className="progress-wrap">
-                            <div style={{ fontSize: 48, margin: '12px 0' }}>⚡</div>
+                            <div className="text-5xl my-3">⚡</div>
                             <div className="progress-label">
                                 <span>Uploading</span>
                                 <span className="progress-pct">{Math.min(100, Math.floor(uploadProgress))}%</span>
                             </div>
                             <div className="progress-track">
+                                {/* eslint-disable-next-line react/forbid-dom-props */}
                                 <div className="progress-fill" style={{ width: `${Math.min(100, uploadProgress)}%` }} />
                             </div>
                             <div className="progress-pulse">
