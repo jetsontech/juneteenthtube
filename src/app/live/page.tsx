@@ -138,74 +138,71 @@ export default function LiveTV() {
             {/* ═══════════════════════════════════════════════════════════ */}
             {/* HERO SECTION — Currently playing channel                   */}
             {/* ═══════════════════════════════════════════════════════════ */}
-            <div className="relative w-full aspect-[21/9] md:aspect-video max-h-[75vh] bg-black flex group/player border-b border-white/5">
-                {/* Video Player */}
-                <div className="absolute inset-0 z-0">
-                    <LivePlayer streamUrl={currentChannel.stream_url} playlist={currentChannel.playlist} />
-                </div>
 
-                {/* Player UI Overlay - Top Area Only */}
-                <div className="absolute inset-x-0 top-0 z-20 pointer-events-none flex flex-col opacity-0 group-hover/player:opacity-100 transition-opacity duration-300">
-                    <div className="bg-gradient-to-b from-black/90 via-black/40 to-transparent pt-6 pb-24 px-6 md:px-12 pointer-events-auto flex flex-col md:flex-row justify-between items-start gap-4">
+            {/* Header Info Area (Above Player) */}
+            <div className="w-full px-6 md:px-12 py-4 md:py-6 bg-[#141414] flex flex-col md:flex-row justify-between items-start md:items-center gap-4 z-20 relative">
 
-                        {/* Left side: Channel Info and Controls */}
-                        <div className="flex flex-col gap-4">
-                            {/* Up/Down Controls & Name */}
-                            <div className="flex items-center gap-4">
-                                <div className="flex bg-white/10 backdrop-blur-md rounded-lg p-1 border border-white/10">
-                                    <button
-                                        onClick={() => {
-                                            const idx = channels.findIndex(c => c.id === currentChannel.id);
-                                            setCurrentChannel(channels[(idx - 1 + channels.length) % channels.length]);
-                                        }}
-                                        className="p-1.5 md:p-2 hover:bg-white/20 rounded-md transition-colors"
-                                        title="Previous Channel"
-                                    >
-                                        <ChevronLeft className="w-5 h-5 text-white" />
-                                    </button>
-                                    <div className="w-px bg-white/10 mx-1 self-stretch" />
-                                    <button
-                                        onClick={() => {
-                                            const idx = channels.findIndex(c => c.id === currentChannel.id);
-                                            setCurrentChannel(channels[(idx + 1) % channels.length]);
-                                        }}
-                                        className="p-1.5 md:p-2 hover:bg-white/20 rounded-md transition-colors"
-                                        title="Next Channel"
-                                    >
-                                        <ChevronRight className="w-5 h-5 text-white" />
-                                    </button>
-                                </div>
-                                <div className="flex items-center gap-3">
-                                    {currentChannel.logo_url && (
-                                        <img
-                                            src={currentChannel.logo_url}
-                                            alt={currentChannel.name}
-                                            className="w-8 h-8 md:w-10 md:h-10 rounded object-cover bg-black/50 shadow-lg"
-                                        />
-                                    )}
-                                    <h1 className="text-xl md:text-2xl font-black tracking-tight text-white drop-shadow-xl">
-                                        {currentProgram ? currentProgram.title : currentChannel.name}
-                                    </h1>
-                                </div>
-                            </div>
-
-                            {/* Description */}
-                            <p className="text-white/80 text-sm md:text-base font-medium drop-shadow-md max-w-2xl line-clamp-2">
-                                {currentProgram ? currentProgram.description : currentChannel.description}
-                            </p>
+                {/* Left side: Channel Info and Controls */}
+                <div className="flex flex-col gap-3">
+                    {/* Up/Down Controls & Name */}
+                    <div className="flex items-center gap-4">
+                        <div className="flex bg-white/5 rounded-lg p-1 border border-white/10">
+                            <button
+                                onClick={() => {
+                                    const idx = channels.findIndex(c => c.id === currentChannel.id);
+                                    setCurrentChannel(channels[(idx - 1 + channels.length) % channels.length]);
+                                }}
+                                className="p-1.5 md:p-2 hover:bg-white/20 rounded-md transition-colors"
+                                title="Previous Channel"
+                            >
+                                <ChevronLeft className="w-5 h-5 text-white" />
+                            </button>
+                            <div className="w-px bg-white/10 mx-1 self-stretch" />
+                            <button
+                                onClick={() => {
+                                    const idx = channels.findIndex(c => c.id === currentChannel.id);
+                                    setCurrentChannel(channels[(idx + 1) % channels.length]);
+                                }}
+                                className="p-1.5 md:p-2 hover:bg-white/20 rounded-md transition-colors"
+                                title="Next Channel"
+                            >
+                                <ChevronRight className="w-5 h-5 text-white" />
+                            </button>
                         </div>
-
-                        {/* Right side: Back Menu */}
-                        <Link
-                            href="/"
-                            className="inline-flex items-center text-white/80 hover:text-white text-sm font-bold transition-colors group/link bg-white/10 hover:bg-white/20 px-4 py-2 rounded-full backdrop-blur-md border border-white/10 shrink-0"
-                            title="Back to Home"
-                        >
-                            <ArrowLeft className="w-4 h-4 mr-1.5 group-hover/link:-translate-x-1 transition-transform" />
-                            <span>Back to Home</span>
-                        </Link>
+                        <div className="flex items-center gap-3">
+                            {currentChannel.logo_url && (
+                                <img
+                                    src={currentChannel.logo_url}
+                                    alt={currentChannel.name}
+                                    className="w-8 h-8 md:w-12 md:h-12 rounded object-cover bg-black/50 shadow-sm border border-white/5"
+                                />
+                            )}
+                            <h1 className="text-xl md:text-3xl font-black tracking-tight text-white drop-shadow-sm">
+                                {currentProgram ? currentProgram.title : currentChannel.name}
+                            </h1>
+                        </div>
                     </div>
+
+                    {/* Description */}
+                    <p className="text-white/60 text-sm md:text-base font-medium max-w-3xl line-clamp-1 ml-[72px]">
+                        {currentProgram ? currentProgram.description : currentChannel.description}
+                    </p>
                 </div>
+
+                {/* Right side: Back Menu */}
+                <Link
+                    href="/"
+                    className="inline-flex items-center text-white/70 hover:text-white text-sm font-bold transition-colors group/link bg-white/5 hover:bg-white/10 px-4 py-2 rounded-full border border-white/10 shrink-0"
+                    title="Back to Home"
+                >
+                    <ArrowLeft className="w-4 h-4 mr-1.5 group-hover/link:-translate-x-1 transition-transform" />
+                    <span>Back to Home</span>
+                </Link>
+            </div>
+
+            {/* Video Player Boundary */}
+            <div className="relative w-full aspect-[21/9] md:aspect-video max-h-[70vh] bg-black border-y border-white/10 shadow-2xl">
+                <LivePlayer streamUrl={currentChannel.stream_url} playlist={currentChannel.playlist} />
             </div>
 
             {/* ═══════════════════════════════════════════════════════════ */}
