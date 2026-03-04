@@ -187,7 +187,7 @@ export function LivePlayer({ streamUrl, posterUrl, playlist }: LivePlayerProps) 
     // ── Fallback: Broadcast Offline ──────────────────────────
     if (!streamUrl) {
         return (
-            <div className="w-full h-full bg-zinc-900/80 flex flex-col items-center justify-center rounded-xl overflow-hidden shadow-2xl ring-1 ring-white/10">
+            <div className="w-full h-full bg-zinc-900/80 flex flex-col items-center justify-center overflow-hidden shadow-2xl ring-1 ring-white/10">
                 <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4">
                     <svg className="w-8 h-8 text-white/30" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -202,7 +202,7 @@ export function LivePlayer({ streamUrl, posterUrl, playlist }: LivePlayerProps) 
     // ── Error state ──────────────────────────────────────────
     if (hasError) {
         return (
-            <div className="w-full h-full bg-zinc-900/80 flex flex-col items-center justify-center rounded-xl overflow-hidden shadow-2xl ring-1 ring-white/10">
+            <div className="w-full h-full bg-zinc-900/80 flex flex-col items-center justify-center overflow-hidden shadow-2xl ring-1 ring-white/10">
                 <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mb-4">
                     <svg className="w-8 h-8 text-red-400/60" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -217,7 +217,7 @@ export function LivePlayer({ streamUrl, posterUrl, playlist }: LivePlayerProps) 
     return (
         <div
             ref={containerRef}
-            className="relative w-full h-full bg-black rounded-xl overflow-hidden shadow-2xl ring-1 ring-white/10 group cursor-pointer"
+            className="relative w-full h-full bg-black overflow-hidden shadow-2xl ring-1 ring-white/10 group cursor-pointer"
         >
             {/* Native HTML5 Video */}
             <video
