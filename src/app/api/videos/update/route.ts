@@ -62,6 +62,86 @@ export async function PATCH(req: NextRequest) {
             return NextResponse.json({ error: error.message }, { status: 500 });
         }
 
+        // ====================================================================
+        // AUTOMATIC LIVE TV (EPG) SCHEDULING
+        // When video transcodes successfully and we get a videoUrl,
+        // automatically schedule it on the J-Tube Originals channel.
+        // ====================================================================
+        if (updates.video_url || updates.duration) {
+            try {
+                // 1. Get the channel ID
+                const { data: channelData } = await supabaseAdmin
+                    .from('channels')
+                    .select('id')
+                    .eq('name', 'J-Tube Originals')
+                    .single();
+
+                if (channelData) {
+                    const channelId = channelData.id;
+                    const now = new Date();
+
+                    // Parse duration or fallback to 30 mins
+                    // Fallback handles format issues
+                    let durationSeconds = 1800;
+                    const mergedDuration = updates.duration || data.duration;
+                    if (mergedDuration && typeof mergedDuration === 'string') {
+                        // Assuming format like "00:05:30" or just seconds
+                        if (mergedDuration.includes(':')) {
+                            const parts = mergedDuration.split(':');
+                            if (parts.length === 3) {
+                                durationSeconds = (+parts[0]) * 3600 + (+parts[1]) * 60 + (+parts[2]);
+                            } else if (parts.length === 2) {
+                                durationSeconds = (+parts[0]) * 60 + (+parts[1]);
+                            }
+                        } else {
+                            const parsed = parseInt(mergedDuration, 10);
+                            if (!isNaN(parsed) && parsed > 0) durationSeconds = parsed;
+                        }
+                    } else if (typeof mergedDuration === 'number') {
+                        durationSeconds = mergedDuration;
+                    }
+
+                    // 2. Find when to schedule it (either right now, or after the currently playing video)
+                    // We look for any currently playing or future scheduled video.
+                    const { data: latestEpg } = await supabaseAdmin
+                        .from('epg_data')
+                        .select('end_time')
+                        .eq('channel_id', channelId)
+                        .gte('end_time', now.toISOString())
+                        .order('end_time', { ascending: false })
+                        .limit(1)
+                        .maybeSingle();
+
+                    // If there's an active schedule, append it to the end of the current block
+                    // Alternatively, we could inject it as NEXT video, but appending is safer to not corrupt the stream timeline
+                    // We'll insert it directly after the VERY LATEST currently scheduled item
+                    let startTime = now;
+                    if (latestEpg && latestEpg.end_time) {
+                        startTime = new Date(latestEpg.end_time);
+                    }
+                    // Round to nearest second for clean HLS boundaries
+                    startTime = new Date(startTime.getTime() - (startTime.getTime() % 1000));
+
+                    const endTime = new Date(startTime.getTime() + (durationSeconds * 1000));
+
+                    console.log(`[EPG] Scheduling video ${id} on Live TV from ${startTime.toISOString()} to ${endTime.toISOString()}`);
+
+                    await supabaseAdmin.from('epg_data').insert({
+                        channel_id: channelId,
+                        video_id: id,
+                        title: updates.title || data.title,
+                        description: "New User Upload Broadcast!",
+                        thumbnail_url: updates.thumbnail_url || data.thumbnail_url,
+                        start_time: startTime.toISOString(),
+                        end_time: endTime.toISOString()
+                    });
+                }
+            } catch (epgError) {
+                console.error('[EPG] Failed to schedule uploaded video to Live TV:', epgError);
+                // Don't fail the overall update request if EPG scheduling fails
+            }
+        }
+
         return NextResponse.json({ success: true, video: data });
 
     } catch (error) {
