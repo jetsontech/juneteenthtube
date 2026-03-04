@@ -160,9 +160,9 @@ export default function WatchPage({
 
             {/* Player - stays at top on mobile */}
             <div className="flex-shrink-0 relative z-10 pt-4 sm:pt-6">
-                <div className="relative aspect-video bg-black rounded-2xl overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.8)] sm:shadow-[0_30px_90px_rgba(0,0,0,0.9)] ring-1 ring-white/10 m-2 sm:mx-6 group">
+                <div className="relative aspect-video bg-black overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.8)] sm:shadow-[0_30px_90px_rgba(0,0,0,0.9)] ring-1 ring-white/10 m-2 sm:mx-6 group">
                     {/* Inner subtle glow for premium feel */}
-                    <div className="absolute inset-0 rounded-2xl pointer-events-none shadow-[inset_0_0_20px_rgba(255,255,255,0.05)] z-20" />
+                    <div className="absolute inset-0 pointer-events-none shadow-[inset_0_0_20px_rgba(255,255,255,0.05)] z-20" />
                     {video.videoUrl ? (
                         <CustomPlayer
                             src={video.videoUrl}
