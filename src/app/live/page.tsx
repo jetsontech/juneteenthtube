@@ -185,7 +185,7 @@ export default function LiveTV() {
                             {/* Channel Controls */}
                             <div className="flex items-center gap-4 shrink-0 order-1 md:order-2 mr-2 md:mr-0 md:ml-2 border-r md:border-r-0 md:border-l border-white/10 pr-6 md:pr-1 pl-1 md:pl-6">
                                 <button
-                                    onClick={handleChannelDown}
+                                    onClick={handleChannelUp}
                                     className="relative w-16 h-16 rounded-2xl overflow-hidden hover:scale-110 active:scale-95 transition-all duration-300 cursor-pointer outline-none group shrink-0 shadow-lg"
                                     aria-label="Channel Down"
                                 >
@@ -197,7 +197,7 @@ export default function LiveTV() {
                                     />
                                 </button>
                                 <button
-                                    onClick={handleChannelUp}
+                                    onClick={handleChannelDown}
                                     className="relative w-16 h-16 rounded-2xl overflow-hidden hover:scale-110 active:scale-95 transition-all duration-300 cursor-pointer outline-none group shrink-0 shadow-lg"
                                     aria-label="Channel Up"
                                 >
