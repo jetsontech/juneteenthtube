@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { LivePlayer } from "@/components/live/LivePlayer";
-import { Channel, Program } from "@/components/live/EPG";
+import { Channel } from "@/components/live/EPG";
 import Link from "next/link";
 import { ArrowLeft, ChevronLeft, ChevronRight, Play } from "lucide-react";
 import { supabase } from "@/lib/supabase";
@@ -117,16 +117,6 @@ export default function LiveTV() {
     return () => clearInterval(interval);
   }, []);
 
-  const getCurrentProgram = (channel: Channel | null): Program | undefined => {
-    if (!channel || !channel.programs) return undefined;
-    const now = Date.now();
-    return channel.programs.find((p) => {
-      const start = new Date(p.start_time).getTime();
-      const end = new Date(p.end_time).getTime();
-      return now >= start && now <= end;
-    });
-  };
-
   if (!currentChannel) {
     return (
       <div className="min-h-screen bg-[#141414] flex items-center justify-center">
@@ -139,8 +129,6 @@ export default function LiveTV() {
       </div>
     );
   }
-
-  const currentProgram = getCurrentProgram(currentChannel);
 
   // Group channels by category dynamically
   const uniqueCategories = Array.from(
@@ -160,64 +148,8 @@ export default function LiveTV() {
       {/* HERO SECTION — Currently playing channel                   */}
       {/* ═══════════════════════════════════════════════════════════ */}
       <div className="flex flex-col w-full">
-        {/* Header Info Area (Above Player) */}
-        <div className="w-full px-4 md:px-12 py-4 md:py-6 bg-[#141414] flex flex-col md:flex-row justify-between items-start md:items-center gap-4 z-20 relative">
-          {/* Left side: Channel Info and Controls */}
-          <div className="flex flex-col gap-3">
-            {/* Up/Down Controls & Name */}
-            <div className="flex items-center gap-4">
-              <div className="flex bg-white/5 rounded-lg p-1 border border-white/10">
-                <button
-                  onClick={() => {
-                    const idx = channels.findIndex(
-                      (c) => c.id === currentChannel.id,
-                    );
-                    setCurrentChannel(
-                      channels[(idx - 1 + channels.length) % channels.length],
-                    );
-                  }}
-                  className="p-1.5 md:p-2 hover:bg-white/20 rounded-md transition-colors"
-                  title="Previous Channel"
-                >
-                  <ChevronLeft className="w-5 h-5 text-white" />
-                </button>
-                <div className="w-px bg-white/10 mx-1 self-stretch" />
-                <button
-                  onClick={() => {
-                    const idx = channels.findIndex(
-                      (c) => c.id === currentChannel.id,
-                    );
-                    setCurrentChannel(channels[(idx + 1) % channels.length]);
-                  }}
-                  className="p-1.5 md:p-2 hover:bg-white/20 rounded-md transition-colors"
-                  title="Next Channel"
-                >
-                  <ChevronRight className="w-5 h-5 text-white" />
-                </button>
-              </div>
-              <div className="flex items-center gap-3">
-                {currentChannel.logo_url && (
-                  <img
-                    src={currentChannel.logo_url}
-                    alt={currentChannel.name}
-                    className="w-8 h-8 md:w-12 md:h-12 rounded object-contain bg-white/10 shadow-sm border border-white/10 p-1 md:p-1.5"
-                  />
-                )}
-                <h1 className="text-xl md:text-3xl font-black tracking-tight text-white drop-shadow-sm">
-                  {currentProgram ? currentProgram.title : currentChannel.name}
-                </h1>
-              </div>
-            </div>
-
-            {/* Description */}
-            <p className="text-white/60 text-sm md:text-base font-medium max-w-3xl line-clamp-1 ml-[72px]">
-              {currentProgram
-                ? currentProgram.description
-                : currentChannel.description}
-            </p>
-          </div>
-
-          {/* Right side: Back Menu */}
+        {/* Header — Back to Home */}
+        <div className="w-full px-4 md:px-12 py-3 md:py-4 bg-[#141414] flex justify-end items-center z-20 relative">
           <Link
             href="/"
             className="inline-flex items-center text-white/70 hover:text-white text-sm font-bold transition-colors group/link bg-white/5 hover:bg-white/10 px-4 py-2 rounded-full border border-white/10 shrink-0"
@@ -234,6 +166,39 @@ export default function LiveTV() {
             streamUrl={currentChannel.stream_url}
             playlist={currentChannel.playlist}
           />
+        </div>
+
+        {/* Channel Controls — Below Player */}
+        <div className="w-full px-4 md:px-12 py-3 bg-[#141414] flex items-center justify-center gap-4">
+          <button
+            onClick={() => {
+              const idx = channels.findIndex(
+                (c) => c.id === currentChannel.id,
+              );
+              setCurrentChannel(
+                channels[(idx - 1 + channels.length) % channels.length],
+              );
+            }}
+            className="p-2 md:p-2.5 hover:bg-white/10 rounded-full transition-colors border border-white/10 bg-white/5"
+            title="Previous Channel"
+          >
+            <ChevronLeft className="w-5 h-5 text-white" />
+          </button>
+          <span className="text-white/70 text-sm font-semibold tracking-wide">
+            {currentChannel.name}
+          </span>
+          <button
+            onClick={() => {
+              const idx = channels.findIndex(
+                (c) => c.id === currentChannel.id,
+              );
+              setCurrentChannel(channels[(idx + 1) % channels.length]);
+            }}
+            className="p-2 md:p-2.5 hover:bg-white/10 rounded-full transition-colors border border-white/10 bg-white/5"
+            title="Next Channel"
+          >
+            <ChevronRight className="w-5 h-5 text-white" />
+          </button>
         </div>
       </div>
 
@@ -388,15 +353,7 @@ function ChannelCard({
           </div>
         </div>
 
-        {/* Live indicator */}
-        {isActive && (
-          <div className="absolute top-2 left-2 flex items-center gap-1 bg-red-600 rounded px-1.5 py-0.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-            <span className="text-[9px] font-black text-white uppercase tracking-wider">
-              Live
-            </span>
-          </div>
-        )}
+
       </div>
 
       {/* Card Info */}
