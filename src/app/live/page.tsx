@@ -200,7 +200,7 @@ export default function LiveTV() {
                   <img
                     src={currentChannel.logo_url}
                     alt={currentChannel.name}
-                    className="w-8 h-8 md:w-12 md:h-12 rounded object-cover bg-black/50 shadow-sm border border-white/5"
+                    className="w-8 h-8 md:w-12 md:h-12 rounded object-contain bg-white/10 shadow-sm border border-white/10 p-1 md:p-1.5"
                   />
                 )}
                 <h1 className="text-xl md:text-3xl font-black tracking-tight text-white drop-shadow-sm">
@@ -368,21 +368,20 @@ function ChannelCard({
             `}
     >
       {/* Card Image */}
-      <div className="aspect-video bg-zinc-800 relative overflow-hidden">
+      <div className="aspect-video bg-[#0f0f0f] border-b border-white/5 relative overflow-hidden flex items-center justify-center p-3">
         {channel.logo_url ? (
           <img
             src={channel.logo_url}
             alt={channel.name}
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+            className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-110 drop-shadow-lg"
           />
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-zinc-700 to-zinc-900 flex items-center justify-center">
+          <div className="w-full h-full bg-gradient-to-br from-zinc-800 to-zinc-900 flex items-center justify-center rounded">
             <span className="text-3xl font-black text-white/30">
               {channel.name.charAt(0)}
             </span>
           </div>
         )}
-
         {/* Hover Play Overlay */}
         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center">
           <div className="w-10 h-10 rounded-full bg-white/90 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all scale-50 group-hover:scale-100 shadow-xl">
