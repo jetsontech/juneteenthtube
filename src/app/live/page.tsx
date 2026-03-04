@@ -123,14 +123,15 @@ export default function LiveTV() {
 
     const currentProgram = getCurrentProgram(currentChannel);
 
-    // Group channels by category
-    const channelsByCategory = categories
-        .filter(cat => cat !== "All")
+    // Group channels by category dynamically
+    const uniqueCategories = Array.from(new Set(channels.map(c => c.category))).filter(Boolean);
+    const channelsByCategory = uniqueCategories
         .map(cat => ({
             category: cat,
             channels: channels.filter(c => c.category === cat)
         }))
-        .filter(group => group.channels.length > 0);
+        .filter(group => group.channels.length > 0)
+        .sort((a, b) => a.category.localeCompare(b.category));
 
     return (
         <div className="min-h-screen bg-[#141414] text-white font-sans">
