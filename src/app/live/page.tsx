@@ -193,7 +193,7 @@ export default function LiveTV() {
                                     <img
                                         src="/official-logo.png"
                                         alt="Channel Down"
-                                        className="w-full h-full object-cover rounded-2xl rotate-180 scale-110 group-active:brightness-150 group-hover:brightness-125 transition-all duration-300 drop-shadow-[0_0_15px_rgba(255,215,0,0.5)]"
+                                        className="w-full h-full object-cover rounded-2xl rotate-90 scale-110 group-active:brightness-150 group-hover:brightness-125 transition-all duration-300 drop-shadow-[0_0_15px_rgba(255,215,0,0.5)]"
                                     />
                                 </button>
                                 <button
@@ -205,7 +205,7 @@ export default function LiveTV() {
                                     <img
                                         src="/official-logo.png"
                                         alt="Channel Up"
-                                        className="w-full h-full object-cover rounded-2xl scale-110 group-active:brightness-150 group-hover:brightness-125 transition-all duration-300 drop-shadow-[0_0_15px_rgba(255,215,0,0.5)]"
+                                        className="w-full h-full object-cover rounded-2xl -rotate-90 scale-110 group-active:brightness-150 group-hover:brightness-125 transition-all duration-300 drop-shadow-[0_0_15px_rgba(255,215,0,0.5)]"
                                     />
                                 </button>
                             </div>
