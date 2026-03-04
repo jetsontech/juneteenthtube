@@ -499,12 +499,6 @@ export function CustomPlayer({ src, srcH264, poster }: CustomPlayerProps) {
                 </div>
             )}
 
-            {/* Interaction Layer - Intercepts all clicks to prevent native iOS controls */}
-            <div
-                className="absolute inset-0 z-0 bg-transparent"
-                onClick={togglePlay}
-            />
-
             {/* Big Play/Replay Overlay - REMOVED per user request */}
 
             {/* Unified Quality Badge (Top Right) */}
@@ -525,15 +519,17 @@ export function CustomPlayer({ src, srcH264, poster }: CustomPlayerProps) {
 
             {/* Controls Bar */}
             <div
-                className={`
-                    absolute inset-0 z-20
-                    bg-transparent
-                    transition-opacity duration-300 flex flex-col justify-end
-                    ${showControls ? 'opacity-100 visible' : 'opacity-0 invisible'}
-                `}
+                className={cn(
+                    "absolute inset-0 z-20 bg-transparent transition-opacity duration-300 flex flex-col justify-end",
+                    showControls ? "opacity-100 visible" : "opacity-0 invisible"
+                )}
                 onClick={(e) => {
                     e.stopPropagation();
-                    setShowControls(false);
+                    if (!showControls && !hasEnded) {
+                        setShowControls(true);
+                    } else {
+                        togglePlay(e);
+                    }
                 }}
             >
                 <div
