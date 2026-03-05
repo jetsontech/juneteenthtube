@@ -24,7 +24,7 @@ const CustomPlayer = dynamic(
     { ssr: false, loading: () => <div className="w-full h-full bg-gray-900 animate-pulse" /> }
 );
 
-const CATEGORIES = ["All", "Parade", "Music", "Food", "History", "Speeches", "Live", "2024"] as const;
+const CATEGORIES = ["All", "SAREMBOK", "Parade", "Music", "Food", "History", "Speeches", "Live", "2024"] as const;
 
 export default function WatchPage({
     params,

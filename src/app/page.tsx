@@ -8,7 +8,7 @@ import { useStateFilter } from "@/context/StateContext";
 import { useSearchParams } from "next/navigation";
 import { CategoryBar } from "@/components/video/CategoryBar";
 
-const CATEGORIES = ["All", "Parade", "Music", "Food", "History", "Speeches", "Live", "2024"] as const;
+const CATEGORIES = ["All", "SAREMBOK", "Parade", "Music", "Food", "History", "Speeches", "Live", "2024"] as const;
 
 // Helper to parse duration string (e.g., "1:30", "0:45", "12:30") to seconds
 function parseDurationToSeconds(duration: string | undefined): number {

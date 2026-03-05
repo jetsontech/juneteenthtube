@@ -15,7 +15,7 @@ interface NavbarProps {
     onMenuClick: () => void;
 }
 
-const CATEGORIES = ["All", "Parade", "Music", "Food", "History", "Speeches", "Live", "2024", "Photos"] as const;
+const CATEGORIES = ["All", "SAREMBOK", "Parade", "Music", "Food", "History", "Speeches", "Live", "2024", "Photos"] as const;
 
 export function Navbar({ onMenuClick }: NavbarProps) {
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -23,7 +23,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
     const [selectedCategory, setSelectedCategory] = useState<string>("All");
     const [selectedUploadState, setSelectedUploadState] = useState<USState>(DEFAULT_STATE);
     const { uploadVideo, uploadPhoto, isUploading, uploadProgress, cancelUpload } = useVideo();
-    const { user, signOut } = useAuth();
+    const { user, isAdmin, signOut } = useAuth();
     const { selectedState, setSelectedState } = useStateFilter();
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
     const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
@@ -241,6 +241,8 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                         onClick={() => {
                             if (!user) {
                                 handleOpenAuth('login');
+                            } else if (!isAdmin) {
+                                alert("Creating a channel and uploading content is a premium Artist Network feature. Please contact support to upgrade your account.");
                             } else {
                                 setIsUploadOpen(true);
                             }

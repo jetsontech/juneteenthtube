@@ -7,6 +7,7 @@ import {
     CompleteMultipartUploadCommand
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { createClient } from "@supabase/supabase-js";
 
 // Generic S3 Client (Works for AWS, Cloudflare R2, Wasabi, DigitalOcean)
 const sanitizeEnv = (val: string | undefined) => val ? val.replace(/^['"]+|['"]+$/g, '').trim().replace(/[\n\r]/g, '') : undefined;
@@ -57,6 +58,18 @@ interface MultipartRequestBody {
 
 export async function POST(req: NextRequest) {
     try {
+        const supabase = createClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            process.env.SUPABASE_SERVICE_ROLE_KEY!
+        );
+        const { data: { user } } = await supabase.auth.getUser(req.headers.get("Authorization")?.split(' ')[1] || req.cookies.get('sb-fybxhwpkujbodlfoadem-auth-token')?.value || '');
+        const isAdmin = user?.email === process.env.NEXT_PUBLIC_ADMIN_EMAIL || user?.user_metadata?.role === 'admin' || user?.role === 'admin';
+
+        if (!isAdmin) {
+            console.warn("Unauthorized API access attempt");
+            return NextResponse.json({ error: "Unauthorized. Artist Network Premium feature." }, { status: 403 });
+        }
+
         const body = await req.json() as MultipartRequestBody;
         const { action } = body;
         console.log(`API/Upload-Multipart Request: Action=${action}, Filename=${body.filename}, Key=${body.key}`);
