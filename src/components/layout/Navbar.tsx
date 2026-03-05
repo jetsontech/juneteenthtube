@@ -283,6 +283,14 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                                             <div className="user-menu-email truncate">{user.email}</div>
                                         </div>
                                     </div>
+                                    {isAdmin && (
+                                        <button
+                                            onClick={() => { setIsUserMenuOpen(false); window.location.href = '/creator-studio'; }}
+                                            className="user-menu-item text-j-gold hover:text-white"
+                                        >
+                                            <span>🚀</span> Creator Studio
+                                        </button>
+                                    )}
                                     <button
                                         onClick={() => { setIsUserMenuOpen(false); window.location.href = '/studio'; }}
                                         className="user-menu-item"
