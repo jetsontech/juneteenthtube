@@ -159,8 +159,8 @@ export default function WatchPage({
             <div className="absolute bottom-0 left-0 w-[80vw] sm:w-[50vw] h-[50vh] bg-[radial-gradient(circle_at_0%_100%,_#0a2f0a_0%,_transparent_70%)] opacity-30 pointer-events-none z-[-1]" />
 
             {/* Player - stays at top on mobile */}
-            <div className="flex-shrink-0 relative z-10 pt-4 sm:pt-6">
-                <div className="relative aspect-video bg-black overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.8)] sm:shadow-[0_30px_90px_rgba(0,0,0,0.9)] ring-1 ring-white/10 m-2 sm:mx-6 group">
+            <div className="flex-shrink-0 relative z-10 pt-4 sm:pt-6 w-full max-w-[1400px] mx-auto">
+                <div className="relative aspect-video w-full bg-black overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.8)] sm:shadow-[0_30px_90px_rgba(0,0,0,0.9)] ring-1 ring-white/10 sm:rounded-2xl sm:mx-6 group">
                     {/* Inner subtle glow for premium feel */}
                     <div className="absolute inset-0 pointer-events-none shadow-[inset_0_0_20px_rgba(255,255,255,0.05)] z-20" />
                     {video.videoUrl ? (

@@ -74,12 +74,14 @@ export function AdminLiveStudio() {
     const toggleChannelStatus = async (id: string, currentStatus: string) => {
         const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
         try {
-            const { error } = await supabase
+            const { data, error } = await supabase
                 .from('channels')
                 .update({ status: newStatus })
-                .eq('id', id);
+                .eq('id', id)
+                .select();
 
             if (error) throw error;
+            if (!data || data.length === 0) throw new Error("Update blocked by database permissions (RLS) or channel not found.");
 
             // Update local state
             setChannels(channels.map(c =>
@@ -139,13 +141,18 @@ export function AdminLiveStudio() {
         setChannels(updatedChannels);
 
         try {
-            await Promise.all(
-                updatedChannels.map(c =>
-                    supabase.from('channels')
-                        .update({ order_index: c.order_index })
-                        .eq('id', c.id)
-                )
-            );
+            const response = await fetch('/api/admin/channels/reorder', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ channels: updatedChannels.map(c => ({ id: c.id, order_index: c.order_index })) })
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to save new order. Ensure you have admin permissions.");
+            }
+
+            // Optional subtle success indicator
+            // alert("Channel order saved successfully!");
         } catch (error) {
             console.error("Failed to reorder channels", error);
             alert("Failed to save new order.");

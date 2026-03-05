@@ -497,6 +497,12 @@ export function CustomPlayer({ src, srcH264, poster }: CustomPlayerProps) {
                 </div>
             )}
 
+            {/* Interaction Layer - Intercepts all clicks reliably without blocking controls layer above it */}
+            <div
+                className="absolute inset-0 z-10 bg-transparent"
+                onClick={togglePlay}
+            />
+
             {/* Big Play/Replay Overlay - REMOVED per user request */}
 
             {/* Unified Quality Badge (Top Right) */}
@@ -518,24 +524,18 @@ export function CustomPlayer({ src, srcH264, poster }: CustomPlayerProps) {
             {/* Controls Bar */}
             <div
                 className={cn(
-                    "absolute inset-0 z-20 bg-transparent transition-opacity duration-300 flex flex-col justify-end",
+                    "absolute inset-0 z-[60] bg-transparent transition-opacity duration-300 flex flex-col justify-end pointer-events-none",
                     showControls ? "opacity-100 visible" : "opacity-0 invisible"
                 )}
-                onClick={(e) => {
-                    e.stopPropagation();
-                    togglePlay(e);
-                }}
             >
                 <div
                     className="
                         w-full 
-                        px-[max(1rem,env(safe-area-inset-left))] 
-                        pr-[max(1rem,env(safe-area-inset-right))]
-                        pb-[max(1rem,env(safe-area-inset-bottom))] 
+                        px-4 
+                        pb-4 
                         pt-12 
-                        bg-gradient-to-t from-black/90 via-black/40 to-transparent
+                        bg-gradient-to-t from-black/90 via-black/40 to-transparent pointer-events-auto
                     "
-                    onClick={(e) => e.stopPropagation()}
                 >
                     {/* Progress Bar */}
                     <div

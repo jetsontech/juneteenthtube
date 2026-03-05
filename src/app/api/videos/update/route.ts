@@ -65,15 +65,21 @@ export async function PATCH(req: NextRequest) {
         // ====================================================================
         // AUTOMATIC LIVE TV (EPG) SCHEDULING
         // When video transcodes successfully and we get a videoUrl,
-        // automatically schedule it on the J-Tube Originals channel.
+        // automatically schedule it on the matching Live TV channel.
         // ====================================================================
         if (updates.video_url || updates.duration) {
             try {
+                // Determine which channel to broadcast this on.
+                // Priority: Use the video's category name (like SAREMBOK), fallback to J-Tube Originals
+                const targetChannelName = data.category || 'J-Tube Originals';
+
                 // 1. Get the channel ID
                 const { data: channelData } = await supabaseAdmin
                     .from('channels')
-                    .select('id')
-                    .eq('name', 'J-Tube Originals')
+                    .select('id, name')
+                    .or(`name.eq.${targetChannelName},name.eq.J-Tube Originals`)
+                    .order('name', { ascending: targetChannelName === 'J-Tube Originals' ? true : false }) // Rough sort to prefer the target, fallback second
+                    .limit(1)
                     .single();
 
                 if (channelData) {
