@@ -12,7 +12,9 @@ import {
     CheckCircle2,
     XCircle,
     Plus,
-    Save
+    Save,
+    ArrowUp,
+    ArrowDown
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -110,6 +112,44 @@ export function AdminLiveStudio() {
         } catch (error) {
             console.error("Error deleting channel:", error);
             alert("Failed to delete channel");
+        }
+    };
+
+    const moveChannel = async (index: number, direction: 'up' | 'down') => {
+        if (searchQuery) {
+            alert("Please clear the search to reorder channels.");
+            return;
+        }
+
+        if (
+            (direction === 'up' && index === 0) ||
+            (direction === 'down' && index === channels.length - 1)
+        ) return;
+
+        const newChannels = [...channels];
+        const targetIndex = direction === 'up' ? index - 1 : index + 1;
+
+        // Swap their array positions
+        const temp = newChannels[index];
+        newChannels[index] = newChannels[targetIndex];
+        newChannels[targetIndex] = temp;
+
+        // Reassign clean contiguous indexes to the whole array
+        const updatedChannels = newChannels.map((c, i) => ({ ...c, order_index: i }));
+        setChannels(updatedChannels);
+
+        try {
+            await Promise.all(
+                updatedChannels.map(c =>
+                    supabase.from('channels')
+                        .update({ order_index: c.order_index })
+                        .eq('id', c.id)
+                )
+            );
+        } catch (error) {
+            console.error("Failed to reorder channels", error);
+            alert("Failed to save new order.");
+            fetchChannels();
         }
     };
 
@@ -226,7 +266,7 @@ export function AdminLiveStudio() {
                                 </td>
                             </tr>
                         ) : (
-                            filteredChannels.map((channel) => (
+                            filteredChannels.map((channel, idx) => (
                                 <tr key={channel.id} className={`hover:bg-white/[0.02] transition-colors group ${channel.status === 'inactive' ? 'opacity-50 hover:opacity-100' : ''}`}>
                                     <td className="px-8 py-6">
                                         <div className="flex items-center gap-5">
@@ -268,6 +308,26 @@ export function AdminLiveStudio() {
                                     </td>
                                     <td className="px-8 py-6 text-right">
                                         <div className="flex items-center justify-end gap-2">
+                                            {!searchQuery && (
+                                                <div className="flex flex-col gap-1 mr-4 opacity-50 hover:opacity-100 transition-opacity">
+                                                    <button
+                                                        onClick={() => moveChannel(idx, 'up')}
+                                                        disabled={idx === 0}
+                                                        className="p-1 text-gray-400 hover:text-white hover:bg-white/10 rounded disabled:opacity-30 disabled:hover:bg-transparent"
+                                                        title="Move Up"
+                                                    >
+                                                        <ArrowUp className="w-4 h-4" />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => moveChannel(idx, 'down')}
+                                                        disabled={idx === filteredChannels.length - 1}
+                                                        className="p-1 text-gray-400 hover:text-white hover:bg-white/10 rounded disabled:opacity-30 disabled:hover:bg-transparent"
+                                                        title="Move Down"
+                                                    >
+                                                        <ArrowDown className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            )}
                                             <button
                                                 onClick={() => toggleChannelStatus(channel.id, channel.status)}
                                                 className="p-3 text-gray-500 hover:text-white hover:bg-white/10 rounded-2xl transition-all"
