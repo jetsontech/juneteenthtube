@@ -50,6 +50,7 @@ export function CustomPlayer({ src, srcH264, poster }: CustomPlayerProps) {
     const [isZoomed, setIsZoomed] = useState(false);
     const [isBuffering, setIsBuffering] = useState(true);
     const [hasStartedPlaying, setHasStartedPlaying] = useState(false);
+    const [isDragging, setIsDragging] = useState(false);
 
     // NEW: Custom CSS Fullscreen state for Mobile
     const [isCssFullscreen, setIsCssFullscreen] = useState(false);
@@ -192,7 +193,7 @@ export function CustomPlayer({ src, srcH264, poster }: CustomPlayerProps) {
 
     // Handle Time Update
     const onTimeUpdate = () => {
-        if (videoRef.current) {
+        if (videoRef.current && !isDragging) {
             setCurrentTime(videoRef.current.currentTime);
         }
     };
@@ -208,18 +209,12 @@ export function CustomPlayer({ src, srcH264, poster }: CustomPlayerProps) {
     const togglePlay = (e?: React.MouseEvent) => {
         e?.stopPropagation();
         if (videoRef.current) {
-            if (!showControls && !hasEnded) {
-                setShowControls(true);
-                return;
-            }
-
+            setShowControls(true); // Always show controls on interaction
             if (videoRef.current.paused || hasEnded) {
                 videoRef.current.play();
-                setIsPlaying(true);
                 setHasEnded(false);
             } else {
                 videoRef.current.pause();
-                setIsPlaying(false);
             }
         }
     };
@@ -434,7 +429,7 @@ export function CustomPlayer({ src, srcH264, poster }: CustomPlayerProps) {
                 isCssFullscreen ? "fixed inset-0 z-[10000] w-full dynamic-height" : "w-full h-full"
             )}
             onMouseMove={handleMouseMove}
-            onClick={resetControlsTimeout}
+            onClick={togglePlay}
             onMouseLeave={resetControlsTimeout}
         >
             <video
@@ -448,9 +443,12 @@ export function CustomPlayer({ src, srcH264, poster }: CustomPlayerProps) {
                 onTimeUpdate={onTimeUpdate}
                 onLoadedMetadata={onLoadedMetadata}
                 onEnded={onEnded}
+                onPlay={() => setIsPlaying(true)}
+                onPause={() => setIsPlaying(false)}
                 onWaiting={() => setIsBuffering(true)}
                 onCanPlayThrough={() => setIsBuffering(false)}
                 onPlaying={() => {
+                    setIsPlaying(true);
                     setIsBuffering(false);
                     setHasStartedPlaying(true);
                 }}
@@ -525,11 +523,7 @@ export function CustomPlayer({ src, srcH264, poster }: CustomPlayerProps) {
                 )}
                 onClick={(e) => {
                     e.stopPropagation();
-                    if (!showControls && !hasEnded) {
-                        setShowControls(true);
-                    } else {
-                        togglePlay(e);
-                    }
+                    togglePlay(e);
                 }}
             >
                 <div
@@ -557,12 +551,21 @@ export function CustomPlayer({ src, srcH264, poster }: CustomPlayerProps) {
                             type="range"
                             aria-label="Seek video"
                             min="0"
-                            max={duration || 100}
+                            max={isFinite(duration) ? duration : 100}
                             step="0.1"
                             value={currentTime}
                             onChange={handleSeek}
                             onInput={handleSeek}
-                            onPointerDown={() => resetControlsTimeout()}
+                            onPointerDown={() => {
+                                setIsDragging(true);
+                                resetControlsTimeout();
+                            }}
+                            onPointerUp={(e) => {
+                                setIsDragging(false);
+                                if (videoRef.current) {
+                                    videoRef.current.currentTime = parseFloat(e.currentTarget.value);
+                                }
+                            }}
                             className="absolute top-[-12px] left-0 w-full h-8 opacity-0 z-20 cursor-pointer touch-none"
                         />
 
