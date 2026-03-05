@@ -202,7 +202,7 @@ export function AdminLiveStudio() {
 
         } catch (error) {
             console.error("Error creating channel:", error);
-            alert("Failed to create channel: " + (error as any).message);
+            alert("Failed to create channel: " + (error instanceof Error ? error.message : "Unknown error"));
         } finally {
             setIsSubmitting(false);
         }
@@ -269,7 +269,7 @@ export function AdminLiveStudio() {
                         ) : filteredChannels.length === 0 ? (
                             <tr>
                                 <td colSpan={3} className="px-8 py-12 text-center text-white/50">
-                                    No channels found matching "{searchQuery}"
+                                    No channels found matching &quot;{searchQuery}&quot;
                                 </td>
                             </tr>
                         ) : (

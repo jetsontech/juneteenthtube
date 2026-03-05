@@ -43,7 +43,7 @@ export default function LiveTV() {
 
         if (epgError) throw epgError;
 
-        let videosData: any[] = [];
+        let videosData: { id: string; video_url: string; video_url_h264: string | null }[] = [];
         if (epgData) {
           const videoIds = epgData
             .map((p) => p.video_id)

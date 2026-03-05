@@ -36,7 +36,7 @@ const PIXELS_PER_MINUTE = 8;
 const HALF_HOUR_WIDTH = PIXELS_PER_MINUTE * 30; // 240px
 
 export function EPG({ channels, currentChannelId, onChannelSelect, categories, activeCategory, onCategorySelect }: EPGProps) {
-    const [now, setNow] = useState(Date.now());
+    const [now, setNow] = useState(() => Date.now());
     const scrollContainerRef = useRef<HTMLDivElement>(null);
 
     // Update 'now' every minute

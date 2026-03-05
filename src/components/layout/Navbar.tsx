@@ -454,7 +454,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                     )}
 
                     <div className="modal-footer">
-                        By uploading, you agree to Net Post Media, LLC's Terms of Service
+                        By uploading, you agree to Net Post Media, LLC&apos;s Terms of Service
                     </div>
                 </div>
             </div>
