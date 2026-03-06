@@ -195,115 +195,114 @@ const VAULT_VIDEOS = [
 
 export async function POST(req: NextRequest) {
     try {
-        // 1. Get the channel ID for "J-Tube Originals"
-        const { data: channelData, error: channelError } = await supabaseAdmin
-            .from('channels')
-            .select('id')
-            .eq('name', 'J-Tube Originals')
-            .single();
-
-        if (channelError || !channelData) {
-            return NextResponse.json({ error: 'J-Tube Originals channel not found' }, { status: 404 });
-        }
-
-        const channelId = channelData.id;
+        const now = new Date();
+        const futureWindow = new Date(now.getTime() + 48 * 60 * 60 * 1000);
         let syncedCount = 0;
         let scheduledCount = 0;
 
-        // 2. Fetch all existing videos to mapping
-        const { data: allVideos } = await supabaseAdmin.from('videos').select('id, video_url');
+        // 1. Fetch all channels
+        const { data: channels } = await supabaseAdmin.from('channels').select('id, name');
+        if (!channels) throw new Error("No channels found");
+
+        const legacyChannel = channels.find(c => c.name === 'The Legacy Vault');
+        const sarembokChannel = channels.find(c => c.name === 'SAREMBOK');
+        const jtubeChannel = channels.find(c => c.name === 'J-Tube Originals');
+
+        // 2. Fetch all videos to map
+        const { data: allVideos } = await supabaseAdmin.from('videos').select('*');
         const videoMap = new Map(allVideos?.map(v => [v.video_url, v.id]));
 
-        // 3. Ensure all vault videos are in DB (Batched)
-        const missingVideos = VAULT_VIDEOS.filter(v => !videoMap.has(v.url));
-        if (missingVideos.length > 0) {
-            const { data: newVs, error: vErr } = await supabaseAdmin.from('videos').insert(
-                missingVideos.map(v => ({
+        // Helper: Schedule a channel
+        const fillChannel = async (channelId: string, videos: any[], tag: string) => {
+            if (videos.length === 0) return 0;
+
+            const { data: latestEpg } = await supabaseAdmin
+                .from('epg_data')
+                .select('end_time')
+                .eq('channel_id', channelId)
+                .gte('end_time', now.toISOString())
+                .order('end_time', { ascending: false })
+                .limit(1)
+                .maybeSingle();
+
+            let currentTime = latestEpg?.end_time ? new Date(latestEpg.end_time) : now;
+            const inserts = [];
+            let videoIdx = 0;
+            let safety = 0;
+
+            while (currentTime < futureWindow && inserts.length < 50 && safety < 200) {
+                safety++;
+                const v = videos[videoIdx % videos.length];
+                videoIdx++;
+
+                const videoId = v.id || videoMap.get(v.url);
+                if (!videoId) continue;
+
+                let durationSecs = 1800;
+                const durStr = v.duration || "30:00";
+                const parts = durStr.split(':').map(Number);
+                if (parts.length === 3) durationSecs = parts[0] * 3600 + parts[1] * 60 + parts[2];
+                else if (parts.length === 2) durationSecs = parts[0] * 60 + parts[1];
+
+                const end = new Date(currentTime.getTime() + durationSecs * 1000);
+                inserts.push({
+                    channel_id: channelId,
+                    video_id: videoId,
                     title: v.title,
-                    video_url: v.url,
-                    category: v.category,
-                    duration: v.duration,
-                    transcode_status: 'completed',
-                    state: 'published',
-                    owner_id: null
-                }))
-            ).select('id, video_url');
+                    start_time: currentTime.toISOString(),
+                    end_time: end.toISOString(),
+                    description: tag
+                });
+                currentTime = end;
+            }
 
-            if (!vErr && newVs) {
-                newVs.forEach(v => videoMap.set(v.video_url, v.id));
-                syncedCount = newVs.length;
+            if (inserts.length > 0) {
+                const { error } = await supabaseAdmin.from('epg_data').insert(inserts);
+                if (error) throw error;
+                return inserts.length;
+            }
+            return 0;
+        };
+
+        // 3. Sync Legacy Vault (Static List)
+        if (legacyChannel) {
+            const missing = VAULT_VIDEOS.filter(v => !videoMap.has(v.url));
+            if (missing.length > 0) {
+                const { data: nvs } = await supabaseAdmin.from('videos').insert(
+                    missing.map(v => ({
+                        title: v.title,
+                        video_url: v.url,
+                        category: 'Legacy',
+                        duration: v.duration,
+                        transcode_status: 'completed',
+                        state: 'published',
+                        owner_id: null
+                    }))
+                ).select();
+                nvs?.forEach(v => videoMap.set(v.video_url, v.id));
+                syncedCount += nvs?.length || 0;
+            }
+            scheduledCount += await fillChannel(legacyChannel.id, VAULT_VIDEOS, "Legacy Vault");
+        }
+
+        // 4. Sync SAREMBOK (Dynamic)
+        if (sarembokChannel) {
+            const sVideos = allVideos?.filter(v => v.category === 'SAREMBOK' || v.category === 'Music' || v.category === 'Entertainment') || [];
+            scheduledCount += await fillChannel(sarembokChannel.id, sVideos, "SAREMBOK Entertainment");
+        }
+
+        // 5. Sync J-Tube Originals (Dynamic - Non-Vault)
+        if (jtubeChannel) {
+            const vaultUrls = new Set(VAULT_VIDEOS.map(v => v.url));
+            const jVideos = allVideos?.filter(v => v.category === 'J-Tube Originals' && !vaultUrls.has(v.video_url)) || [];
+            if (jVideos.length > 0) {
+                scheduledCount += await fillChannel(jtubeChannel.id, jVideos, "J-Tube Original");
             }
         }
 
-        // 4. Fill the next 48 hours (Batched)
-        const now = new Date();
-        const futureWindow = new Date(now.getTime() + 48 * 60 * 60 * 1000);
-
-        const { data: latestEpg } = await supabaseAdmin
-            .from('epg_data')
-            .select('end_time')
-            .eq('channel_id', channelId)
-            .gte('end_time', now.toISOString())
-            .order('end_time', { ascending: false })
-            .limit(1)
-            .maybeSingle();
-
-        let currentTime = now;
-        if (latestEpg?.end_time) {
-            currentTime = new Date(latestEpg.end_time);
-        }
-
-        const epgInserts = [];
-        let videoIdx = 0;
-        let safetyCounter = 0;
-
-        while (currentTime < futureWindow && epgInserts.length < 100 && safetyCounter < 500) {
-            safetyCounter++;
-            const video = VAULT_VIDEOS[videoIdx % VAULT_VIDEOS.length];
-            videoIdx++;
-
-            const videoId = videoMap.get(video.url);
-            if (!videoId) {
-                // If we've checked all videos and found none, break to avoid infinite loop
-                if (videoIdx >= VAULT_VIDEOS.length) break;
-                continue;
-            }
-
-            let durationSeconds = 1800;
-            if (video.duration.includes(':')) {
-                const parts = video.duration.split(':').map(Number);
-                if (parts.length === 3) durationSeconds = parts[0] * 3600 + parts[1] * 60 + parts[2];
-                else if (parts.length === 2) durationSeconds = parts[0] * 60 + parts[1];
-            }
-
-            const endTime = new Date(currentTime.getTime() + durationSeconds * 1000);
-
-            epgInserts.push({
-                channel_id: channelId,
-                video_id: videoId,
-                title: video.title,
-                start_time: currentTime.toISOString(),
-                end_time: endTime.toISOString(),
-                description: "J-Tube Vault Selection"
-            });
-
-            currentTime = endTime;
-        }
-
-        if (epgInserts.length > 0) {
-            const { error: epgErr } = await supabaseAdmin.from('epg_data').insert(epgInserts);
-            if (epgErr) throw epgErr;
-            scheduledCount = epgInserts.length;
-        }
-
-        return NextResponse.json({
-            success: true,
-            syncedCount,
-            scheduledCount,
-            scheduledUntil: currentTime.toISOString()
-        });
+        return NextResponse.json({ success: true, syncedCount, scheduledCount });
     } catch (error: any) {
-        console.error('Vault Rotation Error:', error);
+        console.error('Rotation Error:', error);
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }

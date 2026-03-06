@@ -49,31 +49,7 @@ interface LivePlayerProps {
    SUB-COMPONENTS
    ════════════════════════════════════════════════════ */
 
-function TuneInOverlay({ channelName, channelNumber, visible, accent }: { channelName: string; channelNumber?: number; visible: boolean; accent: string }) {
-    const accentBg = accent === "yellow" ? "bg-yellow-600" : accent === "amber" ? "bg-amber-700" : accent === "purple" ? "bg-purple-600" : accent === "red" ? "bg-red-600" : "bg-zinc-800";
-    const accentText = accent === "yellow" ? "text-yellow-500" : accent === "amber" ? "text-amber-500" : accent === "purple" ? "text-purple-400" : accent === "red" ? "text-red-400" : "text-white/60";
 
-    return (
-        <div className={cn(
-            "absolute inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-xl transition-all duration-700 pointer-events-none",
-            visible ? "opacity-100 scale-100" : "opacity-0 scale-105"
-        )}>
-            <div className="text-center space-y-4">
-                <div className={cn("w-24 h-24 rounded-3xl mx-auto flex items-center justify-center shadow-2xl transition-transform duration-700", visible ? "scale-100" : "scale-75", accentBg)}>
-                    <Tv className="w-12 h-12 text-white" />
-                </div>
-                <div className={cn("transition-all duration-700 delay-100", visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4")}>
-                    {channelNumber && <div className={cn("text-sm font-mono font-bold uppercase tracking-widest", accentText)}>CH {channelNumber}</div>}
-                    <h2 className="text-4xl font-black text-white mt-1 tracking-tight">{channelName}</h2>
-                    <div className="flex items-center justify-center gap-2 mt-4">
-                        <Zap className={cn("w-4 h-4", accentText)} />
-                        <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">FAST Channel • Auto-Playing</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
-}
 
 function UpNextToast({ nextFilm, visible, accent }: { nextFilm?: ProgramMetadata; visible: boolean; accent: string }) {
     if (!nextFilm) return null;
@@ -124,7 +100,6 @@ export function LivePlayer({
     const [isMuted, setIsMuted] = useState(true);
     const [volume, setVolume] = useState(1);
     const [showControls, setShowControls] = useState(true);
-    const [showTuneIn, setShowTuneIn] = useState(false);
     const [showUpNext, setShowUpNext] = useState(false);
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [isLive, setIsLive] = useState(true);
@@ -132,13 +107,7 @@ export function LivePlayer({
     const [progress, setProgress] = useState(0);
 
     // ── FAST Overlay Logic ────────────────────────────
-    useEffect(() => {
-        if (streamUrl) {
-            setShowTuneIn(true);
-            const timer = setTimeout(() => setShowTuneIn(false), 2500);
-            return () => clearTimeout(timer);
-        }
-    }, [streamUrl]);
+    // (TuneInOverlay removed per user request for faster switching)
 
     // Show "Up Next" toast when video is > 95% or with 30s left
     useEffect(() => {
@@ -290,14 +259,13 @@ export function LivePlayer({
         >
             <video ref={videoRef} poster={posterUrl} muted={isMuted} playsInline autoPlay className="w-full h-full object-contain pointer-events-none" />
 
-            <TuneInOverlay channelName={channelName} channelNumber={channelNumber} visible={showTuneIn} accent={accentColor} />
             <UpNextToast nextFilm={nextProgram} visible={showUpNext} accent={accentColor} />
 
             {/* Now Playing Metadata (Dynamic Slide-in) */}
             {currentProgram && (
                 <div className={cn(
                     "absolute top-8 left-8 z-40 transition-all duration-700 max-w-lg",
-                    showControls || showTuneIn ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-8 pointer-events-none"
+                    showControls ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-8 pointer-events-none"
                 )}>
                     <div className="flex items-start gap-4 p-4 bg-black/60 backdrop-blur-2xl rounded-3xl border border-white/10 shadow-2xl">
                         <div className={cn("w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg", accentBg)}>
