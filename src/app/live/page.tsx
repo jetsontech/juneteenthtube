@@ -150,13 +150,13 @@ export default function LiveTV() {
     .sort((a, b) => a.category.localeCompare(b.category));
 
   return (
-    <div className="min-h-screen bg-[#141414] text-white font-sans">
+    <div className="flex flex-col sm:block h-[calc(100dvh-3.5rem)] sm:h-auto overflow-hidden sm:overflow-visible bg-[#141414] text-white font-sans relative z-0">
       {/* ═══════════════════════════════════════════════════════════ */}
       {/* HERO SECTION — Currently playing channel                   */}
       {/* ═══════════════════════════════════════════════════════════ */}
-      <div className="flex flex-col w-full">
+      <div className="flex-shrink-0 flex flex-col w-full relative z-20">
         {/* Header — Back to Home */}
-        <div className="w-full px-4 md:px-12 py-3 md:py-4 bg-[#141414] flex justify-end items-center z-20 relative">
+        <div className="w-full px-4 md:px-12 py-3 md:py-4 bg-[#141414] flex justify-end items-center relative">
           <Link
             href="/"
             className="inline-flex items-center text-white/70 hover:text-white text-sm font-bold transition-colors group/link bg-white/5 hover:bg-white/10 px-4 py-2 rounded-full border border-white/10 shrink-0"
@@ -193,7 +193,7 @@ export default function LiveTV() {
                 currentProgram={currentProg ? {
                   title: currentProg.title,
                   description: currentProg.description,
-                  year: "2024", // Placeholder or from metadata
+                  year: "2024",
                   duration: `${Math.round((new Date(currentProg.end_time).getTime() - new Date(currentProg.start_time).getTime()) / 60000)} min`,
                   startTime: currentProg.start_time,
                   endTime: currentProg.end_time
@@ -223,8 +223,11 @@ export default function LiveTV() {
             onClose={() => setIsChatOpen(false)}
           />
         </div>
+      </div>
 
-        {/* Channel Controls — Below Player */}
+      {/* Scrollable content section */}
+      <div className="flex-1 overflow-y-auto sm:overflow-visible bg-transparent relative z-10 overscroll-y-contain pb-20">
+        {/* Channel Controls — Inside Scrollable Section */}
         <div className="w-full px-4 md:px-12 py-3 bg-[#141414] flex items-center justify-center gap-4">
           <button
             onClick={() => {
@@ -256,21 +259,21 @@ export default function LiveTV() {
             <ChevronRight className="w-5 h-5 text-white" />
           </button>
         </div>
-      </div>
 
-      {/* ═══════════════════════════════════════════════════════════ */}
-      {/* CHANNEL ROWS — Grouped by category, Netflix-style           */}
-      {/* ═══════════════════════════════════════════════════════════ */}
-      <div className="relative z-30 -mt-4 pb-20">
-        {channelsByCategory.map((group) => (
-          <ChannelRow
-            key={group.category}
-            title={group.category}
-            channels={group.channels}
-            currentChannelId={currentChannel.id}
-            onSelect={setCurrentChannel}
-          />
-        ))}
+        {/* ═══════════════════════════════════════════════════════════ */}
+        {/* CHANNEL ROWS — Grouped by category, Netflix-style           */}
+        {/* ═══════════════════════════════════════════════════════════ */}
+        <div className="relative z-30 pt-4">
+          {channelsByCategory.map((group) => (
+            <ChannelRow
+              key={group.category}
+              title={group.category}
+              channels={group.channels}
+              currentChannelId={currentChannel.id}
+              onSelect={setCurrentChannel}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );
