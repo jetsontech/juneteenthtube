@@ -161,6 +161,7 @@ export function LiveChat({ channelId, channelName, isOpen, onClose }: LiveChatPr
                         <button
                             onClick={onClose}
                             className="p-2 hover:bg-white/5 rounded-full transition-colors group"
+                            title="Close chat"
                         >
                             <X className="w-5 h-5 text-white/40 group-hover:text-white" />
                         </button>
