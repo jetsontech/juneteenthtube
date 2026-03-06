@@ -12,7 +12,8 @@ import {
     Minimize,
     ChevronUp,
     ChevronDown,
-    Tv
+    Tv,
+    MessageCircle
 } from "lucide-react";
 
 interface LivePlayerProps {
@@ -23,6 +24,7 @@ interface LivePlayerProps {
     channelLogo?: string;
     onNext?: () => void;
     onPrev?: () => void;
+    onToggleChat?: () => void;
 }
 
 export function LivePlayer({
@@ -32,7 +34,8 @@ export function LivePlayer({
     channelName,
     channelLogo,
     onNext,
-    onPrev
+    onPrev,
+    onToggleChat
 }: LivePlayerProps) {
     const videoRef = useRef<HTMLVideoElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
@@ -332,6 +335,14 @@ export function LivePlayer({
                     <div className="flex items-center gap-6">
                         <button onClick={togglePlay} className="text-white hover:text-red-500 transition-colors">
                             {isPlaying ? <Pause className="w-8 h-8 fill-current" /> : <Play className="w-8 h-8 fill-current" />}
+                        </button>
+
+                        <button
+                            onClick={(e) => { e.stopPropagation(); onToggleChat?.(); }}
+                            className="text-white/70 hover:text-white transition-colors"
+                            title="Open Chat"
+                        >
+                            <MessageCircle className="w-7 h-7" />
                         </button>
 
                         <div className="flex items-center gap-2 group/volume">

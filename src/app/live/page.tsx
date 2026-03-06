@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { LivePlayer } from "@/components/live/LivePlayer";
+import { LiveChat } from "@/components/live/LiveChat";
 import { Channel } from "@/components/live/EPG";
 import Link from "next/link";
 import { ArrowLeft, ChevronLeft, ChevronRight, Play } from "lucide-react";
@@ -10,6 +11,7 @@ import { supabase } from "@/lib/supabase";
 export default function LiveTV() {
   const [channels, setChannels] = useState<Channel[]>([]);
   const [currentChannel, setCurrentChannel] = useState<Channel | null>(null);
+  const [isChatOpen, setIsChatOpen] = useState(false);
   const categories = [
     "All",
     "Entertainment",
@@ -161,12 +163,13 @@ export default function LiveTV() {
         </div>
 
         {/* Video Player Boundary */}
-        <div className="w-full aspect-[16/9] md:aspect-video max-h-[70vh] bg-black border-y border-white/10 shadow-2xl shrink-0">
+        <div className="relative w-full aspect-[16/9] md:aspect-video max-h-[70vh] bg-black border-y border-white/10 shadow-2xl shrink-0 overflow-hidden">
           <LivePlayer
             streamUrl={currentChannel.stream_url}
             playlist={currentChannel.playlist}
             channelName={currentChannel.name}
             channelLogo={currentChannel.logo_url}
+            onToggleChat={() => setIsChatOpen(!isChatOpen)}
             onNext={() => {
               const idx = channels.findIndex((c) => c.id === currentChannel.id);
               setCurrentChannel(channels[(idx + 1) % channels.length]);
@@ -175,6 +178,14 @@ export default function LiveTV() {
               const idx = channels.findIndex((c) => c.id === currentChannel.id);
               setCurrentChannel(channels[(idx - 1 + channels.length) % channels.length]);
             }}
+          />
+
+          {/* Real-time Live Chat Overlay */}
+          <LiveChat
+            channelId={currentChannel.id}
+            channelName={currentChannel.name}
+            isOpen={isChatOpen}
+            onClose={() => setIsChatOpen(false)}
           />
         </div>
 
