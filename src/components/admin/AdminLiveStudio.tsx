@@ -74,14 +74,16 @@ export function AdminLiveStudio() {
     const toggleChannelStatus = async (id: string, currentStatus: string) => {
         const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
         try {
-            const { data, error } = await supabase
-                .from('channels')
-                .update({ status: newStatus })
-                .eq('id', id)
-                .select();
+            const response = await fetch('/api/admin/channels/status', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id, status: newStatus })
+            });
 
-            if (error) throw error;
-            if (!data || data.length === 0) throw new Error("Update blocked by database permissions (RLS) or channel not found.");
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || "Failed to update status");
+            }
 
             // Update local state
             setChannels(channels.map(c =>
@@ -89,7 +91,7 @@ export function AdminLiveStudio() {
             ));
         } catch (error) {
             console.error("Error updating channel:", error);
-            alert("Failed to update channel status");
+            alert("Failed to update channel status. Check console for details.");
         }
     };
 
@@ -99,21 +101,20 @@ export function AdminLiveStudio() {
         }
 
         try {
-            // First delete associated EPG data to avoid foreign key constraints (if any)
-            await supabase.from('epg_data').delete().eq('channel_id', id);
+            const response = await fetch(`/api/admin/channels/delete?id=${id}`, {
+                method: 'DELETE'
+            });
 
-            const { error } = await supabase
-                .from('channels')
-                .delete()
-                .eq('id', id);
-
-            if (error) throw error;
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || "Failed to delete channel");
+            }
 
             // Update local state
             setChannels(channels.filter(c => c.id !== id));
         } catch (error) {
             console.error("Error deleting channel:", error);
-            alert("Failed to delete channel");
+            alert("Failed to delete channel. Check console for details.");
         }
     };
 
@@ -185,11 +186,16 @@ export function AdminLiveStudio() {
                 is_internal_vod: false // Manual additions are external live streams
             };
 
-            const { error } = await supabase
-                .from('channels')
-                .insert([channelData]);
+            const response = await fetch('/api/admin/channels/create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ channelData })
+            });
 
-            if (error) throw error;
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || "Failed to create channel");
+            }
 
             // Success: Reset form, close modal, refresh grid
             setNewChannel({ name: "", stream_url: "", logo_url: "", category: "Entertainment", description: "" });
