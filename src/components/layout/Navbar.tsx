@@ -440,8 +440,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                                 <span className="progress-pct">{Math.min(100, Math.floor(uploadProgress))}%</span>
                             </div>
                             <div className="progress-track">
-                                {/* eslint-disable-next-line react/forbid-dom-props */}
-                                <div className="progress-fill" style={{ width: `${Math.min(100, uploadProgress)}%` }} />
+                                <div className="progress-fill" style={{ "--progress": `${Math.min(100, uploadProgress)}%` } as React.CSSProperties} />
                             </div>
                             <div className="progress-pulse">
                                 <div className="pulse-dot" />

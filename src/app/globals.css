@@ -637,6 +637,7 @@ body.sidebar-open-mobile {
   font-weight: 900;
   background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 40%, var(--red-light) 100%);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   letter-spacing: -0.02em;
   white-space: nowrap;
@@ -1065,6 +1066,7 @@ body.sidebar-open-mobile {
   color: var(--text);
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
   margin-bottom: 5px;
@@ -1513,6 +1515,7 @@ body.sidebar-open-mobile {
   border-radius: 99px;
   background: linear-gradient(90deg, var(--red), var(--gold), var(--green));
   transition: width .4s ease-out;
+  width: var(--progress, 0%);
 }
 
 .progress-pulse {
