@@ -264,19 +264,19 @@ export function LivePlayer({
             {/* Now Playing Metadata (Dynamic Slide-in) */}
             {currentProgram && (
                 <div className={cn(
-                    "absolute top-8 left-8 z-40 transition-all duration-700 max-w-lg",
+                    "absolute top-4 left-4 md:top-8 md:left-8 z-40 transition-all duration-700 max-w-[calc(100%-2rem)] md:max-w-lg",
                     showControls ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-8 pointer-events-none"
                 )}>
-                    <div className="flex items-start gap-4 p-4 bg-black/60 backdrop-blur-2xl rounded-3xl border border-white/10 shadow-2xl">
-                        <div className={cn("w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg", accentBg)}>
-                            {channelLogo ? <img src={channelLogo} alt={channelName} className="w-8 h-8 object-contain" /> : <Tv className="w-8 h-8 text-white" />}
+                    <div className="flex items-start gap-2 md:gap-4 p-2 md:p-4 bg-black/60 backdrop-blur-2xl rounded-2xl md:rounded-3xl border border-white/10 shadow-2xl">
+                        <div className={cn("w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg", accentBg)}>
+                            {channelLogo ? <img src={channelLogo} alt={channelName} className="w-6 h-6 md:w-8 md:h-8 object-contain" /> : <Tv className="w-6 h-6 md:w-8 md:h-8 text-white" />}
                         </div>
                         <div className="min-w-0">
-                            <div className="flex items-center gap-2 mb-1">
-                                <Radio className={cn("w-3 h-3 animate-pulse", accentText)} />
-                                <span className={cn("text-[10px] font-black uppercase tracking-widest", accentText)}>Now Playing • CH {channelNumber || 1}</span>
+                            <div className="flex items-center gap-1 md:gap-2 mb-0.5 md:mb-1">
+                                <Radio className={cn("w-2.5 h-2.5 md:w-3 md:h-3 animate-pulse", accentText)} />
+                                <span className={cn("text-[8px] md:text-[10px] font-black uppercase tracking-widest", accentText)}>Now Playing • CH {channelNumber || 1}</span>
                             </div>
-                            <h3 className="text-xl font-black text-white leading-tight truncate">{currentProgram.title}</h3>
+                            <h3 className="text-sm md:text-xl font-black text-white leading-tight truncate">{currentProgram.title}</h3>
                             <div className="flex items-center gap-2 mt-1 text-[11px] text-gray-400 font-bold">
                                 {currentProgram.year && <span>{currentProgram.year}</span>}
                                 {currentProgram.director && <><span>•</span><span>{currentProgram.director}</span></>}
@@ -302,14 +302,14 @@ export function LivePlayer({
 
             {/* Custom Control Bar */}
             <div className={cn("absolute bottom-0 left-0 right-0 z-40 transition-all duration-300 pointer-events-none", showControls ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4")}>
-                <div className="bg-gradient-to-t from-black/95 via-black/40 to-transparent pt-32 pb-8 px-10 flex items-center justify-between pointer-events-auto">
-                    <div className="flex items-center gap-8">
+                <div className="bg-gradient-to-t from-black/95 via-black/40 to-transparent pt-16 md:pt-32 pb-4 md:pb-8 px-4 md:px-10 flex items-center justify-between pointer-events-auto">
+                    <div className="flex items-center gap-4 md:gap-8">
                         <button
                             onClick={togglePlay}
                             className="text-white hover:scale-110 transition-transform active:scale-95 shadow-2xl"
                             title={isPlaying ? "Pause" : "Play"}
                         >
-                            {isPlaying ? <Pause className="w-10 h-10 fill-white" /> : <Play className="w-10 h-10 fill-white" />}
+                            {isPlaying ? <Pause className="w-8 h-8 md:w-10 md:h-10 fill-white" /> : <Play className="w-8 h-8 md:w-10 md:h-10 fill-white" />}
                         </button>
 
                         <button
@@ -317,7 +317,7 @@ export function LivePlayer({
                             className="text-white/60 hover:text-white transition-colors"
                             title="Toggle Chat"
                         >
-                            <MessageCircle className="w-8 h-8" />
+                            <MessageCircle className="w-6 h-6 md:w-8 md:h-8" />
                         </button>
 
                         <div className="flex items-center gap-3 group/volume">
@@ -326,7 +326,7 @@ export function LivePlayer({
                                 className="text-white/60 hover:text-white transition-colors"
                                 title={isMuted ? "Unmute" : "Mute"}
                             >
-                                {isMuted ? <VolumeX className="w-7 h-7" /> : <Volume2 className="w-7 h-7" />}
+                                {isMuted ? <VolumeX className="w-6 h-6 md:w-7 md:h-7" /> : <Volume2 className="w-6 h-6 md:w-7 md:h-7" />}
                             </button>
                             <div className="w-0 group-hover:w-24 transition-all duration-300 h-1 bg-white/20 rounded-full overflow-hidden">
                                 <div className="h-full bg-white transition-all" style={{ width: `${volume * 100}%` }} />
@@ -346,29 +346,29 @@ export function LivePlayer({
                             className="text-white/60 hover:text-white transition-colors"
                             title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
                         >
-                            {isFullscreen ? <Minimize className="w-8 h-8" /> : <Maximize className="w-8 h-8" />}
+                            {isFullscreen ? <Minimize className="w-6 h-6 md:w-8 md:h-8" /> : <Maximize className="w-6 h-6 md:w-8 md:h-8" />}
                         </button>
                     </div>
                 </div>
 
                 {/* Quick Navigation Overlays */}
-                <div className={cn("absolute right-8 top-1/2 -translate-y-1/2 z-40 flex flex-col gap-4 transition-all duration-300", showControls ? "opacity-100 translate-x-0" : "opacity-0 translate-x-4 pointer-events-none")}>
+                <div className={cn("absolute right-4 md:right-8 top-1/2 -translate-y-1/2 z-40 flex flex-col gap-2 md:gap-4 transition-all duration-300", showControls ? "opacity-100 translate-x-0" : "opacity-0 translate-x-4 pointer-events-none")}>
                     <button
                         onClick={(e) => { e.stopPropagation(); onNext?.(); }}
-                        className="w-14 h-14 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 backdrop-blur-xl flex items-center justify-center transition-all hover:scale-110 active:scale-90 group/btn"
+                        className="w-10 h-10 md:w-14 md:h-14 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 backdrop-blur-xl flex items-center justify-center transition-all hover:scale-110 active:scale-90 group/btn"
                         title="Next Channel"
                     >
-                        <ChevronUp className="w-7 h-7 text-white/40 group-hover/btn:text-white" />
+                        <ChevronUp className="w-5 h-5 md:w-7 md:h-7 text-white/40 group-hover/btn:text-white" />
                     </button>
                     <div className="flex items-center justify-center">
-                        <div className="w-1.5 h-1.5 bg-white/20 rounded-full" />
+                        <div className="w-1 h-1 md:w-1.5 md:h-1.5 bg-white/20 rounded-full" />
                     </div>
                     <button
                         onClick={(e) => { e.stopPropagation(); onPrev?.(); }}
-                        className="w-14 h-14 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 backdrop-blur-xl flex items-center justify-center transition-all hover:scale-110 active:scale-90 group/btn"
+                        className="w-10 h-10 md:w-14 md:h-14 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 backdrop-blur-xl flex items-center justify-center transition-all hover:scale-110 active:scale-90 group/btn"
                         title="Previous Channel"
                     >
-                        <ChevronDown className="w-7 h-7 text-white/40 group-hover/btn:text-white" />
+                        <ChevronDown className="w-5 h-5 md:w-7 md:h-7 text-white/40 group-hover/btn:text-white" />
                     </button>
                 </div>
             </div>
