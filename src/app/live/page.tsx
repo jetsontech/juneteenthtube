@@ -165,6 +165,16 @@ export default function LiveTV() {
           <LivePlayer
             streamUrl={currentChannel.stream_url}
             playlist={currentChannel.playlist}
+            channelName={currentChannel.name}
+            channelLogo={currentChannel.logo_url}
+            onNext={() => {
+              const idx = channels.findIndex((c) => c.id === currentChannel.id);
+              setCurrentChannel(channels[(idx + 1) % channels.length]);
+            }}
+            onPrev={() => {
+              const idx = channels.findIndex((c) => c.id === currentChannel.id);
+              setCurrentChannel(channels[(idx - 1 + channels.length) % channels.length]);
+            }}
           />
         </div>
 
