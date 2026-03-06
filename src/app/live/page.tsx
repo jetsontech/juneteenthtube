@@ -109,8 +109,13 @@ export default function LiveTV() {
             });
           }
         }
-      } catch (err) {
-        console.error("Failed to load Live TV Guide:", err);
+      } catch (err: any) {
+        console.error("Failed to load Live TV Guide:", {
+          message: err.message,
+          details: err.details,
+          hint: err.hint,
+          error: err
+        });
       }
     }
 
@@ -164,21 +169,51 @@ export default function LiveTV() {
 
         {/* Video Player Boundary */}
         <div className="relative w-full aspect-[16/9] md:aspect-video max-h-[70vh] bg-black border-y border-white/10 shadow-2xl shrink-0 overflow-hidden">
-          <LivePlayer
-            streamUrl={currentChannel.stream_url}
-            playlist={currentChannel.playlist}
-            channelName={currentChannel.name}
-            channelLogo={currentChannel.logo_url}
-            onToggleChat={() => setIsChatOpen(!isChatOpen)}
-            onNext={() => {
-              const idx = channels.findIndex((c) => c.id === currentChannel.id);
-              setCurrentChannel(channels[(idx + 1) % channels.length]);
-            }}
-            onPrev={() => {
-              const idx = channels.findIndex((c) => c.id === currentChannel.id);
-              setCurrentChannel(channels[(idx - 1 + channels.length) % channels.length]);
-            }}
-          />
+          {(() => {
+            const now = new Date();
+            const currentProg = currentChannel.programs?.find(p => {
+              const start = new Date(p.start_time);
+              const end = new Date(p.end_time);
+              return now >= start && now <= end;
+            });
+
+            const nextProg = currentChannel.programs?.find(p => {
+              const start = new Date(p.start_time);
+              return start > now;
+            });
+
+            return (
+              <LivePlayer
+                streamUrl={currentChannel.stream_url}
+                playlist={currentChannel.playlist}
+                channelName={currentChannel.name}
+                channelLogo={currentChannel.logo_url}
+                channelNumber={channels.findIndex(c => c.id === currentChannel.id) + 1}
+                accentColor={currentChannel.name.includes("Originals") ? "red" : "amber"}
+                currentProgram={currentProg ? {
+                  title: currentProg.title,
+                  description: currentProg.description,
+                  year: "2024", // Placeholder or from metadata
+                  duration: `${Math.round((new Date(currentProg.end_time).getTime() - new Date(currentProg.start_time).getTime()) / 60000)} min`,
+                  startTime: currentProg.start_time,
+                  endTime: currentProg.end_time
+                } : undefined}
+                nextProgram={nextProg ? {
+                  title: nextProg.title,
+                  duration: `${Math.round((new Date(nextProg.end_time).getTime() - new Date(nextProg.start_time).getTime()) / 60000)} min`,
+                } : undefined}
+                onToggleChat={() => setIsChatOpen(!isChatOpen)}
+                onNext={() => {
+                  const idx = channels.findIndex((c) => c.id === currentChannel.id);
+                  setCurrentChannel(channels[(idx + 1) % channels.length]);
+                }}
+                onPrev={() => {
+                  const idx = channels.findIndex((c) => c.id === currentChannel.id);
+                  setCurrentChannel(channels[(idx - 1 + channels.length) % channels.length]);
+                }}
+              />
+            );
+          })()}
 
           {/* Real-time Live Chat Overlay */}
           <LiveChat

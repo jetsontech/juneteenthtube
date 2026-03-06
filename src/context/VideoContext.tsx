@@ -347,7 +347,12 @@ export function VideoProvider({ children }: { children: ReactNode }) {
                 .order('created_at', { ascending: false });
 
             if (error) {
-                console.error('Error fetching videos:', error);
+                console.error('Error fetching videos:', {
+                    message: error.message,
+                    details: error.details,
+                    hint: error.hint,
+                    error
+                });
                 setVideos(MOCK_VIDEOS);
                 return;
             }

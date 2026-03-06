@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import Hls from "hls.js";
-
 import {
     Play,
     Pause,
@@ -13,8 +12,23 @@ import {
     ChevronUp,
     ChevronDown,
     Tv,
-    MessageCircle
+    MessageCircle,
+    Radio,
+    Zap,
+    Sparkles,
+    SkipForward
 } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+interface ProgramMetadata {
+    title: string;
+    description?: string;
+    year?: string;
+    duration?: string;
+    director?: string;
+    startTime?: string;
+    endTime?: string;
+}
 
 interface LivePlayerProps {
     streamUrl: string;
@@ -22,17 +36,78 @@ interface LivePlayerProps {
     playlist?: string[];
     channelName?: string;
     channelLogo?: string;
+    channelNumber?: number;
+    accentColor?: string; // e.g., 'red', 'blue', 'yellow'
+    currentProgram?: ProgramMetadata;
+    nextProgram?: ProgramMetadata;
     onNext?: () => void;
     onPrev?: () => void;
     onToggleChat?: () => void;
+}
+
+/* ════════════════════════════════════════════════════
+   SUB-COMPONENTS
+   ════════════════════════════════════════════════════ */
+
+function TuneInOverlay({ channelName, channelNumber, visible, accent }: { channelName: string; channelNumber?: number; visible: boolean; accent: string }) {
+    const accentBg = accent === "yellow" ? "bg-yellow-600" : accent === "amber" ? "bg-amber-700" : accent === "purple" ? "bg-purple-600" : accent === "red" ? "bg-red-600" : "bg-zinc-800";
+    const accentText = accent === "yellow" ? "text-yellow-500" : accent === "amber" ? "text-amber-500" : accent === "purple" ? "text-purple-400" : accent === "red" ? "text-red-400" : "text-white/60";
+
+    return (
+        <div className={cn(
+            "absolute inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-xl transition-all duration-700 pointer-events-none",
+            visible ? "opacity-100 scale-100" : "opacity-0 scale-105"
+        )}>
+            <div className="text-center space-y-4">
+                <div className={cn("w-24 h-24 rounded-3xl mx-auto flex items-center justify-center shadow-2xl transition-transform duration-700", visible ? "scale-100" : "scale-75", accentBg)}>
+                    <Tv className="w-12 h-12 text-white" />
+                </div>
+                <div className={cn("transition-all duration-700 delay-100", visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4")}>
+                    {channelNumber && <div className={cn("text-sm font-mono font-bold uppercase tracking-widest", accentText)}>CH {channelNumber}</div>}
+                    <h2 className="text-4xl font-black text-white mt-1 tracking-tight">{channelName}</h2>
+                    <div className="flex items-center justify-center gap-2 mt-4">
+                        <Zap className={cn("w-4 h-4", accentText)} />
+                        <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">FAST Channel • Auto-Playing</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function UpNextToast({ nextFilm, visible, accent }: { nextFilm?: ProgramMetadata; visible: boolean; accent: string }) {
+    if (!nextFilm) return null;
+    const accentBorder = accent === "yellow" ? "border-yellow-600/40" : accent === "amber" ? "border-amber-600/40" : accent === "purple" ? "border-purple-500/40" : accent === "red" ? "border-red-500/40" : "border-white/10";
+    const accentText = accent === "yellow" ? "text-yellow-500" : accent === "amber" ? "text-amber-500" : accent === "purple" ? "text-purple-400" : accent === "red" ? "text-red-400" : "text-white/40";
+
+    return (
+        <div className={cn(
+            "absolute bottom-24 right-8 z-40 max-w-sm bg-black/90 backdrop-blur-2xl rounded-2xl border p-4 shadow-2xl transition-all duration-500",
+            accentBorder, visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 pointer-events-none"
+        )}>
+            <div className="flex items-center gap-1.5 mb-2">
+                <SkipForward className={cn("w-3 h-3", accentText)} />
+                <span className={cn("text-[10px] font-black uppercase tracking-widest", accentText)}>Up Next</span>
+            </div>
+            <h4 className="text-sm font-bold text-white mb-1">{nextFilm.title}</h4>
+            <div className="flex items-center gap-2 text-[10px] text-gray-500">
+                {nextFilm.year && <span>{nextFilm.year}</span>}
+                {nextFilm.duration && <><span>•</span><span>{nextFilm.duration}</span></>}
+            </div>
+        </div>
+    );
 }
 
 export function LivePlayer({
     streamUrl,
     posterUrl,
     playlist,
-    channelName,
+    channelName = "JuneteenthTube",
     channelLogo,
+    channelNumber,
+    accentColor = "red",
+    currentProgram,
+    nextProgram,
     onNext,
     onPrev,
     onToggleChat
@@ -49,117 +124,98 @@ export function LivePlayer({
     const [isMuted, setIsMuted] = useState(true);
     const [volume, setVolume] = useState(1);
     const [showControls, setShowControls] = useState(true);
-    const [showChannelInfo, setShowChannelInfo] = useState(false);
+    const [showTuneIn, setShowTuneIn] = useState(false);
+    const [showUpNext, setShowUpNext] = useState(false);
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [isLive, setIsLive] = useState(true);
     const [hasError, setHasError] = useState(false);
+    const [progress, setProgress] = useState(0);
 
-    // ── Channel Info Overlay Logic ────────────────────────────
+    // ── FAST Overlay Logic ────────────────────────────
     useEffect(() => {
-        if (channelName) {
-            setShowChannelInfo(true);
-            if (infoTimerRef.current) clearTimeout(infoTimerRef.current);
-            infoTimerRef.current = setTimeout(() => setShowChannelInfo(false), 4000);
+        if (streamUrl) {
+            setShowTuneIn(true);
+            const timer = setTimeout(() => setShowTuneIn(false), 2500);
+            return () => clearTimeout(timer);
         }
-    }, [channelName, streamUrl]);
+    }, [streamUrl]);
+
+    // Show "Up Next" toast when video is > 95% or with 30s left
+    useEffect(() => {
+        const video = videoRef.current;
+        if (!video) return;
+
+        const onTime = () => {
+            if (video.duration) {
+                const pct = (video.currentTime / video.duration) * 100;
+                setProgress(pct);
+
+                // Show "Up Next" toast if we have a next program and we're near the end
+                if (nextProgram && (pct > 95 || (video.duration - video.currentTime < 30))) {
+                    setShowUpNext(true);
+                } else {
+                    setShowUpNext(false);
+                }
+            }
+        };
+
+        video.addEventListener("timeupdate", onTime);
+        return () => video.removeEventListener("timeupdate", onTime);
+    }, [nextProgram]);
 
     // ── Keyboard Navigation ───────────────────────────────────
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
-            // Only trigger if in fullscreen or if the video container has focus
             if (!document.fullscreenElement && document.activeElement !== containerRef.current) return;
-
-            if (e.key === "ArrowUp" || e.key === "ArrowRight") {
-                e.preventDefault();
-                onNext?.();
-            } else if (e.key === "ArrowDown" || e.key === "ArrowLeft") {
-                e.preventDefault();
-                onPrev?.();
-            }
+            if (e.key === "ArrowUp") { e.preventDefault(); onNext?.(); }
+            else if (e.key === "ArrowDown") { e.preventDefault(); onPrev?.(); }
         };
-
         window.addEventListener("keydown", handleKeyDown);
         return () => window.removeEventListener("keydown", handleKeyDown);
     }, [onNext, onPrev]);
 
-    // ── Attach HLS or native source ──────────────────────────
     const attachSource = useCallback((url: string) => {
         const video = videoRef.current;
         if (!video || !url) return;
-
         setHasError(false);
-
-        // Clean up previous HLS instance
-        if (hlsRef.current) {
-            hlsRef.current.destroy();
-            hlsRef.current = null;
-        }
+        if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null; }
 
         if (url.includes(".m3u8")) {
             if (Hls.isSupported()) {
-                const hls = new Hls({
-                    enableWorker: true,
-                    lowLatencyMode: true,
-                });
+                const hls = new Hls({ enableWorker: true, lowLatencyMode: true });
                 hls.loadSource(url);
                 hls.attachMedia(video);
-                hls.on(Hls.Events.MANIFEST_PARSED, () => {
-                    video.play().catch(() => { });
-                });
-                let retryCount = 0;
-                const MAX_RETRIES = 3;
+                hls.on(Hls.Events.MANIFEST_PARSED, () => video.play().catch(() => { }));
                 hls.on(Hls.Events.ERROR, (_event, data) => {
                     if (data.fatal) {
-                        console.warn("HLS error (attempt " + (retryCount + 1) + "):", data.type, data.details);
-                        if (data.type === Hls.ErrorTypes.NETWORK_ERROR && retryCount < MAX_RETRIES) {
-                            retryCount++;
-                            setTimeout(() => hls.startLoad(), 2000);
-                        } else if (data.type === Hls.ErrorTypes.MEDIA_ERROR && retryCount < MAX_RETRIES) {
-                            retryCount++;
-                            hls.recoverMediaError();
-                        } else {
-                            setHasError(true);
-                        }
+                        if (data.type === Hls.ErrorTypes.NETWORK_ERROR) hls.startLoad();
+                        else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) hls.recoverMediaError();
+                        else setHasError(true);
                     }
                 });
                 hlsRef.current = hls;
                 setIsLive(true);
             } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
-                // Safari native HLS
                 video.src = url;
                 video.play().catch(() => { });
                 setIsLive(true);
             }
         } else {
-            // Direct MP4 or other format
             video.src = url;
             video.play().catch(() => { });
             setIsLive(false);
         }
     }, []);
 
-    // ── Initialize player ────────────────────────────────────
     useEffect(() => {
-        if (streamUrl) {
-            attachSource(streamUrl);
-        }
-        return () => {
-            if (hlsRef.current) {
-                hlsRef.current.destroy();
-                hlsRef.current = null;
-            }
-        };
+        if (streamUrl) attachSource(streamUrl);
+        return () => { if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null; } };
     }, [streamUrl, attachSource]);
 
-    // ── Video event listeners ────────────────────────────────
     useEffect(() => {
         const video = videoRef.current;
         if (!video) return;
-
-        const onPlay = () => {
-            setIsPlaying(true);
-            setHasStartedPlaying(true);
-        };
+        const onPlay = () => { setIsPlaying(true); setHasStartedPlaying(true); };
         const onPause = () => setIsPlaying(false);
         const onError = () => setHasError(true);
         const onEnded = () => {
@@ -168,12 +224,10 @@ export function LivePlayer({
                 attachSource(playlist[currentPlaylistIndex.current]);
             }
         };
-
         video.addEventListener("play", onPlay);
         video.addEventListener("pause", onPause);
         video.addEventListener("error", onError);
         video.addEventListener("ended", onEnded);
-
         return () => {
             video.removeEventListener("play", onPlay);
             video.removeEventListener("pause", onPause);
@@ -182,59 +236,24 @@ export function LivePlayer({
         };
     }, [playlist, attachSource]);
 
-    // ── Fullscreen listener ──────────────────────────────────
-    useEffect(() => {
-        const handler = () => setIsFullscreen(!!document.fullscreenElement);
-        document.addEventListener("fullscreenchange", handler);
-        return () => document.removeEventListener("fullscreenchange", handler);
-    }, []);
-
-    // ── Auto-hide controls ───────────────────────────────────
     const resetHideTimer = useCallback(() => {
         setShowControls(true);
         if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
-        if (isPlaying) {
-            hideTimerRef.current = setTimeout(() => setShowControls(false), 3000);
-        }
+        if (isPlaying) hideTimerRef.current = setTimeout(() => setShowControls(false), 3000);
     }, [isPlaying]);
 
-    useEffect(() => {
-        return () => {
-            if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
-        };
-    }, []);
-
-    // ── Control handlers ─────────────────────────────────────
     const togglePlay = () => {
         const v = videoRef.current;
         if (!v) return;
-        if (v.paused) v.play().catch(() => { });
-        else v.pause();
+        if (v.paused) v.play().catch(() => { }); else v.pause();
     };
 
     const toggleMute = (e: React.MouseEvent) => {
         e.stopPropagation();
         const v = videoRef.current;
         if (!v) return;
-        if (v.muted) {
-            v.muted = false;
-            v.volume = volume;
-            setIsMuted(false);
-        } else {
-            v.muted = true;
-            setIsMuted(true);
-        }
-    };
-
-    const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        e.stopPropagation();
-        const val = parseFloat(e.target.value);
-        setVolume(val);
-        if (videoRef.current) {
-            videoRef.current.volume = val;
-            videoRef.current.muted = val === 0;
-            setIsMuted(val === 0);
-        }
+        v.muted = !v.muted;
+        setIsMuted(v.muted);
     };
 
     const toggleFullscreen = (e: React.MouseEvent) => {
@@ -245,138 +264,146 @@ export function LivePlayer({
         else c.requestFullscreen();
     };
 
-    // ── Fallback: Broadcast Offline ──────────────────────────
-    if (!streamUrl) {
+    if (!streamUrl || hasError) {
         return (
-            <div className="w-full h-full bg-zinc-900/80 flex flex-col items-center justify-center overflow-hidden shadow-2xl ring-1 ring-white/10">
-                <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4">
-                    <svg className="w-8 h-8 text-white/30" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                    </svg>
+            <div className="w-full h-full bg-zinc-950 flex flex-col items-center justify-center">
+                <div className={cn("w-16 h-16 rounded-full flex items-center justify-center mb-4", hasError ? "bg-red-500/10" : "bg-white/5")}>
+                    {hasError ? <Zap className="w-8 h-8 text-red-500" /> : <Tv className="w-8 h-8 text-white/20" />}
                 </div>
-                <p className="text-white/50 text-sm font-bold uppercase tracking-widest">Broadcast Offline</p>
-                <p className="text-white/30 text-xs mt-2">This channel is currently not transmitting.</p>
+                <p className="text-white/50 text-sm font-bold uppercase tracking-widest">{hasError ? "Stream Unavailable" : "Broadcast Offline"}</p>
             </div>
         );
     }
 
-    // ── Error state ──────────────────────────────────────────
-    if (hasError) {
-        return (
-            <div className="w-full h-full bg-zinc-900/80 flex flex-col items-center justify-center overflow-hidden shadow-2xl ring-1 ring-white/10">
-                <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mb-4">
-                    <svg className="w-8 h-8 text-red-400/60" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                </div>
-                <p className="text-white/50 text-sm font-bold uppercase tracking-widest">Stream Unavailable</p>
-                <p className="text-white/30 text-xs mt-2">Unable to load this stream. Try another channel.</p>
-            </div>
-        );
-    }
+    const accentBg = accentColor === "yellow" ? "bg-yellow-500" : accentColor === "amber" ? "bg-amber-600" : accentColor === "purple" ? "bg-purple-500" : "bg-red-600";
+    const accentText = accentColor === "yellow" ? "text-yellow-500" : accentColor === "amber" ? "text-amber-500" : accentColor === "purple" ? "text-purple-400" : "text-red-500";
+    const accentBorder = accentColor === "yellow" ? "border-yellow-600/40" : accentColor === "amber" ? "border-amber-600/40" : accentColor === "purple" ? "border-purple-500/40" : "border-red-500/40";
 
     return (
         <div
             ref={containerRef}
             tabIndex={0}
             onMouseMove={resetHideTimer}
+            onMouseLeave={() => isPlaying && setShowControls(false)}
             onClick={togglePlay}
-            className="relative w-full h-full bg-black overflow-hidden shadow-2xl ring-1 ring-white/10 group cursor-pointer outline-none"
+            className="relative w-full h-full bg-black overflow-hidden group cursor-pointer outline-none"
         >
-            {/* Native HTML5 Video */}
-            <video
-                ref={videoRef}
-                poster={posterUrl}
-                muted={isMuted}
-                playsInline
-                autoPlay
-                className="w-full h-full object-contain bg-black pointer-events-none"
-            />
+            <video ref={videoRef} poster={posterUrl} muted={isMuted} playsInline autoPlay className="w-full h-full object-contain pointer-events-none" />
 
-            {/* ── Channel Info Overlay ───────────────────────── */}
-            <div className={`absolute top-6 left-6 z-50 transition-all duration-500 transform ${showChannelInfo ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-8 pointer-events-none'}`}>
-                <div className="flex items-center gap-4 bg-black/60 backdrop-blur-xl border border-white/10 p-3 pr-6 rounded-2xl shadow-2xl">
-                    <div className="w-14 h-14 bg-gradient-to-br from-zinc-800 to-zinc-900 rounded-xl flex items-center justify-center overflow-hidden border border-white/5 shadow-inner">
-                        {channelLogo ? (
-                            <img src={channelLogo} alt={channelName} className="w-full h-full object-contain p-2" />
-                        ) : (
-                            <Tv className="w-6 h-6 text-white/20" />
-                        )}
+            <TuneInOverlay channelName={channelName} channelNumber={channelNumber} visible={showTuneIn} accent={accentColor} />
+            <UpNextToast nextFilm={nextProgram} visible={showUpNext} accent={accentColor} />
+
+            {/* Now Playing Metadata (Dynamic Slide-in) */}
+            {currentProgram && (
+                <div className={cn(
+                    "absolute top-8 left-8 z-40 transition-all duration-700 max-w-lg",
+                    showControls || showTuneIn ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-8 pointer-events-none"
+                )}>
+                    <div className="flex items-start gap-4 p-4 bg-black/60 backdrop-blur-2xl rounded-3xl border border-white/10 shadow-2xl">
+                        <div className={cn("w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg", accentBg)}>
+                            {channelLogo ? <img src={channelLogo} alt={channelName} className="w-8 h-8 object-contain" /> : <Tv className="w-8 h-8 text-white" />}
+                        </div>
+                        <div className="min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                                <Radio className={cn("w-3 h-3 animate-pulse", accentText)} />
+                                <span className={cn("text-[10px] font-black uppercase tracking-widest", accentText)}>Now Playing • CH {channelNumber || 1}</span>
+                            </div>
+                            <h3 className="text-xl font-black text-white leading-tight truncate">{currentProgram.title}</h3>
+                            <div className="flex items-center gap-2 mt-1 text-[11px] text-gray-400 font-bold">
+                                {currentProgram.year && <span>{currentProgram.year}</span>}
+                                {currentProgram.director && <><span>•</span><span>{currentProgram.director}</span></>}
+                                <span className={cn("px-1.5 py-0.5 rounded text-[9px]", accentBg, "text-white")}>FAST</span>
+                            </div>
+                        </div>
                     </div>
-                    <div>
-                        <div className="text-white/40 text-[10px] uppercase font-black tracking-[0.2em] mb-0.5">Now Playing</div>
-                        <div className="text-white text-lg font-bold tracking-tight leading-tight">{channelName}</div>
-                    </div>
+                </div>
+            )}
+
+            {/* Program Progress Bar */}
+            <div className={cn(
+                "absolute bottom-0 left-0 right-0 h-1.5 bg-white/10 z-50 transition-all cursor-pointer group/progress",
+                showControls ? "opacity-100 h-2" : "opacity-0"
+            )}>
+                <div
+                    className={cn("h-full transition-all relative", accentBg)}
+                    style={{ width: `${progress}%` }}
+                >
+                    <div className={cn("absolute right-0 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full shadow-2xl scale-0 group-hover/progress:scale-100 transition-transform", accentBg)} />
                 </div>
             </div>
 
-            {/* ── Quick Channel Switch Overlays (Right Side) ──── */}
-            <div className={`absolute right-6 top-1/2 -translate-y-1/2 z-40 flex flex-col gap-3 transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
-                <button
-                    onClick={(e) => { e.stopPropagation(); onNext?.(); }}
-                    className="w-12 h-12 rounded-full bg-white/5 hover:bg-white/20 border border-white/10 backdrop-blur-md flex items-center justify-center transition-all hover:scale-110 active:scale-90 group/btn"
-                    title="Channel Up"
-                >
-                    <ChevronUp className="w-6 h-6 text-white/50 group-hover/btn:text-white transition-colors" />
-                </button>
-                <div className="h-px w-6 bg-white/10 mx-auto" />
-                <button
-                    onClick={(e) => { e.stopPropagation(); onPrev?.(); }}
-                    className="w-12 h-12 rounded-full bg-white/5 hover:bg-white/20 border border-white/10 backdrop-blur-md flex items-center justify-center transition-all hover:scale-110 active:scale-90 group/btn"
-                    title="Channel Down"
-                >
-                    <ChevronDown className="w-6 h-6 text-white/50 group-hover/btn:text-white transition-colors" />
-                </button>
-            </div>
-
-            {/* ── Custom Control Bar ─────────────────────────── */}
-            <div className={`absolute bottom-0 left-0 right-0 z-50 transition-all duration-300 pointer-events-none ${showControls ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-                <div className="bg-gradient-to-t from-black/90 via-black/40 to-transparent pt-20 pb-6 px-8 flex items-center justify-between pointer-events-auto">
-                    <div className="flex items-center gap-6">
-                        <button onClick={togglePlay} className="text-white hover:text-red-500 transition-colors">
-                            {isPlaying ? <Pause className="w-8 h-8 fill-current" /> : <Play className="w-8 h-8 fill-current" />}
+            {/* Custom Control Bar */}
+            <div className={cn("absolute bottom-0 left-0 right-0 z-40 transition-all duration-300 pointer-events-none", showControls ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4")}>
+                <div className="bg-gradient-to-t from-black/95 via-black/40 to-transparent pt-32 pb-8 px-10 flex items-center justify-between pointer-events-auto">
+                    <div className="flex items-center gap-8">
+                        <button
+                            onClick={togglePlay}
+                            className="text-white hover:scale-110 transition-transform active:scale-95 shadow-2xl"
+                            title={isPlaying ? "Pause" : "Play"}
+                        >
+                            {isPlaying ? <Pause className="w-10 h-10 fill-white" /> : <Play className="w-10 h-10 fill-white" />}
                         </button>
 
                         <button
                             onClick={(e) => { e.stopPropagation(); onToggleChat?.(); }}
-                            className="text-white/70 hover:text-white transition-colors"
-                            title="Open Chat"
+                            className="text-white/60 hover:text-white transition-colors"
+                            title="Toggle Chat"
                         >
-                            <MessageCircle className="w-7 h-7" />
+                            <MessageCircle className="w-8 h-8" />
                         </button>
 
-                        <div className="flex items-center gap-2 group/volume">
-                            <button onClick={toggleMute} className="text-white/70 hover:text-white transition-colors">
-                                {isMuted || volume === 0 ? <VolumeX className="w-6 h-6" /> : <Volume2 className="w-6 h-6" />}
+                        <div className="flex items-center gap-3 group/volume">
+                            <button
+                                onClick={toggleMute}
+                                className="text-white/60 hover:text-white transition-colors"
+                                title={isMuted ? "Unmute" : "Mute"}
+                            >
+                                {isMuted ? <VolumeX className="w-7 h-7" /> : <Volume2 className="w-7 h-7" />}
                             </button>
-                            <input
-                                type="range"
-                                aria-label="Volume"
-                                min="0"
-                                max="1"
-                                step="0.05"
-                                value={isMuted ? 0 : volume}
-                                onChange={handleVolumeChange}
-                                onClick={(e) => e.stopPropagation()}
-                                className="w-0 group-hover/volume:w-24 transition-all duration-300 h-1 bg-white/20 rounded-lg appearance-none cursor-pointer accent-white"
-                            />
+                            <div className="w-0 group-hover:w-24 transition-all duration-300 h-1 bg-white/20 rounded-full overflow-hidden">
+                                <div className="h-full bg-white transition-all" style={{ width: `${volume * 100}%` }} />
+                            </div>
                         </div>
                     </div>
 
                     <div className="flex items-center gap-6">
-                        <div className="flex items-center gap-1.5 px-3 py-1 bg-red-600 rounded text-[10px] font-black uppercase tracking-widest text-white shadow-lg shadow-red-600/20">
-                            <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-                            Live
+                        <div className="flex flex-col items-end mr-2">
+                            <div className="flex items-center gap-2">
+                                <div className="w-2 h-2 rounded-full bg-red-600 animate-pulse shadow-[0_0_10px_rgba(220,38,38,1)]" />
+                                <span className="text-xs font-black uppercase tracking-[0.2em]">Live</span>
+                            </div>
                         </div>
-                        <button onClick={toggleFullscreen} className="text-white/70 hover:text-white transition-colors">
-                            {isFullscreen ? <Minimize className="w-7 h-7" /> : <Maximize className="w-7 h-7" />}
+                        <button
+                            onClick={toggleFullscreen}
+                            className="text-white/60 hover:text-white transition-colors"
+                            title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
+                        >
+                            {isFullscreen ? <Minimize className="w-8 h-8" /> : <Maximize className="w-8 h-8" />}
                         </button>
                     </div>
                 </div>
-            </div>
 
-            {/* ── Interaction Layer for Mobile ───────────────── */}
-            <div className={`absolute inset-0 z-10 transition-colors duration-300 ${!isPlaying && hasStartedPlaying ? 'bg-black/20' : ''}`} />
+                {/* Quick Navigation Overlays */}
+                <div className={cn("absolute right-8 top-1/2 -translate-y-1/2 z-40 flex flex-col gap-4 transition-all duration-300", showControls ? "opacity-100 translate-x-0" : "opacity-0 translate-x-4 pointer-events-none")}>
+                    <button
+                        onClick={(e) => { e.stopPropagation(); onNext?.(); }}
+                        className="w-14 h-14 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 backdrop-blur-xl flex items-center justify-center transition-all hover:scale-110 active:scale-90 group/btn"
+                        title="Next Channel"
+                    >
+                        <ChevronUp className="w-7 h-7 text-white/40 group-hover/btn:text-white" />
+                    </button>
+                    <div className="flex items-center justify-center">
+                        <div className="w-1.5 h-1.5 bg-white/20 rounded-full" />
+                    </div>
+                    <button
+                        onClick={(e) => { e.stopPropagation(); onPrev?.(); }}
+                        className="w-14 h-14 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 backdrop-blur-xl flex items-center justify-center transition-all hover:scale-110 active:scale-90 group/btn"
+                        title="Previous Channel"
+                    >
+                        <ChevronDown className="w-7 h-7 text-white/40 group-hover/btn:text-white" />
+                    </button>
+                </div>
+            </div>
         </div>
     );
 }

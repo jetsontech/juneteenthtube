@@ -141,8 +141,8 @@ export function LiveChat({ channelId, channelName, isOpen, onClose }: LiveChatPr
             )}
 
             {/* Chat Drawer */}
-            <div className={`fixed top-0 right-0 bottom-0 w-[85vw] max-w-[400px] z-[100] transition-all duration-500 transform ${isOpen ? "translate-x-0" : "translate-x-full"} flex flex-col`}>
-                <div className="flex-1 flex flex-col bg-zinc-900/80 backdrop-blur-2xl border-l border-white/10 shadow-[-10px_0_40px_rgba(0,0,0,0.5)]">
+            <div className={`fixed bottom-6 right-6 w-[350px] h-[500px] max-h-[70vh] z-[100] transition-all duration-500 transform ${isOpen ? "translate-y-0 opacity-100 scale-100" : "translate-y-12 opacity-0 scale-95 pointer-events-none"} flex flex-col`}>
+                <div className="flex-1 flex flex-col bg-zinc-900/90 backdrop-blur-2xl border border-white/10 shadow-[-10px_0_40px_rgba(0,0,0,0.5)] rounded-3xl overflow-hidden">
 
                     {/* Header */}
                     <div className="p-4 border-b border-white/10 flex items-center justify-between">

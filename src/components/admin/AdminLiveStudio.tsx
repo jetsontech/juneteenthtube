@@ -246,12 +246,34 @@ export function AdminLiveStudio() {
                     />
                 </div>
 
-                <button
-                    onClick={() => setIsAddModalOpen(true)}
-                    className="flex items-center justify-center gap-2 px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-2xl transition-all font-bold text-sm shrink-0 shadow-[0_0_15px_rgba(220,38,38,0.3)]"
-                >
-                    <Plus className="w-4 h-4" /> Add IPTV Stream
-                </button>
+                <div className="flex items-center gap-3">
+                    <button
+                        onClick={async () => {
+                            if (confirm("This will ingest and schedule all legacy vault videos for 'J-Tube Originals'. Proceed?")) {
+                                try {
+                                    const res = await fetch('/api/admin/vault-rotation', { method: 'POST' });
+                                    const data = await res.json();
+                                    if (data.success) {
+                                        alert(`Sync Successful!\nSynced: ${data.syncedCount} new videos\nScheduled: ${data.scheduledCount} videos`);
+                                    } else {
+                                        throw new Error(data.error);
+                                    }
+                                } catch (err: any) {
+                                    alert("Sync Failed: " + err.message);
+                                }
+                            }
+                        }}
+                        className="flex items-center justify-center gap-2 px-6 py-3 bg-white/5 hover:bg-white/10 text-white rounded-2xl transition-all font-bold text-sm shrink-0 border border-white/10"
+                    >
+                        <RefreshCw className="w-4 h-4" /> Sync Vault Videos
+                    </button>
+                    <button
+                        onClick={() => setIsAddModalOpen(true)}
+                        className="flex items-center justify-center gap-2 px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-2xl transition-all font-bold text-sm shrink-0 shadow-[0_0_15px_rgba(220,38,38,0.3)]"
+                    >
+                        <Plus className="w-4 h-4" /> Add IPTV Stream
+                    </button>
+                </div>
             </div>
 
             {/* Channels Table */}
