@@ -36,6 +36,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [selectedThumbnail, setSelectedThumbnail] = useState<File | null>(null);
     const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
+    const progressFillRef = useRef<HTMLDivElement>(null);
 
 
     useEffect(() => {
@@ -47,6 +48,12 @@ export function Navbar({ onMenuClick }: NavbarProps) {
         document.addEventListener("mousedown", handleClickOutside);
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
+
+    useEffect(() => {
+        if (progressFillRef.current) {
+            progressFillRef.current.style.setProperty("--progress", `${Math.min(100, uploadProgress)}%`);
+        }
+    }, [uploadProgress]);
 
     const handleOpenAuth = (mode: 'login' | 'signup') => {
         setAuthMode(mode);
@@ -440,7 +447,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                                 <span className="progress-pct">{Math.min(100, Math.floor(uploadProgress))}%</span>
                             </div>
                             <div className="progress-track">
-                                <div className="progress-fill" style={{ "--progress": `${Math.min(100, uploadProgress)}%` } as React.CSSProperties} />
+                                <div ref={progressFillRef} className="progress-fill" />
                             </div>
                             <div className="progress-pulse">
                                 <div className="pulse-dot" />
