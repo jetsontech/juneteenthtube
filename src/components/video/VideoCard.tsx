@@ -131,7 +131,7 @@ function VideoCardInner({ video }: { video: VideoProps }) {
     return (
         <Link
             href={`/watch/${video.id}`}
-            className="vcard"
+            className="vcard premium-card gloss-shine shadow-2xl transition-all duration-500"
             onMouseEnter={() => {
                 setIsHovered(true);
                 preventNavigationRef.current = false; // Reset on every hover to be safe
@@ -144,6 +144,7 @@ function VideoCardInner({ video }: { video: VideoProps }) {
             onTouchMove={handleTouchMove}
         >
             <div ref={cardRef} className="vcard-content relative aspect-video w-full overflow-hidden bg-zinc-900 group">
+                <div className="gloss-overlay" />
                 <Image
                     src={imgSrc}
                     alt={video.title}

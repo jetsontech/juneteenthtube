@@ -153,7 +153,8 @@ export function Navbar({ onMenuClick }: NavbarProps) {
 
     return (
         <>
-            <nav className="navbar">
+            <nav className="navbar glass-heavy">
+                <div className="gloss-overlay" />
                 <div className="navbar-left">
                     <button
                         onClick={onMenuClick}

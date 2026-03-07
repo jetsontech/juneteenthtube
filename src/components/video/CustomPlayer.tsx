@@ -551,9 +551,10 @@ export function CustomPlayer({ src, srcH264, poster }: CustomPlayerProps) {
                         px-4 
                         pb-4 
                         pt-12 
-                        bg-gradient-to-t from-black/90 via-black/40 to-transparent pointer-events-auto
+                        glass-panel pointer-events-auto
                     "
                 >
+                    <div className="gloss-overlay" />
                     {/* Progress Bar */}
                     <div
                         ref={progressBarRef}

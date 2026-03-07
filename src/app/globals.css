@@ -481,29 +481,78 @@ input[type="range"],
 }
 
 .glass-heavy {
-  background: rgba(10, 10, 10, 0.8);
-  backdrop-filter: blur(24px) saturate(200%);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  background: rgba(10, 10, 10, 0.82);
+  backdrop-filter: blur(32px) saturate(210%);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 8px 48px rgba(0, 0, 0, 0.5);
 }
 
 .glass-panel {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
-  backdrop-filter: blur(20px);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.035) 0%, rgba(255, 255, 255, 0.01) 100%);
+  backdrop-filter: blur(24px) saturate(160%);
   border: 1px solid rgba(255, 255, 255, 0.05);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.36);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
   position: relative;
   overflow: hidden;
 }
 
-/* The "Gloss" Shine Effect */
+/* The "Gloss" Shine Effect - Advanced Systemwide */
 .gloss-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(125deg, rgba(255, 255, 255, 0.02) 0%, rgba(255, 255, 255, 0.0) 40%, rgba(0, 0, 0, 0) 100%);
-  backdrop-filter: blur(20px);
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.08) 0%, 
+    rgba(255, 255, 255, 0.02) 15%, 
+    rgba(255, 255, 255, 0) 35%, 
+    rgba(255, 255, 255, 0) 65%, 
+    rgba(255, 255, 255, 0.03) 85%, 
+    rgba(255, 255, 255, 0.05) 100%
+  );
   pointer-events: none;
-  z-index: 10;
+  z-index: 5;
+}
+
+.gloss-shine {
+  position: relative;
+  overflow: hidden;
+}
+
+.gloss-shine::after {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    45deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.02) 45%,
+    rgba(255, 255, 255, 0.05) 50%,
+    rgba(255, 255, 255, 0.02) 55%,
+    transparent 100%
+  );
+  transform: rotate(25deg);
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+}
+
+.gloss-shine:hover::after {
+  transform: rotate(25deg) translate(15%, 15%);
+}
+
+.premium-card {
+  background: rgba(15, 15, 15, 0.7);
+  backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 12px 40px -10px rgba(0, 0, 0, 0.6);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.premium-card:hover {
+  border-color: rgba(212, 175, 55, 0.3);
+  background: rgba(20, 20, 20, 0.8);
+  box-shadow: 0 20px 60px -12px rgba(0, 0, 0, 0.8), 0 0 20px rgba(212, 175, 55, 0.05);
 }
 
 .navbar-layout {

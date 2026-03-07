@@ -56,7 +56,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 onClick={() => setIsOpen(false)}
             />
 
-            <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
+            <aside className={`sidebar glass-heavy ${isOpen ? 'open' : ''}`}>
+                <div className="gloss-overlay" />
                 <div className="sidebar-section-title">Discover</div>
 
                 {mainLinks.map((link) => {
