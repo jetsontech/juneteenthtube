@@ -25,17 +25,19 @@ export default function cloudflareLoader({
     }
 
     // R2 Domain Handling
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://juneteenthtube.com';
+
     if (src.includes('r2.dev') || src.includes('pub-efcc4aa0b3b24e3d97760577b0ec20bd.r2.dev')) {
         const paramsString = params.join(',');
-        return `https://juneteenthtube.com/cdn-cgi/image/${paramsString}/${encodeURIComponent(src)}`;
+        return `${siteUrl}/cdn-cgi/image/${paramsString}/${encodeURIComponent(src)}`;
     }
 
     // For local paths, we need to map them to the full URL so Cloudflare can fetch them
     let fullSrc = src;
     if (src.startsWith('/')) {
-        fullSrc = `https://juneteenthtube.com${src}`;
+        fullSrc = `${siteUrl}${src}`;
     }
 
     const paramsString = params.join(',');
-    return `https://juneteenthtube.com/cdn-cgi/image/${paramsString}/${encodeURIComponent(fullSrc)}`;
+    return `${siteUrl}/cdn-cgi/image/${paramsString}/${encodeURIComponent(fullSrc)}`;
 }

@@ -46,7 +46,11 @@ export default function WatchPage({
     // Derived State (No side effects)
     const video = useMemo(() => {
         if (!resolvedParams.id || videos.length === 0) return undefined;
-        return getVideoById(resolvedParams.id);
+        const v = getVideoById(resolvedParams.id);
+
+        // If the ID looks like it's from a mock but isn't found, 
+        // it might be because the context is still loading or has different IDs
+        return v;
     }, [resolvedParams.id, videos, getVideoById]);
 
     // Interaction State

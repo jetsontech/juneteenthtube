@@ -61,4 +61,4 @@ Access to the main platform is restricted via the Media Gateway. For official ac
 
 ## 📄 License
 
-© 2026 Net Post Media, llc. All rights reserved. Code provided under MIT License where applicable.
+© 2026 JuneteenthTube. All rights reserved. Code provided under MIT License where applicable.

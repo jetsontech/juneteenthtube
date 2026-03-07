@@ -131,7 +131,10 @@ function VideoCardInner({ video }: { video: VideoProps }) {
         <Link
             href={`/watch/${video.id}`}
             className="vcard"
-            onMouseEnter={() => setIsHovered(true)}
+            onMouseEnter={() => {
+                setIsHovered(true);
+                preventNavigationRef.current = false; // Reset on every hover to be safe
+            }}
             onMouseLeave={() => setIsHovered(false)}
             onClick={handleClick}
             onTouchStart={handleTouchStart}

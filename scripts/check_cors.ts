@@ -9,14 +9,15 @@ async function checkCors() {
 
     const targetUrl = "https://pub-efcc4aa0b3b24e3d97760577b0ec20bd.r2.dev/random-file";
 
+    const origin = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3001";
     console.log(`🔍 Checking CORS for: ${targetUrl}`);
-    console.log(`   Origin: http://localhost:3001`);
+    console.log(`   Origin: ${origin}`);
 
     try {
         const res = await fetch(targetUrl, {
             method: "OPTIONS",
             headers: {
-                "Origin": "http://localhost:3001",
+                "Origin": origin,
                 "Access-Control-Request-Method": "PUT"
             }
         });

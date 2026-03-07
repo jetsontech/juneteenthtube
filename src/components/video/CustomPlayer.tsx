@@ -35,6 +35,15 @@ export function CustomPlayer({ src, srcH264, poster }: CustomPlayerProps) {
     const [triedFallback, setTriedFallback] = useState(false);
     const [playbackError, setPlaybackError] = useState<string | null>(null);
 
+    // Update active source if props change (e.g., navigating between videos)
+    useEffect(() => {
+        setActiveSrc(srcH264 || src);
+        setTriedFallback(false);
+        setPlaybackError(null);
+        setHasStartedPlaying(false);
+        setIsBuffering(true);
+    }, [src, srcH264]);
+
     const videoRef = useRef<HTMLVideoElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
 
@@ -151,8 +160,15 @@ export function CustomPlayer({ src, srcH264, poster }: CustomPlayerProps) {
                     setPlaybackError('Video format not supported. Try viewing in Chrome or Safari.');
                 }
             } else if (error?.code === 3 || error?.code === 4) {
-                setPlaybackError('Video format not supported. Try viewing in Chrome or Safari.');
+                setPlaybackError('The video file could not be played. This might be due to an unsupported format or a broken link.');
+            } else {
+                setPlaybackError('An error occurred while trying to play this video.');
             }
+            setIsBuffering(false);
+        };
+
+        const handleCanPlay = () => {
+            setPlaybackError(null);
             setIsBuffering(false);
         };
 

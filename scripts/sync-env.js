@@ -22,7 +22,8 @@ const keysToSync = [
     'S3_REGION',
     'S3_ACCESS_KEY_ID',
     'S3_SECRET_ACCESS_KEY',
-    'S3_PUBLIC_DOMAIN' // Optional but good to have if present
+    'S3_PUBLIC_DOMAIN', // Optional but good to have if present
+    'NEXT_PUBLIC_SITE_URL'
 ];
 
 console.log('Starting Vercel Environment Sync...');
