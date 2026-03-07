@@ -529,10 +529,9 @@ export function CustomPlayer({ src, srcH264, poster }: CustomPlayerProps) {
                         "px-2.5 py-1 backdrop-blur-md rounded-md text-[11px] font-black tracking-tighter border shadow-2xl flex items-center gap-1.5 animate-in fade-in slide-in-from-right-4 duration-700",
                         "bg-black/40 border-white/10 text-white/70"
                     )}>
-                        <span className="logo-text pazzaz-text">
-                            Juneteenth Tube
+                        <span className="drop-shadow-sm">
+                            {qualityBadge || ""}
                         </span>
-                        <span className="text-[8px] text-white/20 absolute -bottom-1 right-0 font-mono">DEBUG_v1.1</span>
                     </div>
                 </div>
             )}
