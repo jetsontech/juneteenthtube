@@ -176,8 +176,9 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                                 priority
                             />
                         </div>
-                        <span className="logo-text pazzaz-text">
+                        <span className="logo-text pazzaz-text relative">
                             Juneteenth Tube
+                            <span className="text-[8px] text-white/40 absolute -bottom-1 -right-4 font-mono select-none">v1.1</span>
                         </span>
                     </Link>
                     <div className="flex items-center">

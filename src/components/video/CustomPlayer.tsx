@@ -35,8 +35,9 @@ export function CustomPlayer({ src, srcH264, poster }: CustomPlayerProps) {
     const [triedFallback, setTriedFallback] = useState(false);
     const [playbackError, setPlaybackError] = useState<string | null>(null);
 
-    // Update active source if props change (e.g., navigating between videos)
+    // Link: https://juneteenthtube-h0sp0offd-jets-projects-a83f6733.vercel.app
     useEffect(() => {
+        console.log(`[CustomPlayer] Source updated:`, { src, srcH264 });
         setActiveSrc(srcH264 || src);
         setTriedFallback(false);
         setPlaybackError(null);
@@ -528,9 +529,10 @@ export function CustomPlayer({ src, srcH264, poster }: CustomPlayerProps) {
                         "px-2.5 py-1 backdrop-blur-md rounded-md text-[11px] font-black tracking-tighter border shadow-2xl flex items-center gap-1.5 animate-in fade-in slide-in-from-right-4 duration-700",
                         "bg-black/40 border-white/10 text-white/70"
                     )}>
-                        <span className="drop-shadow-sm">
-                            {qualityBadge || ""}
+                        <span className="logo-text pazzaz-text">
+                            Juneteenth Tube
                         </span>
+                        <span className="text-[8px] text-white/20 absolute -bottom-1 right-0 font-mono">DEBUG_v1.1</span>
                     </div>
                 </div>
             )}

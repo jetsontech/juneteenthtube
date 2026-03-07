@@ -120,12 +120,13 @@ function VideoCardInner({ video }: { video: VideoProps }) {
     }, []);
 
     const handleClick = useCallback((e: React.MouseEvent) => {
+        console.log(`[VideoCard] Clicked: ${video.id}, preventNavigation: ${preventNavigationRef.current}`);
         if (preventNavigationRef.current) {
             e.preventDefault();
             e.stopPropagation();
             preventNavigationRef.current = false;
         }
-    }, []);
+    }, [video.id]);
 
     return (
         <Link
