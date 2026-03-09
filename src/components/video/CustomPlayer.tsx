@@ -617,7 +617,6 @@ export function CustomPlayer({ src, srcH264, poster }: CustomPlayerProps) {
                         {/* Visual Progress Fill */}
                         <div
                             className="absolute top-0 left-0 h-full bg-j-red rounded-full z-10 pointer-events-none progress-fill"
-                            style={{ width: 'var(--progress-percent, 0%)' }}
                         />
 
                         {/* Scrubber Knob (Visual only) */}
