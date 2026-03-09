@@ -585,7 +585,7 @@ export function CustomPlayer({ src, srcH264, poster }: CustomPlayerProps) {
                     {/* Progress Bar */}
                     <div
                         ref={progressBarRef}
-                        className="relative group/progress h-2 mb-4 cursor-pointer w-full progress-fill"
+                        className="relative group/progress h-2 mb-4 cursor-pointer w-full"
                     >
                         {/* Background Track */}
                         <div className="absolute top-0 left-0 right-0 bottom-0 bg-white/30 rounded-full overflow-hidden">
@@ -616,7 +616,8 @@ export function CustomPlayer({ src, srcH264, poster }: CustomPlayerProps) {
 
                         {/* Visual Progress Fill */}
                         <div
-                            className="absolute top-0 left-0 h-full bg-j-red rounded-full z-10 pointer-events-none w-[var(--progress-percent)]"
+                            className="absolute top-0 left-0 h-full bg-j-red rounded-full z-10 pointer-events-none progress-fill"
+                            style={{ width: 'var(--progress-percent, 0%)' }}
                         />
 
                         {/* Scrubber Knob (Visual only) */}

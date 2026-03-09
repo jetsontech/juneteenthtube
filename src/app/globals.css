@@ -1558,7 +1558,7 @@ body.sidebar-open-mobile {
   border-radius: 99px;
   background: linear-gradient(90deg, var(--red), var(--gold), var(--green));
   transition: width .4s ease-out;
-  width: var(--progress, 0%);
+  width: var(--progress-percent, 0%);
 }
 
 .progress-pulse {
