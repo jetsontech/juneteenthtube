@@ -500,14 +500,13 @@ input[type="range"],
 .gloss-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, 
-    rgba(255, 255, 255, 0.08) 0%, 
-    rgba(255, 255, 255, 0.02) 15%, 
-    rgba(255, 255, 255, 0) 35%, 
-    rgba(255, 255, 255, 0) 65%, 
-    rgba(255, 255, 255, 0.03) 85%, 
-    rgba(255, 255, 255, 0.05) 100%
-  );
+  background: linear-gradient(135deg,
+      rgba(255, 255, 255, 0.08) 0%,
+      rgba(255, 255, 255, 0.02) 15%,
+      rgba(255, 255, 255, 0) 35%,
+      rgba(255, 255, 255, 0) 65%,
+      rgba(255, 255, 255, 0.03) 85%,
+      rgba(255, 255, 255, 0.05) 100%);
   pointer-events: none;
   z-index: 5;
 }
@@ -524,14 +523,12 @@ input[type="range"],
   left: -50%;
   width: 200%;
   height: 200%;
-  background: linear-gradient(
-    45deg,
-    transparent 0%,
-    rgba(255, 255, 255, 0.02) 45%,
-    rgba(255, 255, 255, 0.05) 50%,
-    rgba(255, 255, 255, 0.02) 55%,
-    transparent 100%
-  );
+  background: linear-gradient(45deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.02) 45%,
+      rgba(255, 255, 255, 0.05) 50%,
+      rgba(255, 255, 255, 0.02) 55%,
+      transparent 100%);
   transform: rotate(25deg);
   transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
   pointer-events: none;
@@ -620,9 +617,6 @@ body.sidebar-open-mobile {
   left: var(--pin-left);
 }
 
-.progress-fill {
-  width: var(--progress-percent, 0%);
-}
 
 /* ── Navbar ── */
 .navbar {

@@ -12,7 +12,8 @@ import {
     PictureInPicture,
     Cast,
     Maximize2,
-    AlertCircle
+    AlertCircle,
+    Settings
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -29,16 +30,16 @@ interface HTMLVideoElementWithWebKit extends HTMLVideoElement {
 }
 
 export function CustomPlayer({ src, srcH264, poster }: CustomPlayerProps) {
-    // PREFER H.264 when available — it's universally compatible (Android, iOS, Chrome, etc.)
-    // Only fall back to original source if H.264 isn't available yet (not transcoded)
-    const [activeSrc, setActiveSrc] = useState(srcH264 || src);
+    const [activeSrc, setActiveSrc] = useState(src); // Start with Master quality
+    const [qualityMode, setQualityMode] = useState<'master' | 'optimized'>('master');
     const [triedFallback, setTriedFallback] = useState(false);
     const [playbackError, setPlaybackError] = useState<string | null>(null);
 
     // Link: https://juneteenthtube-h0sp0offd-jets-projects-a83f6733.vercel.app
     useEffect(() => {
         console.log(`[CustomPlayer] Source updated:`, { src, srcH264 });
-        setActiveSrc(srcH264 || src);
+        setActiveSrc(src); // Default to master on new video
+        setQualityMode('master');
         setTriedFallback(false);
         setPlaybackError(null);
         setHasStartedPlaying(false);
@@ -149,21 +150,17 @@ export function CustomPlayer({ src, srcH264, poster }: CustomPlayerProps) {
                 networkState: video.networkState
             });
 
-            // Reactive fallback: if H.264 source fails, try original source (or vice versa)
-            if ((error?.code === 3 || error?.code === 4) && !triedFallback) {
-                const fallbackSrc = activeSrc === srcH264 ? src : (srcH264 || null);
-                if (fallbackSrc && fallbackSrc !== activeSrc) {
-                    console.log('🔄 Fallback: Switching to alternate source');
-                    setTriedFallback(true);
-                    setActiveSrc(fallbackSrc);
-                    setPlaybackError(null); // Clear error and try again
-                } else {
-                    setPlaybackError('Video format not supported. Try viewing in Chrome or Safari.');
-                }
+            // Reactive fallback: if Master (usually HEVC) fails, auto-try Optimized (H.264)
+            if ((error?.code === 3 || error?.code === 4) && !triedFallback && srcH264) {
+                console.log('🔄 Compatibility Fallback: Switching to H.264 Optimized Source');
+                setTriedFallback(true);
+                setQualityMode('optimized');
+                setActiveSrc(srcH264);
+                setPlaybackError(null);
             } else if (error?.code === 3 || error?.code === 4) {
-                setPlaybackError('The video file could not be played. This might be due to an unsupported format or a broken link.');
+                setPlaybackError('Format not supported by your browser. Try Chrome or Safari for the best experience.');
             } else {
-                setPlaybackError('An error occurred while trying to play this video.');
+                setPlaybackError('Playback error occurred.');
             }
             setIsBuffering(false);
         };
@@ -286,6 +283,27 @@ export function CustomPlayer({ src, srcH264, poster }: CustomPlayerProps) {
         }
     };
 
+    // Quality Switcher
+    const toggleQuality = (e?: React.MouseEvent) => {
+        e?.stopPropagation();
+        if (!srcH264) return;
+
+        const newMode = qualityMode === 'master' ? 'optimized' : 'master';
+        const newSrc = newMode === 'master' ? src : srcH264;
+        const savedTime = videoRef.current?.currentTime || 0;
+
+        setQualityMode(newMode);
+        setActiveSrc(newSrc);
+
+        // Restore playback position after source change
+        setTimeout(() => {
+            if (videoRef.current) {
+                videoRef.current.currentTime = savedTime;
+                if (isPlaying) videoRef.current.play();
+            }
+        }, 100);
+    };
+
     // Handle Casting (Chrome / Safari support)
     const handleCast = async (e?: React.MouseEvent) => {
         e?.stopPropagation();
@@ -310,8 +328,6 @@ export function CustomPlayer({ src, srcH264, poster }: CustomPlayerProps) {
                 if (videoElement.remote.state === 'disconnected') {
                     await videoElement.remote.prompt();
                 } else {
-                    // If connected, maybe prompt to disconnect? Or just prompt universally.
-                    // Standard behavior is prompt() handles the toggle or selection.
                     await videoElement.remote.prompt();
                 }
             } catch (error) {
@@ -460,8 +476,13 @@ export function CustomPlayer({ src, srcH264, poster }: CustomPlayerProps) {
                 onTimeUpdate={onTimeUpdate}
                 onLoadedMetadata={onLoadedMetadata}
                 onEnded={onEnded}
-                onPlay={() => setIsPlaying(true)}
-                onPause={() => setIsPlaying(false)}
+                onPlay={() => {
+                    setIsPlaying(true);
+                }}
+                onPause={() => {
+                    setIsPlaying(false);
+                    setShowControls(true); // Always show controls when paused
+                }}
                 onWaiting={() => setIsBuffering(true)}
                 onCanPlayThrough={() => setIsBuffering(false)}
                 onPlaying={() => {
@@ -526,12 +547,18 @@ export function CustomPlayer({ src, srcH264, poster }: CustomPlayerProps) {
             {(qualityBadge) && hasStartedPlaying && (
                 <div className="absolute top-4 right-4 z-10 pointer-events-none">
                     <div className={cn(
-                        "px-2.5 py-1 backdrop-blur-md rounded-md text-[11px] font-black tracking-tighter border shadow-2xl flex items-center gap-1.5 animate-in fade-in slide-in-from-right-4 duration-700",
-                        "bg-black/40 border-white/10 text-white/70"
+                        "px-3 py-1.5 backdrop-blur-md rounded-full text-[10px] font-black tracking-[0.1em] border shadow-2xl flex items-center gap-2 animate-in fade-in slide-in-from-right-4 duration-700",
+                        qualityMode === 'master'
+                            ? "bg-j-gold/20 border-j-gold/40 text-j-gold"
+                            : "bg-black/40 border-white/10 text-white/70"
                     )}>
+                        <span className="opacity-60">QUALITY</span>
                         <span className="drop-shadow-sm">
-                            {qualityBadge || ""}
+                            {qualityBadge} {qualityMode === 'master' ? 'MASTER' : 'OPTIMIZED'}
                         </span>
+                        {qualityMode === 'master' && (
+                            <span className="flex h-1.5 w-1.5 rounded-full bg-j-gold animate-pulse" />
+                        )}
                     </div>
                 </div>
             )}
@@ -653,6 +680,23 @@ export function CustomPlayer({ src, srcH264, poster }: CustomPlayerProps) {
                             >
                                 <Maximize2 className="w-6 h-6" />
                             </button>
+                            {/* Quality Switcher */}
+                            {srcH264 && (
+                                <button
+                                    onClick={toggleQuality}
+                                    className={cn(
+                                        "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all border",
+                                        qualityMode === 'master'
+                                            ? "bg-j-gold/20 text-j-gold border-j-gold/50 shadow-lg shadow-j-gold/10"
+                                            : "bg-white/5 text-white/60 border-white/10 hover:bg-white/10"
+                                    )}
+                                    title="Switch between Master and Optimized quality"
+                                >
+                                    <Settings className={cn("w-3.5 h-3.5", qualityMode === 'master' && "animate-spin-slow")} />
+                                    {qualityMode === 'master' ? 'Ultra HD' : 'Optimized'}
+                                </button>
+                            )}
+
                             <button
                                 onClick={handleCast}
                                 className="text-white hover:text-white/80 transition-colors focus:outline-none p-4 -m-4 relative z-50 pointer-events-auto touch-manipulation"
