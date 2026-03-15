@@ -304,7 +304,7 @@ export function CustomPlayer({ src, srcH264, poster }: CustomPlayerProps) {
             onMouseLeave={() => setShowControls(false)}
         >
             {/* Video.js Container */}
-            <div data-vjs-player className={cn("w-full h-full absolute inset-0 flex items-center justify-center")}>
+            <div data-vjs-player className="w-full h-full absolute inset-0">
                 <video
                     ref={videoRef}
                     className={cn(

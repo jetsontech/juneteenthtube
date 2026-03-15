@@ -189,10 +189,10 @@ export default function ShortsPlayerPage({
                 isLandscape ? 'md:max-w-[90vw] md:max-h-[90vh] md:aspect-video' : 'md:max-w-[400px] md:max-h-[90vh] md:aspect-[9/16]'
             )}>
                 <div className="relative w-full h-full bg-black md:rounded-3xl overflow-hidden shadow-2xl border border-white/5">
-                    <div data-vjs-player className="w-full h-full">
+                    <div data-vjs-player className="w-full h-full absolute inset-0">
                         <video
                             ref={videoRef}
-                            className="video-js vjs-default-skin w-full h-full object-cover"
+                            className="video-js vjs-default-skin w-full h-full"
                             playsInline
                         />
                     </div>

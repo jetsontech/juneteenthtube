@@ -1902,14 +1902,48 @@ body.sidebar-open-mobile {
   height: 100%;
 }
 
-.vjs-tech {}
+/* ── Video.js Tech Overrides ── */
+.vjs-tech {
+  background-color: transparent;
+  width: 100% !important;
+  height: 100% !important;
+}
 
 .vjs-zoomed .vjs-tech {
   object-fit: cover !important;
+  transform: scale(1.35) !important;
 }
 
 .vjs-contain .vjs-tech {
   object-fit: contain !important;
+  transform: scale(1) !important;
+}
+
+/* ── Mobile Viewport Fixes ── */
+.dynamic-height {
+  height: var(--window-height, 100vh);
+  height: 100dvh;
+  /* Modern browsers */
+}
+
+@media (max-width: 768px) {
+  .video-js .vjs-big-play-button {
+    width: 60px !important;
+    height: 60px !important;
+    line-height: 60px !important;
+    margin-top: -30px !important;
+    margin-left: -30px !important;
+  }
+}
+
+/* Custom Progress Fill Logic */
+.progress-fill {
+  width: var(--progress-percent, 0%);
+  transition: width 0.1s linear;
+}
+
+.vjs-hidden {
+  display: none !important;
 }
 
 .vjs-control-bar {

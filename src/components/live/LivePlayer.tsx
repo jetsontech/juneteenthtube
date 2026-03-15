@@ -327,11 +327,11 @@ export function LivePlayer({
             onClick={togglePlay}
             className="relative w-full h-full bg-black overflow-hidden group cursor-pointer outline-none"
         >
-            <div data-vjs-player className="w-full h-full">
+            <div data-vjs-player className="w-full h-full absolute inset-0">
                 <video
                     ref={videoRef}
                     className={cn(
-                        "video-js vjs-default-skin w-full h-full transition-transform duration-500",
+                        "video-js vjs-default-skin w-full h-full",
                         isZoomed ? "vjs-zoomed" : "vjs-contain"
                     )}
                     playsInline
