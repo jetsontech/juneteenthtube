@@ -24,7 +24,6 @@ import {
 interface HTMLVideoElementWithWebKit extends HTMLVideoElement {
     webkitShowPlaybackTargetPicker?: () => void;
     webkitEnterFullscreen?: () => void;
-    remote?: any;
 }
 import { cn } from "@/lib/utils";
 
@@ -98,6 +97,8 @@ export function LivePlayer({
 }: LivePlayerProps) {
     const videoRef = useRef<HTMLVideoElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
+    const progressBarRef = useRef<HTMLDivElement>(null);
+    const volumeBarRef = useRef<HTMLDivElement>(null);
     const hlsRef = useRef<Hls | null>(null);
     const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const infoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -126,6 +127,11 @@ export function LivePlayer({
             if (video.duration) {
                 const pct = (video.currentTime / video.duration) * 100;
                 setProgress(pct);
+
+                // Update progress bar width dynamically
+                if (progressBarRef.current) {
+                    progressBarRef.current.style.width = `${pct}%`;
+                }
 
                 // Show "Up Next" toast if we have a next program and we're near the end
                 if (nextProgram && (pct > 95 || (video.duration - video.currentTime < 30))) {
@@ -232,6 +238,13 @@ export function LivePlayer({
         v.muted = !v.muted;
         setIsMuted(v.muted);
     };
+
+    // Keep volume bar updated
+    useEffect(() => {
+        if (volumeBarRef.current) {
+            volumeBarRef.current.style.width = `${volume * 100}%`;
+        }
+    }, [volume]);
 
     const toggleFullscreen = (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -354,8 +367,8 @@ export function LivePlayer({
                 showControls ? "opacity-100 h-2" : "opacity-0"
             )}>
                 <div
+                    ref={progressBarRef}
                     className={cn("h-full transition-all relative", accentBg)}
-                    style={{ width: `${progress}%` }}
                 >
                     <div className={cn("absolute right-0 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full shadow-2xl scale-0 group-hover/progress:scale-100 transition-transform", accentBg)} />
                 </div>
@@ -390,7 +403,7 @@ export function LivePlayer({
                                 {isMuted ? <VolumeX className="w-6 h-6 md:w-7 md:h-7" /> : <Volume2 className="w-6 h-6 md:w-7 md:h-7" />}
                             </button>
                             <div className="w-0 group-hover:w-24 transition-all duration-300 h-1 bg-white/20 rounded-full overflow-hidden">
-                                <div className="h-full bg-white transition-all" style={{ width: `${volume * 100}%` }} />
+                                <div ref={volumeBarRef} className="h-full bg-white transition-all" />
                             </div>
                         </div>
                     </div>
