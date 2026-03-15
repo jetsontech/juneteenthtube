@@ -412,10 +412,6 @@ body {
 
 /* === SCROLL PERFORMANCE === */
 
-.momentum-scroll {
-  -webkit-overflow-scrolling: touch;
-}
-
 /* GPU-accelerated compositing for video cards */
 .video-card {
   will-change: transform;
