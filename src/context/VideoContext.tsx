@@ -360,6 +360,14 @@ export function VideoProvider({ children }: { children: ReactNode }) {
             if (data && data.length > 0) {
                 const dbVideos: VideoProps[] = data.map((video: DBVideo) => {
                     const mockChannel = getMockChannelData(video.title);
+
+                    // Normalize H264 URL
+                    let h264Url = video.video_url_h264;
+                    if (h264Url && !h264Url.startsWith('http')) {
+                        const s3Domain = "https://pub-efcc4aa0b3b24e3d97760577b0ec20bd.r2.dev";
+                        h264Url = `${s3Domain}/${h264Url}`;
+                    }
+
                     return {
                         id: video.id,
                         title: video.title,
@@ -373,7 +381,7 @@ export function VideoProvider({ children }: { children: ReactNode }) {
                         category: video.category || "All",
                         createdAt: video.created_at,
                         state: video.state || "GLOBAL",
-                        videoUrlH264: video.video_url_h264,
+                        videoUrlH264: h264Url,
                         transcodeStatus: video.transcode_status,
                         ownerId: video.owner_id
                     };

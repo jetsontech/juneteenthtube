@@ -18,8 +18,8 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 async function checkUrls() {
     const { data: videos, error } = await supabase
         .from('videos')
-        .select('id, video_url')
-        .limit(5);
+        .select('id, title, video_url, video_url_h264')
+        .limit(20);
 
     if (error) {
         console.error(error);
@@ -27,9 +27,9 @@ async function checkUrls() {
     }
 
     for (const v of videos) {
-        console.log(`ID: ${v.id}`);
-        console.log(`URL: |${v.video_url}|`);
-        console.log(`Encoded: ${JSON.stringify(v.video_url)}`);
+        console.log(`ID: ${v.id} | Title: ${v.title}`);
+        console.log(`  Original: ${v.video_url}`);
+        console.log(`  H264:     ${v.video_url_h264}`);
     }
 }
 

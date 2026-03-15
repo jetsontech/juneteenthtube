@@ -129,8 +129,10 @@ async function main() {
 
             // 4. Update DB
             console.log(`  Updating DB...`);
+            const dbUrl = publicUrl.startsWith('http') ? publicUrl : `${publicDomain}/${h264Key}`;
+
             await supabase.from('videos').update({
-                video_url_h264: publicUrl,
+                video_url_h264: dbUrl,
                 transcode_status: 'completed'
             }).eq('id', video.id);
 

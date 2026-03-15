@@ -28,8 +28,8 @@ export function CustomPlayer({ src, srcH264, poster }: CustomPlayerProps) {
     const sourceNodeRef = useRef<MediaElementAudioSourceNode | null>(null);
     const compressorRef = useRef<DynamicsCompressorNode | null>(null);
 
-    // Playback State
-    const [activeSrc, setActiveSrc] = useState(src);
+    // Playback State (Default to optimized source if available)
+    const [activeSrc, setActiveSrc] = useState(srcH264 || src);
     const [qualityMode, setQualityMode] = useState<'master' | 'optimized'>('master');
     const [isPlaying, setIsPlaying] = useState(false);
     const [isMuted, setIsMuted] = useState(false);
@@ -63,10 +63,6 @@ export function CustomPlayer({ src, srcH264, poster }: CustomPlayerProps) {
             preload: "auto",
             fluid: false,
             playsinline: true,
-            sources: [{
-                src: activeSrc,
-                type: activeSrc.includes('.m3u8') ? 'application/x-mpegURL' : 'video/mp4'
-            }],
             html5: {
                 vhs: { overrideNative: true },
                 nativeAudioTracks: false,
