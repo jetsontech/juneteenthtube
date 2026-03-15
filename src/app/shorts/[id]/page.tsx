@@ -192,7 +192,7 @@ export default function ShortsPlayerPage({
                     <div data-vjs-player className="w-full h-full absolute inset-0">
                         <video
                             ref={videoRef}
-                            className="video-js vjs-default-skin w-full h-full"
+                            className="video-js vjs-default-skin vjs-shorts-mode w-full h-full"
                             playsInline
                         />
                     </div>

@@ -359,7 +359,7 @@ export function LivePlayer({
             <div className={cn("absolute bottom-0 left-0 right-0 z-40 transition-all duration-300 pointer-events-none", showControls ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4")}>
                 <div className="bg-gradient-to-t from-black/95 via-black/40 to-transparent pt-16 md:pt-32 pb-4 md:pb-8 px-4 md:px-10 flex items-center justify-between pointer-events-auto">
                     <div className="flex items-center gap-4 md:gap-8">
-                        <button onClick={togglePlay} className="text-white hover:scale-110 transition-transform active:scale-95 shadow-2xl">
+                        <button onClick={togglePlay} className="text-white hover:scale-110 transition-transform active:scale-95 shadow-2xl" title={isPlaying ? "Pause" : "Play"}>
                             {isPlaying ? <Pause className="w-8 h-8 md:w-10 md:h-10 fill-white" /> : <Play className="w-8 h-8 md:w-10 md:h-10 fill-white" />}
                         </button>
 
@@ -368,7 +368,7 @@ export function LivePlayer({
                         </button>
 
                         <div className="flex items-center gap-3 group/volume">
-                            <button onClick={toggleMute} className="text-white/60 hover:text-white transition-colors">
+                            <button onClick={toggleMute} className="text-white/60 hover:text-white transition-colors" title={isMuted ? "Unmute" : "Mute"}>
                                 {isMuted ? <VolumeX className="w-6 h-6 md:w-7 md:h-7" /> : <Volume2 className="w-6 h-6 md:w-7 md:h-7" />}
                             </button>
                             <div className="w-0 group-hover:w-24 transition-all duration-300 h-1 bg-white/20 rounded-full overflow-hidden">
