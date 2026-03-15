@@ -29,6 +29,7 @@ export default function ShortsPlayerPage({
     const [disliked, setDisliked] = useState(false);
     const [likesCount, setLikesCount] = useState(0);
     const [isMuted, setIsMuted] = useState(false);
+    const [touchStart, setTouchStart] = useState<{ x: number, y: number } | null>(null);
 
     const videoRef = useRef<HTMLVideoElement>(null);
     const playerRef = useRef<Player | null>(null);
@@ -173,12 +174,36 @@ export default function ShortsPlayerPage({
         }
     };
 
+    const handleTouchStart = (e: React.TouchEvent) => {
+        setTouchStart({
+            x: e.targetTouches[0].clientX,
+            y: e.targetTouches[0].clientY
+        });
+    };
+
+    const handleTouchEnd = (e: React.TouchEvent) => {
+        if (!touchStart) return;
+        const touchEnd = e.changedTouches[0].clientY;
+        const diffY = touchStart.y - touchEnd;
+
+        // Vertical swipe detection
+        if (Math.abs(diffY) > 50) {
+            if (diffY > 0) goToNext();
+            else goToPrevious();
+        }
+        setTouchStart(null);
+    };
+
     if (!video) {
         return <div className="fixed inset-0 bg-black flex items-center justify-center text-white font-black tracking-widest uppercase">Loading Short...</div>;
     }
 
     return (
-        <div className="fixed inset-0 bg-black z-[100] flex items-center justify-center">
+        <div
+            className="fixed inset-0 bg-black z-[100] flex items-center justify-center overscroll-none touch-none"
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
+        >
             <Link href="/" className="absolute top-4 left-4 z-50 p-2 hover:bg-white/10 rounded-full transition-colors backdrop-blur-md">
                 <X className="w-6 h-6 text-white" />
             </Link>

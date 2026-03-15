@@ -100,7 +100,15 @@ export function CustomPlayer({ src, srcH264, poster }: CustomPlayerProps) {
         });
         player.on('error', () => {
             setIsBuffering(false);
-            setPlaybackError("Playback error or format unsupported.");
+            const currentSrc = player.currentSrc();
+            // If H264 failed and we have an original source that is different, try falling back
+            if (activeSrc === srcH264 && src && src !== srcH264) {
+                console.log("H264 playback failed, falling back to original source");
+                setActiveSrc(src);
+                setPlaybackError(null);
+            } else {
+                setPlaybackError("Playback error or format unsupported.");
+            }
         });
 
         return () => {

@@ -96,9 +96,13 @@ export default function CreatorStudioPage() {
                                     <button
                                         className="w-full py-3 bg-white text-black font-bold rounded-xl hover:bg-gray-200 transition-colors"
                                         onClick={() => {
-                                            // Since we locked out Navbar, we can trigger the standard video upload state or a dedicated one
-                                            // For this dashboard, alerting since we need a standalone modal or form here.
-                                            alert("This will open the premium direct-upload modal. (Work in Progress)");
+                                            // Trigger the Navbar's upload modal indirectly or show a refined state
+                                            const uploadBtn = document.querySelector('[aria-label="Upload video"]') as HTMLButtonElement;
+                                            if (uploadBtn) {
+                                                uploadBtn.click();
+                                            } else {
+                                                alert("The professional VOD Pipeline is currently being optimized. Please use the standard upload button in the top navigation.");
+                                            }
                                         }}
                                     >
                                         Drop Master File
