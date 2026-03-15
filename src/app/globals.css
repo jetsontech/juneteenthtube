@@ -1902,9 +1902,7 @@ body.sidebar-open-mobile {
   height: 100%;
 }
 
-.vjs-tech {
-  aspect-ratio: 16/9;
-}
+.vjs-tech {}
 
 .vjs-zoomed .vjs-tech {
   object-fit: cover !important;

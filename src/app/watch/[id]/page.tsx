@@ -148,6 +148,50 @@ export default function WatchPage({
         return <div className="p-8 text-white text-center">Loading video...</div>;
     }
 
+    // Extracted Recommendations block for reusability (Mobile bottom vs Desktop side)
+    const renderRecommendations = () => (
+        <>
+            <div className="mb-4 flex flex-col gap-3">
+                <CategoryBar
+                    categories={CATEGORIES}
+                    selectedCategory={sidebarCategory}
+                    onCategoryChange={setSidebarCategory}
+                    className="bg-transparent border-none px-0"
+                />
+            </div>
+
+            <div className="flex flex-col lg:flex-col grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4 lg:gap-4 sm:grid xl:flex">
+                {filteredSidebarVideos.map((v) => (
+                    <Link href={`/watch/${v.id}`} key={v.id} className="flex gap-3 cursor-pointer group hover:bg-white/5 p-2 rounded-xl transition-colors">
+                        <div className="w-[160px] sm:w-[180px] lg:w-[160px] xl:w-[180px] flex-shrink-0 aspect-video bg-gray-800 rounded-xl overflow-hidden relative shadow-md group-hover:shadow-white/5 transition-all">
+                            {v.thumbnail ? (
+                                <Image
+                                    src={v.thumbnail}
+                                    fill
+                                    sizes="180px"
+                                    className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                                    alt={v.title}
+                                />
+                            ) : (
+                                <div className="w-full h-full bg-gradient-to-br from-gray-800 to-black flex items-center justify-center">
+                                    <span className="text-gray-500 text-[10px]">No Thumb</span>
+                                </div>
+                            )}
+                            <div className="absolute bottom-1 right-1 bg-black/80 px-1.5 py-0.5 rounded text-[10px] text-white font-bold backdrop-blur-sm">
+                                {v.duration}
+                            </div>
+                        </div>
+                        <div className="flex-1 min-w-0 flex flex-col justify-center py-0.5">
+                            <h4 className="font-bold text-white text-[13px] line-clamp-2 mb-1 group-hover:text-j-gold transition-colors leading-snug">{v.title}</h4>
+                            <p className="text-[11px] text-gray-400 font-medium truncate">{v.channelName}</p>
+                            <p className="text-[11px] text-gray-400 truncate">{v.views} views • {v.postedAt}</p>
+                        </div>
+                    </Link>
+                ))}
+            </div>
+        </>
+    );
+
     return (
         <div className="flex flex-col sm:block h-[calc(100dvh-3.5rem)] sm:h-auto overflow-hidden sm:overflow-visible bg-transparent relative z-0">
             {/* Ambient Backgrounds */}
@@ -155,15 +199,14 @@ export default function WatchPage({
             <div className="absolute top-[20vh] left-0 w-[100vw] h-[80vh] bg-[radial-gradient(circle_at_50%_50%,_#4a0000_0%,_transparent_60%)] opacity-20 pointer-events-none z-[-1]" />
             <div className="absolute bottom-0 left-0 w-[80vw] sm:w-[50vw] h-[50vh] bg-[radial-gradient(circle_at_0%_100%,_#0a2f0a_0%,_transparent_70%)] opacity-30 pointer-events-none z-[-1]" />
 
-            {/* Main Content Layout Container */}
-            <div className="flex-1 overflow-y-auto sm:overflow-visible bg-transparent relative z-10 overscroll-y-contain pb-10 w-full h-full">
-                <div className="max-w-[1600px] mx-auto px-0 sm:px-4 md:px-6 flex flex-col lg:flex-row gap-6 pt-0 sm:pt-6">
+            <div className="max-w-[1600px] mx-auto w-full h-full flex flex-col lg:flex-row lg:gap-6 lg:items-start pt-0 sm:pt-6">
 
-                    {/* LEFT COLUMN: Player + Info + Comments */}
-                    <div className="flex-1 lg:w-[65%] xl:w-[70%] flex flex-col">
+                {/* LEFT COLUMN: Player (Sticky Mobile, Static Desktop) + Info + Comments */}
+                <div className="flex-1 w-full lg:w-[65%] xl:w-[70%] flex flex-col h-full sm:h-auto">
 
-                        {/* Player Container */}
-                        <div className="relative aspect-video w-full bg-black overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.8)] sm:shadow-[0_30px_90px_rgba(0,0,0,0.9)] ring-1 ring-white/10 sm:rounded-2xl group flex-shrink-0">
+                    {/* Player Container (Sticky top on mobile. 100vw edge-to-edge) */}
+                    <div className="w-full flex-shrink-0 relative z-50 bg-black sm:bg-transparent shadow-[0_20px_60px_rgba(0,0,0,0.8)] sm:shadow-none sm:px-4 md:px-6 lg:px-0">
+                        <div className="relative aspect-video w-full bg-black overflow-hidden sm:shadow-[0_30px_90px_rgba(0,0,0,0.9)] sm:ring-1 sm:ring-white/10 sm:rounded-2xl group flex-shrink-0">
                             {video.videoUrl ? (
                                 <CustomPlayer
                                     src={video.videoUrl}
@@ -182,9 +225,12 @@ export default function WatchPage({
                                 </div>
                             )}
                         </div>
+                    </div>
 
+                    {/* Scrollable Content Below Player on Mobile */}
+                    <div className="flex-1 overflow-y-auto sm:overflow-visible overscroll-y-contain pb-10 sm:px-4 md:px-6 lg:px-0">
                         {/* Video Info */}
-                        <div className="px-3 sm:px-0 mt-4 sm:mt-6">
+                        <div className="px-4 sm:px-0 mt-4 sm:mt-6">
                             <h1 className="text-[20px] sm:text-[24px] font-black text-white leading-tight tracking-tight drop-shadow-md">
                                 {video.title}
                             </h1>
@@ -194,7 +240,7 @@ export default function WatchPage({
                             </p>
 
                             {/* Actions Row */}
-                            <div className="flex items-center gap-3 mt-4 -mx-3 px-3 overflow-x-auto no-scrollbar pb-2">
+                            <div className="flex items-center gap-3 mt-4 -mx-4 sm:-mx-0 px-4 sm:px-0 overflow-x-auto no-scrollbar pb-2">
                                 <div className="flex items-center bg-white/5 backdrop-blur-xl border border-white/10 rounded-full flex-shrink-0 shadow-lg">
                                     <button
                                         onClick={handleLike}
@@ -276,8 +322,14 @@ export default function WatchPage({
                             </div>
                         </div>
 
+                        {/* Mobile Recommendations (Hidden on Desktop) */}
+                        <div className="block lg:hidden mt-8 px-4 sm:px-0">
+                            <h3 className="text-xl font-bold text-white mb-6">Up Next</h3>
+                            {renderRecommendations()}
+                        </div>
+
                         {/* Comments Section */}
-                        <div className="mt-8 px-3 sm:px-0 border-t border-white/5 pt-8">
+                        <div className="mt-8 px-4 sm:px-0 border-t border-white/5 pt-8">
                             <h3 className="text-xl font-bold text-white mb-6">{comments.length} Comments</h3>
 
                             <div className="flex items-start gap-4 mb-8">
@@ -355,51 +407,15 @@ export default function WatchPage({
                                 )}
                             </div>
                         </div>
-                    </div> {/* End Left Column */}
+                    </div> {/* End Left Column Scrollable Container */}
+                </div> {/* End Left Column Wrapper */}
 
-                    {/* RIGHT COLUMN: Recommendations */}
-                    <div className="w-full lg:w-[35%] xl:w-[30%] mt-8 lg:mt-0 px-3 sm:px-0 lg:pl-4">
-                        <div className="mb-4 flex flex-col gap-3">
-                            <CategoryBar
-                                categories={CATEGORIES}
-                                selectedCategory={sidebarCategory}
-                                onCategoryChange={setSidebarCategory}
-                                className="bg-transparent border-none px-0"
-                            />
-                        </div>
-
-                        <div className="flex flex-col gap-4">
-                            {filteredSidebarVideos.map((v) => (
-                                <Link href={`/watch/${v.id}`} key={v.id} className="flex gap-3 cursor-pointer group">
-                                    <div className="w-[160px] sm:w-[180px] flex-shrink-0 aspect-video bg-gray-800 rounded-xl overflow-hidden relative shadow-md group-hover:shadow-white/5 transition-all">
-                                        {v.thumbnail ? (
-                                            <Image
-                                                src={v.thumbnail}
-                                                fill
-                                                sizes="180px"
-                                                className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
-                                                alt={v.title}
-                                            />
-                                        ) : (
-                                            <div className="w-full h-full bg-gradient-to-br from-gray-800 to-black flex items-center justify-center">
-                                                <span className="text-gray-500 text-[10px]">No Thumb</span>
-                                            </div>
-                                        )}
-                                        <div className="absolute bottom-1 right-1 bg-black/80 px-1.5 py-0.5 rounded text-[10px] text-white font-bold backdrop-blur-sm">
-                                            {v.duration}
-                                        </div>
-                                    </div>
-                                    <div className="flex-1 min-w-0 py-0.5">
-                                        <h4 className="font-bold text-white text-[13px] line-clamp-2 mb-1 group-hover:text-j-gold transition-colors leading-snug">{v.title}</h4>
-                                        <p className="text-[11px] text-gray-400 font-medium truncate">{v.channelName}</p>
-                                        <p className="text-[11px] text-gray-400 truncate">{v.views} views • {v.postedAt}</p>
-                                    </div>
-                                </Link>
-                            ))}
-                        </div>
-                    </div> {/* End Right Column */}
-
+                {/* RIGHT COLUMN: Recommendations ONLY ON DESKTOP */}
+                <div className="hidden lg:flex lg:w-[35%] xl:w-[30%] lg:sticky lg:top-6 lg:h-[calc(100vh-6rem)] overflow-y-auto pr-4 pb-10 flex-col gap-4 custom-scrollbar">
+                    <h3 className="text-xl font-bold text-white pl-2">Up Next</h3>
+                    {renderRecommendations()}
                 </div>
+
             </div>
         </div>
     );
