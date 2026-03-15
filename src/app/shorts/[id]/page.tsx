@@ -82,8 +82,8 @@ export default function ShortsPlayerPage({
             preload: "auto",
             playsinline: true,
             sources: [{
-                src: video.videoUrl,
-                type: video.videoUrl.includes('.m3u8') ? 'application/x-mpegURL' : 'video/mp4'
+                src: video.videoUrlH264 || video.videoUrl,
+                type: (video.videoUrlH264 || video.videoUrl).includes('.m3u8') ? 'application/x-mpegURL' : 'video/mp4'
             }],
             html5: {
                 vhs: { overrideNative: true },
