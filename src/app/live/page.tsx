@@ -158,11 +158,22 @@ export default function LiveTV() {
         {/* Channel/Program Info Bar - Sitting ABOVE the player functionally */}
         <div className="w-full bg-[#141414] px-4 md:px-12 py-4 border-b border-white/10 z-30">
           <div className="flex items-start gap-3 md:gap-4 max-w-4xl">
-            <div className="w-12 h-12 md:w-16 md:h-16 rounded-xl flex items-center justify-center flex-shrink-0 bg-zinc-900 border border-white/10 shadow-2xl relative overflow-hidden">
+            <div className="w-12 h-12 md:w-16 md:h-16 rounded-xl flex items-center justify-center flex-shrink-0 bg-gradient-to-br border border-white/20 shadow-2xl relative overflow-hidden group/hero-logo transition-transform" style={{
+              backgroundImage: currentChannel.logo_url
+                ? 'none'
+                : (currentChannel.category === 'News' ? 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)' :
+                  currentChannel.category === 'Music' ? 'linear-gradient(135deg, #7e22ce 0%, #db2777 100%)' :
+                    currentChannel.category === 'Entertainment' ? 'linear-gradient(135deg, #b91c1c 0%, #f59e0b 100%)' :
+                      currentChannel.category === 'Sports' ? 'linear-gradient(135deg, #14532d 0%, #22c55e 100%)' :
+                        currentChannel.category === 'Kids' ? 'linear-gradient(135deg, #0f766e 0%, #06b6d4 100%)' :
+                          'linear-gradient(135deg, #3f3f46 0%, #71717a 100%)')
+            }}>
               {currentChannel.logo_url ? (
-                <img src={currentChannel.logo_url} alt={currentChannel.name} className="w-full h-full object-contain p-2" />
+                <img src={currentChannel.logo_url} alt={currentChannel.name} className="w-full h-full object-contain p-2 bg-black/80 backdrop-blur-sm group-hover/hero-logo:scale-105 transition-transform duration-300" />
               ) : (
-                <span className="text-xl font-bold text-white/50">{currentChannel.name.charAt(0)}</span>
+                <span className="text-xl md:text-2xl font-black text-white/90 drop-shadow-md">
+                  {currentChannel.name.charAt(0)}
+                </span>
               )}
             </div>
             <div className="min-w-0 flex flex-col justify-center">
@@ -418,44 +429,64 @@ function ChannelCard({
   return (
     <button
       onClick={onSelect}
-      className={`group relative shrink-0 w-[160px] md:w-[220px] rounded-md overflow-hidden cursor-pointer transition-all duration-300 hover:scale-105 hover:z-10 outline-none
-                ${isActive ? "ring-2 ring-red-500 scale-105 z-10" : "ring-0"}
+      className={`group relative shrink-0 w-[160px] md:w-[220px] rounded-xl overflow-hidden cursor-pointer transition-all duration-300 hover:scale-[1.03] hover:z-10 outline-none hover:shadow-[0_8px_30px_rgba(0,0,0,0.5)]
+                ${isActive ? "ring-2 ring-white scale-[1.03] z-10 shadow-[0_8px_30px_rgba(255,255,255,0.1)]" : "ring-1 ring-white/5"}
             `}
     >
-      {/* Card Image */}
-      <div className="aspect-video bg-[#0f0f0f] border-b border-white/5 relative overflow-hidden flex items-center justify-center p-3">
+      {/* Card Image / Gradient Fallback */}
+      <div className="aspect-video relative overflow-hidden flex items-center justify-center p-3 transition-colors" style={{
+        backgroundImage: channel.logo_url
+          ? 'none'
+          : (channel.category === 'News' ? 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)' :
+            channel.category === 'Music' ? 'linear-gradient(135deg, #7e22ce 0%, #db2777 100%)' :
+              channel.category === 'Entertainment' ? 'linear-gradient(135deg, #b91c1c 0%, #f59e0b 100%)' :
+                channel.category === 'Sports' ? 'linear-gradient(135deg, #14532d 0%, #22c55e 100%)' :
+                  channel.category === 'Kids' ? 'linear-gradient(135deg, #0f766e 0%, #06b6d4 100%)' :
+                    'linear-gradient(135deg, #3f3f46 0%, #71717a 100%)')
+      }}>
+        {/* If there's a logo, we still give it a very subtle background to ensure contrast */}
+        {channel.logo_url && <div className="absolute inset-0 bg-[#0f0f0f]" />}
+
         {channel.logo_url ? (
           <img
             src={channel.logo_url}
             alt={channel.name}
-            className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-110 drop-shadow-lg"
+            className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-110 drop-shadow-2xl relative z-10"
           />
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-zinc-800 to-zinc-900 flex items-center justify-center rounded">
-            <span className="text-3xl font-black text-white/30">
+          <div className="w-full h-full flex flex-col items-center justify-center rounded-lg backdrop-blur-sm bg-black/10 relative z-10 group-hover:bg-black/0 transition-colors">
+            <span className="text-4xl md:text-5xl font-black text-white/90 drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)] tracking-tighter uppercase">
               {channel.name.charAt(0)}
             </span>
+            <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent rounded-lg" />
           </div>
         )}
+
         {/* Hover Play Overlay */}
-        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center">
-          <div className="w-10 h-10 rounded-full bg-white/90 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all scale-50 group-hover:scale-100 shadow-xl">
+        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center z-20">
+          <div className="w-10 h-10 rounded-full bg-white/90 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 scale-50 group-hover:scale-100 shadow-[0_0_20px_rgba(255,255,255,0.3)]">
             <Play className="w-5 h-5 text-black fill-black ml-0.5" />
           </div>
         </div>
 
-
+        {/* Active Indicator Glow */}
+        {isActive && (
+          <div className="absolute inset-0 shadow-[inset_0_0_20px_rgba(255,255,255,0.2)] pointer-events-none z-30" />
+        )}
       </div>
 
       {/* Card Info */}
-      <div className="bg-zinc-800/80 px-3 py-2.5">
-        <h3
-          className={`text-xs md:text-sm font-bold truncate ${isActive ? "text-white" : "text-white/80"}`}
-        >
-          {channel.name}
-        </h3>
+      <div className="bg-zinc-900/95 backdrop-blur-md px-3 py-3 border-t border-white/10 relative z-20">
+        <div className="flex items-center gap-2 mb-0.5">
+          {isActive && <div className="w-1.5 h-1.5 rounded-full bg-red-600 animate-pulse shrink-0" />}
+          <h3
+            className={`text-xs md:text-sm font-bold truncate ${isActive ? "text-white" : "text-white/90"} group-hover:text-white transition-colors`}
+          >
+            {channel.name}
+          </h3>
+        </div>
         {channel.description && (
-          <p className="text-white/40 text-[10px] md:text-xs truncate mt-0.5">
+          <p className="text-white/50 text-[10px] md:text-xs truncate font-medium">
             {channel.description}
           </p>
         )}
