@@ -1893,5 +1893,42 @@ body.sidebar-open-mobile {
   .heritage-banner {
     flex-direction: column;
   }
-}\ n / *   V i d e o . j s   P r e m i u m   S k i n n i n g   * / \ n . v i d e o - j s   {   b a c k g r o u n d - c o l o r :   t r a n s p a r e n t ;   w i d t h :   1 0 0 % ;   h e i g h t :   1 0 0 % ;   } \ n . v j s - t e c h   {   a s p e c t - r a t i o :   1 6 / 9 ;   } \ n . v j s - z o o m e d   . v j s - t e c h   {   o b j e c t - f i t :   c o v e r   ! i m p o r t a n t ;   } \ n . v j s - c o n t a i n   . v j s - t e c h   {   o b j e c t - f i t :   c o n t a i n   ! i m p o r t a n t ;   } \ n . v j s - c o n t r o l - b a r   {   d i s p l a y :   n o n e   ! i m p o r t a n t ;   / *   H i d e   n a t i v e   c o n t r o l s ,   u s i n g   c u s t o m   R e a c t   U I   * /   } \ n . v j s - l o a d i n g - s p i n n e r   {   d i s p l a y :   n o n e   ! i m p o r t a n t ;   / *   U s i n g   c u s t o m   s p i n n e r   * /   } \ n . v j s - b i g - p l a y - b u t t o n   {   d i s p l a y :   n o n e   ! i m p o r t a n t ;   / *   U s i n g   c u s t o m   b u t t o n   * /   } \ n . v i d e o - j s   . v j s - p o s t e r   {   b a c k g r o u n d - s i z e :   c o v e r ;   } \ n  
- 
+}
+
+/* Video.js Premium Skinning */
+.video-js {
+  background-color: transparent;
+  width: 100%;
+  height: 100%;
+}
+
+.vjs-tech {
+  aspect-ratio: 16/9;
+}
+
+.vjs-zoomed .vjs-tech {
+  object-fit: cover !important;
+}
+
+.vjs-contain .vjs-tech {
+  object-fit: contain !important;
+}
+
+.vjs-control-bar {
+  display: none !important;
+  /* Hide native controls, using custom React UI */
+}
+
+.vjs-loading-spinner {
+  display: none !important;
+  /* Using custom spinner */
+}
+
+.vjs-big-play-button {
+  display: none !important;
+  /* Using custom button */
+}
+
+.video-js .vjs-poster {
+  background-size: cover;
+}
