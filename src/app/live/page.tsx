@@ -155,18 +155,6 @@ export default function LiveTV() {
       {/* HERO SECTION — Currently playing channel                   */}
       {/* ═══════════════════════════════════════════════════════════ */}
       <div className="flex-shrink-0 flex flex-col w-full relative z-20">
-        {/* Header — Back to Home */}
-        <div className="w-full px-4 md:px-12 py-3 md:py-4 bg-[#141414] flex justify-end items-center relative">
-          <Link
-            href="/"
-            className="inline-flex items-center text-white/70 hover:text-white text-sm font-bold transition-colors group/link bg-white/5 hover:bg-white/10 px-4 py-2 rounded-full border border-white/10 shrink-0"
-            title="Back to Home"
-          >
-            <ArrowLeft className="w-4 h-4 mr-1.5 group-hover/link:-translate-x-1 transition-transform" />
-            <span>Back to Home</span>
-          </Link>
-        </div>
-
         {/* Channel/Program Info Bar - Sitting ABOVE the player functionally */}
         <div className="w-full bg-[#141414] px-4 md:px-12 py-4 border-b border-white/10 z-30">
           <div className="flex items-start gap-3 md:gap-4 max-w-4xl">
