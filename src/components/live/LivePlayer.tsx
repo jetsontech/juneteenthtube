@@ -16,8 +16,16 @@ import {
     Radio,
     Zap,
     Sparkles,
-    SkipForward
+    SkipForward,
+    PictureInPicture,
+    Cast
 } from "lucide-react";
+
+interface HTMLVideoElementWithWebKit extends HTMLVideoElement {
+    webkitShowPlaybackTargetPicker?: () => void;
+    webkitEnterFullscreen?: () => void;
+    remote?: any;
+}
 import { cn } from "@/lib/utils";
 
 interface ProgramMetadata {
@@ -233,6 +241,59 @@ export function LivePlayer({
         else c.requestFullscreen();
     };
 
+    // Toggle PiP
+    const togglePip = async (e?: React.MouseEvent) => {
+        e?.stopPropagation();
+        if (!videoRef.current) return;
+
+        try {
+            if (document.pictureInPictureElement) {
+                await document.exitPictureInPicture();
+            } else {
+                await videoRef.current.requestPictureInPicture();
+            }
+        } catch (error) {
+            console.error("PiP failed:", error);
+        }
+    };
+
+    // Handle Casting
+    const handleCast = async (e?: React.MouseEvent) => {
+        e?.stopPropagation();
+
+        if (!videoRef.current) return;
+
+        const videoElement = videoRef.current as unknown as HTMLVideoElementWithWebKit;
+
+        if (videoElement.webkitShowPlaybackTargetPicker) {
+            try {
+                videoElement.webkitShowPlaybackTargetPicker();
+                return;
+            } catch (error) {
+                console.error("AirPlay failed:", error);
+            }
+        }
+
+        if (videoElement.remote) {
+            try {
+                if (videoElement.remote.state === 'disconnected') {
+                    await videoElement.remote.prompt();
+                } else {
+                    await videoElement.remote.prompt();
+                }
+            } catch (error: any) {
+                if (error?.name === 'AbortError' || error?.name === 'NotAllowedError' || error?.message?.includes('dismissed')) {
+                    // User cancelled
+                } else {
+                    console.error("Cast error:", error);
+                    alert(`Casting failed: ${error?.message || "Unknown error"}`);
+                }
+            }
+        } else {
+            alert("Casting or AirPlay is not supported on this browser/device.");
+        }
+    };
+
     if (!streamUrl || hasError) {
         return (
             <div className="w-full h-full bg-zinc-950 flex flex-col items-center justify-center">
@@ -341,6 +402,20 @@ export function LivePlayer({
                                 <span className="text-xs font-black uppercase tracking-[0.2em]">Live</span>
                             </div>
                         </div>
+                        <button
+                            onClick={handleCast}
+                            className="text-white/60 hover:text-white transition-colors"
+                            title="Cast to Device"
+                        >
+                            <Cast className="w-6 h-6 md:w-8 md:h-8" />
+                        </button>
+                        <button
+                            onClick={togglePip}
+                            className="text-white/60 hover:text-white transition-colors"
+                            title="Picture-in-Picture"
+                        >
+                            <PictureInPicture className="w-6 h-6 md:w-8 md:h-8" />
+                        </button>
                         <button
                             onClick={toggleFullscreen}
                             className="text-white/60 hover:text-white transition-colors"
