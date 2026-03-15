@@ -20,7 +20,7 @@ function VideoCardInner({ video }: { video: VideoProps }) {
     const [isHovered, setIsHovered] = useState(false);
     const [canHover, setCanHover] = useState(true);
 
-    const previewSrc = video.videoUrl;
+    const previewSrc = video.videoUrlH264 || video.videoUrl;
 
     const startPreview = useCallback(() => {
         setShowPreview(true);

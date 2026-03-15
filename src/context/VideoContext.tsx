@@ -411,9 +411,16 @@ export function VideoProvider({ children }: { children: ReactNode }) {
                 { event: 'UPDATE', schema: 'public', table: 'videos' },
                 (payload) => {
                     const video = payload.new as DBVideo;
+                    const s3Domain = "https://pub-efcc4aa0b3b24e3d97760577b0ec20bd.r2.dev";
+
+                    let h264Url = video.video_url_h264;
+                    if (h264Url && !h264Url.startsWith('http')) {
+                        h264Url = `${s3Domain}/${h264Url}`;
+                    }
+
                     setVideos(prev => prev.map(v => v.id === video.id ? {
                         ...v,
-                        videoUrlH264: video.video_url_h264,
+                        videoUrlH264: h264Url,
                         transcodeStatus: video.transcode_status,
                         thumbnail: video.thumbnail_url || v.thumbnail
                     } : v));

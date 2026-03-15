@@ -20,6 +20,7 @@ export function InlinePlayer({ src, poster }: InlinePlayerProps) {
                 poster={poster}
                 className="w-full h-full object-cover"
             >
+                {src.includes('.m3u8') && <source src={src} type="application/x-mpegURL" />}
                 <source src={src} type="video/mp4" />
                 Your browser does not support the video tag.
             </video>

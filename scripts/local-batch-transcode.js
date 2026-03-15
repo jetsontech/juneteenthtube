@@ -34,39 +34,45 @@ const s3 = new S3Client({
     responseChecksumValidation: "WHEN_REQUIRED"
 });
 
-function isLikelyHEVC(url) {
-    if (!url) return false;
-    const lower = url.toLowerCase();
-    return lower.endsWith('.mov') || lower.endsWith('.hevc') || lower.includes('quicktime');
+// Checks if the URL needs to be converted to HLS
+function needsHLSTranscode(video) {
+    // If no optimized URL exists, it definitely needs one
+    if (!video.video_url_h264) return true;
+
+    // If the optimized URL is not an HLS playlist, it should be upgraded
+    if (!video.video_url_h264.includes('.m3u8')) return true;
+
+    return false;
 }
 
-async function transcodeFile(inputPath, outputPath) {
+async function transcodeToHLS(inputPath, outputDir) {
     return new Promise((resolve, reject) => {
-        console.log(`Spawn ffmpeg: ${ffmpegPath}`);
+        const playlistPath = join(outputDir, 'index.m3u8');
+        console.log(`  Spawning FFmpeg for HLS...`);
         const ffmpeg = spawn(ffmpegPath, [
             '-i', inputPath,
             '-c:v', 'libx264',
-            '-crf', '16',             // Master quality visually lossless
-            '-preset', 'veryslow',    // Maximum compression efficiency
-            '-pix_fmt', 'yuv420p',    // Standard color compatibility
-            '-profile:v', 'high',     // High profile for better quality/size ratio
-            '-level', '4.2',          // Target modern devices
-            '-g', '48',               // Set GOP size (2 seconds for 24fps) for better seeking/buffering
-            '-keyint_min', '48',      // Minimum GOP size
-            '-sc_threshold', '0',     // Disable scene cut detection for fixed GOP (better for VOD streaming)
+            '-crf', '18',
+            '-preset', 'veryfast',    // Faster for VOD processing
+            '-pix_fmt', 'yuv420p',
+            '-profile:v', 'high',
+            '-level', '4.2',
+            '-g', '48',
+            '-keyint_min', '48',
+            '-sc_threshold', '0',
             '-c:a', 'aac',
             '-ac', '2',
-            '-ar', '48000',           // High fidelity sample rate
-            '-b:a', '320k',           // High fidelity audio bitrate
-            '-movflags', '+faststart', // Instant playback
-            '-y',
-            outputPath
-        ]);
-
-        // ffmpeg.stderr.pipe(process.stdout); // Verbose logging
+            '-ar', '48000',
+            '-b:a', '192k',
+            '-f', 'hls',
+            '-hls_time', '6',
+            '-hls_playlist_type', 'vod',
+            '-hls_segment_filename', join(outputDir, 'segment_%03d.ts'),
+            playlistPath
+        ], { stdio: 'inherit' });
 
         ffmpeg.on('close', (code) => {
-            if (code === 0) resolve();
+            if (code === 0) resolve(playlistPath);
             else reject(new Error(`FFmpeg exited with code ${code}`));
         });
 
@@ -84,59 +90,89 @@ async function main() {
 
     if (error) throw error;
 
-    // Filter HEVC
-    const hevcVideos = videos.filter(v => isLikelyHEVC(v.video_url));
-    console.log(`Found ${hevcVideos.length} HEVC videos to transcode.`);
+    // Identify all videos that lack the premium HLS "Live Page" experience
+    const targetVideos = videos.filter(v => needsHLSTranscode(v));
+    console.log(`Found ${targetVideos.length} videos to upgrade to HLS.`);
 
     const tempDir = join(__dirname, 'temp_transcode');
     if (!existsSync(tempDir)) mkdirSync(tempDir);
 
-    for (const [index, video] of hevcVideos.entries()) {
-        console.log(`[${index + 1}/${hevcVideos.length}] Processing ${video.title} (${video.id})...`);
+    for (const [index, video] of targetVideos.entries()) {
+        console.log(`[${index + 1}/${targetVideos.length}] Processing ${video.title} (${video.id})...`);
 
         const urlParts = video.video_url.split('/');
-        const sourceKey = urlParts[urlParts.length - 1];
+        const sourceFileName = urlParts[urlParts.length - 1];
+        const folderName = sourceFileName.replace(/\.[^.]+$/, '');
+
         const inputPath = join(tempDir, `${video.id}_input.mov`);
-        const outputPath = join(tempDir, `${video.id}_output.mp4`);
-        const h264Key = sourceKey.replace(/\.[^.]+$/, '_h264.mp4');
+        const hlsOutputDir = join(tempDir, `${video.id}_hls`);
+
+        if (!existsSync(hlsOutputDir)) mkdirSync(hlsOutputDir);
 
         try {
             // 1. Download
-            console.log(`  Downloading ${sourceKey}...`);
-            const getCmd = new GetObjectCommand({ Bucket: bucketName, Key: sourceKey });
-            const s3Res = await s3.send(getCmd);
-            await pipeline(s3Res.Body, createWriteStream(inputPath));
+            if (video.video_url.startsWith('http')) {
+                console.log(`  Downloading remote URL: ${video.video_url}...`);
 
-            // 2. Transcode
-            console.log(`  Transcoding to H.264...`);
-            await transcodeFile(inputPath, outputPath);
+                const fetchWithRetry = async (url, retries = 5, backoff = 2000) => {
+                    for (let i = 0; i < retries; i++) {
+                        try {
+                            const response = await fetch(url);
+                            if (response.ok) return response;
+                            throw new Error(`Status ${response.status}: ${response.statusText}`);
+                        } catch (err) {
+                            if (i === retries - 1) throw err;
+                            const wait = backoff * Math.pow(2, i);
+                            console.warn(`    Download failed (${err.message}). Retrying in ${wait / 1000}s...`);
+                            await new Promise(r => setTimeout(r, wait));
+                        }
+                    }
+                };
 
-            // 3. Upload
-            console.log(`  Uploading dest ${h264Key}...`);
-            const fileStream = createReadStream(outputPath);
-            // Must calculate size or let sdk handle content-length? Stream upload works.
-            const putCmd = new PutObjectCommand({
-                Bucket: bucketName,
-                Key: h264Key,
-                Body: fileStream,
-                ContentType: 'video/mp4'
-            });
-            await s3.send(putCmd);
+                const response = await fetchWithRetry(video.video_url);
+                const fileStream = createWriteStream(inputPath);
+                await pipeline(response.body, fileStream);
+            } else {
+                console.log(`  Downloading S3 Key: ${sourceFileName}...`);
+                const getCmd = new GetObjectCommand({ Bucket: bucketName, Key: sourceFileName });
+                const s3Res = await s3.send(getCmd);
+                await pipeline(s3Res.Body, createWriteStream(inputPath));
+            }
 
-            const publicUrl = publicDomain
-                ? `${publicDomain}/${h264Key}`
-                : `${endpoint}/${bucketName}/${h264Key}`;
+            // 2. Transcode to HLS
+            console.log(`  Transcoding to HLS...`);
+            await transcodeToHLS(inputPath, hlsOutputDir);
+
+            // 3. Upload all HLS files
+            const hlsFiles = require('fs').readdirSync(hlsOutputDir);
+            console.log(`  Uploading ${hlsFiles.length} HLS files to folder ${folderName}/...`);
+
+            for (const file of hlsFiles) {
+                const filePath = join(hlsOutputDir, file);
+                const s3Key = `${folderName}/${file}`;
+                const contentType = file.endsWith('.m3u8') ? 'application/x-mpegURL' : 'video/MP2T';
+
+                const putCmd = new PutObjectCommand({
+                    Bucket: bucketName,
+                    Key: s3Key,
+                    Body: createReadStream(filePath),
+                    ContentType: contentType
+                });
+                await s3.send(putCmd);
+            }
+
+            const playlistUrl = publicDomain
+                ? `${publicDomain}/${folderName}/index.m3u8`
+                : `${endpoint}/${bucketName}/${folderName}/index.m3u8`;
 
             // 4. Update DB
-            console.log(`  Updating DB...`);
-            const dbUrl = publicUrl.startsWith('http') ? publicUrl : `${publicDomain}/${h264Key}`;
-
+            console.log(`  Updating DB with HLS playlist...`);
             await supabase.from('videos').update({
-                video_url_h264: dbUrl,
+                video_url_h264: playlistUrl, // Overwriting the field for optimized source
                 transcode_status: 'completed'
             }).eq('id', video.id);
 
-            console.log(`  Done! URL: ${publicUrl}`);
+            console.log(`  Done! HLS Playlist: ${playlistUrl}`);
 
         } catch (err) {
             console.error(`  Failed: ${err.message}`);
@@ -145,8 +181,18 @@ async function main() {
             }).eq('id', video.id);
         } finally {
             // cleanup
-            if (existsSync(inputPath)) unlinkSync(inputPath);
-            if (existsSync(outputPath)) unlinkSync(outputPath);
+            try {
+                if (existsSync(inputPath)) unlinkSync(inputPath);
+                if (existsSync(hlsOutputDir)) {
+                    const fs = require('fs');
+                    fs.readdirSync(hlsOutputDir).forEach(f => {
+                        try { unlinkSync(join(hlsOutputDir, f)); } catch (e) { /* ignore */ }
+                    });
+                    try { fs.rmdirSync(hlsOutputDir); } catch (e) { /* ignore */ }
+                }
+            } catch (err) {
+                console.warn(`  Cleanup warning: ${err.message}`);
+            }
         }
     }
     console.log('All done.');

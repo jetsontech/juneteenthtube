@@ -470,7 +470,10 @@ function CivilRightsPlayer({ src, accent }: { src: string; accent: string }) {
             onMouseLeave={() => isPlaying && setShowControls(false)}
             onClick={togglePlay}
         >
-            <video ref={videoRef} src={src} poster="/placeholder.svg" preload="metadata" playsInline className="w-full h-full object-contain bg-black" />
+            <video ref={videoRef} src={src} poster="/placeholder.svg" preload="metadata" playsInline className="w-full h-full object-contain bg-black">
+                {src.includes('.m3u8') && <source src={src} type="application/x-mpegURL" />}
+                <source src={src} type="video/mp4" />
+            </video>
 
             {/* Play overlay */}
             {!isPlaying && (

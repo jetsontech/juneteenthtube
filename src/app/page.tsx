@@ -65,11 +65,11 @@ function HomeContent() {
 
   return (
     <>
-      {/* Category Bar */}
       <CategoryBar
         categories={CATEGORIES}
         selectedCategory={selectedCategory}
         onCategoryChange={setSelectedCategory}
+        className="mb-4"
       />
 
       <div className="content">

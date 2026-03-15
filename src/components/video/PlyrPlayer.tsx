@@ -13,7 +13,10 @@ export function PlyrPlayer({ src, poster }: PlyrPlayerProps) {
     const plyrProps = useMemo(() => ({
         source: {
             type: "video" as const,
-            sources: [{ src, type: "video/mp4" }],
+            sources: [{
+                src,
+                type: src.includes('.m3u8') ? "application/x-mpegURL" : "video/mp4" as const
+            }],
             poster,
         },
         options: {

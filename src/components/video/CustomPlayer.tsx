@@ -66,7 +66,8 @@ export function CustomPlayer({ src, srcH264, poster }: CustomPlayerProps) {
             html5: {
                 vhs: { overrideNative: true },
                 nativeAudioTracks: false,
-                nativeVideoTracks: false
+                nativeVideoTracks: false,
+                hls: { overrideNative: true }
             }
         }, () => {
             playerRef.current = player;
@@ -122,9 +123,10 @@ export function CustomPlayer({ src, srcH264, poster }: CustomPlayerProps) {
     // Source Reactivity
     useEffect(() => {
         if (playerRef.current && activeSrc) {
+            const isHLS = activeSrc.includes('.m3u8');
             playerRef.current.src({
                 src: activeSrc,
-                type: activeSrc.includes('.m3u8') ? 'application/x-mpegURL' : 'video/mp4'
+                type: isHLS ? 'application/x-mpegURL' : 'video/mp4'
             });
         }
     }, [activeSrc]);
