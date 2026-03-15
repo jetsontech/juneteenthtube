@@ -263,7 +263,7 @@ export function LivePlayer({
         if (!videoRef.current) return;
         try {
             if (document.pictureInPictureElement) await document.exitPictureInPicture();
-            else await videoRef.current.requestPictureInPicture();
+            else if (videoRef.current) await videoRef.current.requestPictureInPicture();
         } catch (error) {
             console.error("PiP failed:", error);
         }
@@ -284,10 +284,11 @@ export function LivePlayer({
         const tracks = playerRef.current.textTracks();
         let enabled = false;
         for (let i = 0; i < tracks.length; i++) {
-            if (tracks[i].mode === 'showing') {
-                tracks[i].mode = 'disabled';
+            const track = tracks[i];
+            if (track.mode === 'showing') {
+                track.mode = 'disabled';
             } else {
-                tracks[i].mode = 'showing';
+                track.mode = 'showing';
                 enabled = true;
             }
         }
@@ -380,7 +381,7 @@ export function LivePlayer({
                         <button onClick={toggleZoom} className={cn("transition-colors", isZoomed ? "text-white" : "text-white/60 hover:text-white")}>
                             {isZoomed ? <ZoomOut className="w-6 h-6 md:w-8 md:h-8" /> : <ZoomIn className="w-6 h-6 md:w-8 md:h-8" />}
                         </button>
-                        <button onClick={toggleSubtitles} className={cn("transition-colors", subtitlesEnabled ? "text-white" : "text-white/60 hover:text-white")}>
+                        <button onClick={toggleSubtitles} className={cn("transition-colors", subtitlesEnabled ? "text-white" : "text-white/60 hover:text-white")} title="Toggle Subtitles">
                             <Subtitles className="w-6 h-6 md:w-8 md:h-8" />
                         </button>
                         <button onClick={handleCast} className="text-white/60 hover:text-white transition-colors" title="Cast to device">
