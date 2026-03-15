@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
-import Hls from "hls.js";
+import videojs from "video.js";
+import type Player from "video.js/dist/types/player";
+import "video.js/dist/video-js.css";
 import {
     Play,
     Pause,
@@ -59,8 +61,6 @@ interface LivePlayerProps {
    SUB-COMPONENTS
    ════════════════════════════════════════════════════ */
 
-
-
 function UpNextToast({ nextFilm, visible, accent }: { nextFilm?: ProgramMetadata; visible: boolean; accent: string }) {
     if (!nextFilm) return null;
     const accentBorder = accent === "yellow" ? "border-yellow-600/40" : accent === "amber" ? "border-amber-600/40" : accent === "purple" ? "border-purple-500/40" : accent === "red" ? "border-red-500/40" : "border-white/10";
@@ -99,12 +99,11 @@ export function LivePlayer({
     onToggleChat
 }: LivePlayerProps) {
     const videoRef = useRef<HTMLVideoElement>(null);
+    const playerRef = useRef<Player | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const progressBarRef = useRef<HTMLDivElement>(null);
     const volumeBarRef = useRef<HTMLDivElement>(null);
-    const hlsRef = useRef<Hls | null>(null);
     const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-    const infoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const currentPlaylistIndex = useRef(0);
 
     // Audio Context Refs (Studio Grade Audio)
@@ -122,121 +121,11 @@ export function LivePlayer({
     const [isLive, setIsLive] = useState(true);
     const [hasError, setHasError] = useState(false);
     const [progress, setProgress] = useState(0);
-    const [subtitlesEnabled, setSubtitlesEnabled] = useState(false); // CC State
+    const [subtitlesEnabled, setSubtitlesEnabled] = useState(false);
     const [isZoomed, setIsZoomed] = useState(false);
 
-    // ── FAST Overlay Logic ────────────────────────────
-    // (TuneInOverlay removed per user request for faster switching)
-
-    // Show "Up Next" toast when video is > 95% or with 30s left
-    useEffect(() => {
-        const video = videoRef.current;
-        if (!video) return;
-
-        const onTime = () => {
-            if (video.duration) {
-                const pct = (video.currentTime / video.duration) * 100;
-                setProgress(pct);
-
-                // Update progress bar width dynamically
-                if (progressBarRef.current) {
-                    progressBarRef.current.style.width = `${pct}%`;
-                }
-
-                // Show "Up Next" toast if we have a next program and we're near the end
-                if (nextProgram && (pct > 95 || (video.duration - video.currentTime < 30))) {
-                    setShowUpNext(true);
-                } else {
-                    setShowUpNext(false);
-                }
-            }
-        };
-
-        video.addEventListener("timeupdate", onTime);
-        return () => video.removeEventListener("timeupdate", onTime);
-    }, [nextProgram]);
-
-    // ── Keyboard Navigation ───────────────────────────────────
-    useEffect(() => {
-        const handleKeyDown = (e: KeyboardEvent) => {
-            if (!document.fullscreenElement && document.activeElement !== containerRef.current) return;
-            if (e.key === "ArrowUp") { e.preventDefault(); onNext?.(); }
-            else if (e.key === "ArrowDown") { e.preventDefault(); onPrev?.(); }
-        };
-        window.addEventListener("keydown", handleKeyDown);
-        return () => window.removeEventListener("keydown", handleKeyDown);
-    }, [onNext, onPrev]);
-
-    const attachSource = useCallback((url: string) => {
-        const video = videoRef.current;
-        if (!video || !url) return;
-        setHasError(false);
-        if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null; }
-
-        if (url.includes(".m3u8")) {
-            if (Hls.isSupported()) {
-                const hls = new Hls({ enableWorker: true, lowLatencyMode: true });
-                hls.loadSource(url);
-                hls.attachMedia(video);
-                hls.on(Hls.Events.MANIFEST_PARSED, () => video.play().catch(() => { }));
-                hls.on(Hls.Events.ERROR, (_event, data) => {
-                    if (data.fatal) {
-                        if (data.type === Hls.ErrorTypes.NETWORK_ERROR) hls.startLoad();
-                        else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) hls.recoverMediaError();
-                        else setHasError(true);
-                    }
-                });
-                hlsRef.current = hls;
-                setIsLive(true);
-            } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
-                video.src = url;
-                video.play().catch(() => { });
-                setIsLive(true);
-            }
-        } else {
-            video.src = url;
-            video.play().catch(() => { });
-            setIsLive(false);
-        }
-    }, []);
-
-    useEffect(() => {
-        if (streamUrl) attachSource(streamUrl);
-        return () => { if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null; } };
-    }, [streamUrl, attachSource]);
-
-    useEffect(() => {
-        const video = videoRef.current;
-        if (!video) return;
-        const onPlay = () => { setIsPlaying(true); setHasStartedPlaying(true); };
-        const onPause = () => setIsPlaying(false);
-        const onError = () => setHasError(true);
-        const onEnded = () => {
-            if (playlist && playlist.length > 0) {
-                currentPlaylistIndex.current = (currentPlaylistIndex.current + 1) % playlist.length;
-                attachSource(playlist[currentPlaylistIndex.current]);
-            }
-        };
-        video.addEventListener("play", onPlay);
-        video.addEventListener("pause", onPause);
-        video.addEventListener("error", onError);
-        video.addEventListener("ended", onEnded);
-        return () => {
-            video.removeEventListener("play", onPlay);
-            video.removeEventListener("pause", onPause);
-            video.removeEventListener("error", onError);
-            video.removeEventListener("ended", onEnded);
-        };
-    }, [playlist, attachSource]);
-
-    const resetHideTimer = useCallback(() => {
-        setShowControls(true);
-        if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
-        if (isPlaying) hideTimerRef.current = setTimeout(() => setShowControls(false), 3000);
-    }, [isPlaying]);
-
-    // Web Audio API Setup
-    const setupAudioContext = () => {
+    // Standard Audio Setup
+    const setupAudioContext = useCallback(() => {
         if (audioContextRef.current) return;
         const video = videoRef.current;
         if (!video) return;
@@ -246,15 +135,13 @@ export function LivePlayer({
             const ctx = new AudioContext();
             const source = ctx.createMediaElementSource(video);
 
-            // Studio Grade Compressor
             const compressor = ctx.createDynamicsCompressor();
-            compressor.threshold.value = -24; // Compress loud spikes
-            compressor.knee.value = 30; // Smooth transition
-            compressor.ratio.value = 12; // Heavy compression for vocal clarity
+            compressor.threshold.value = -24;
+            compressor.knee.value = 30;
+            compressor.ratio.value = 12;
             compressor.attack.value = 0.003;
             compressor.release.value = 0.25;
 
-            // Optional: Gain node to boost overall volume after compression
             const gainNode = ctx.createGain();
             gainNode.gain.value = 1.5;
 
@@ -268,33 +155,100 @@ export function LivePlayer({
         } catch (err) {
             console.error("Web Audio API not supported", err);
         }
-    };
+    }, []);
+
+    // Initialize Video.js
+    useEffect(() => {
+        if (!videoRef.current) return;
+
+        const player = videojs(videoRef.current, {
+            controls: false,
+            autoplay: true,
+            muted: true,
+            preload: "auto",
+            fluid: false,
+            playsinline: true,
+            html5: {
+                vhs: { overrideNative: true },
+                nativeAudioTracks: false,
+                nativeVideoTracks: false
+            }
+        }, () => {
+            playerRef.current = player;
+            console.log("Enterprise Live Player Ready");
+        });
+
+        player.on('play', () => {
+            setIsPlaying(true);
+            setHasStartedPlaying(true);
+        });
+        player.on('pause', () => setIsPlaying(false));
+        player.on('timeupdate', () => {
+            const dur = player.duration();
+            const cur = player.currentTime();
+            if (dur && cur) {
+                const pct = (cur / dur) * 100;
+                setProgress(pct);
+                if (progressBarRef.current) {
+                    progressBarRef.current.style.width = `${pct}%`;
+                }
+                if (nextProgram && (pct > 95 || (dur - cur < 30))) {
+                    setShowUpNext(true);
+                } else {
+                    setShowUpNext(false);
+                }
+            }
+        });
+        player.on('error', () => setHasError(true));
+        player.on('ended', () => {
+            if (playlist && playlist.length > 0) {
+                currentPlaylistIndex.current = (currentPlaylistIndex.current + 1) % playlist.length;
+                player.src({ src: playlist[currentPlaylistIndex.current], type: playlist[currentPlaylistIndex.current].includes('.m3u8') ? 'application/x-mpegURL' : 'video/mp4' });
+            }
+        });
+
+        return () => {
+            if (playerRef.current) {
+                playerRef.current.dispose();
+                playerRef.current = null;
+            }
+        };
+    }, [playlist, nextProgram]);
+
+    // Handle streamUrl changes
+    useEffect(() => {
+        if (playerRef.current && streamUrl) {
+            playerRef.current.src({
+                src: streamUrl,
+                type: streamUrl.includes('.m3u8') ? 'application/x-mpegURL' : 'video/mp4'
+            });
+            setIsLive(streamUrl.includes('.m3u8'));
+        }
+    }, [streamUrl]);
+
+    // UI Logic
+    const resetHideTimer = useCallback(() => {
+        setShowControls(true);
+        if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+        if (isPlaying) hideTimerRef.current = setTimeout(() => setShowControls(false), 3000);
+    }, [isPlaying]);
 
     const togglePlay = () => {
-        const v = videoRef.current;
-        if (!v) return;
-
-        // Initialize AudioContext on first user interaction for policy compliance
+        if (!playerRef.current) return;
         if (!audioContextRef.current) setupAudioContext();
         else if (audioContextRef.current.state === 'suspended') audioContextRef.current.resume();
 
-        if (v.paused) v.play().catch(() => { }); else v.pause();
+        if (playerRef.current.paused()) playerRef.current.play().catch(() => { });
+        else playerRef.current.pause();
     };
 
     const toggleMute = (e: React.MouseEvent) => {
         e.stopPropagation();
-        const v = videoRef.current;
-        if (!v) return;
-        v.muted = !v.muted;
-        setIsMuted(v.muted);
+        if (!playerRef.current) return;
+        const muted = !playerRef.current.muted();
+        playerRef.current.muted(muted);
+        setIsMuted(muted);
     };
-
-    // Keep volume bar updated
-    useEffect(() => {
-        if (volumeBarRef.current) {
-            volumeBarRef.current.style.width = `${volume * 100}%`;
-        }
-    }, [volume]);
 
     const toggleFullscreen = (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -304,89 +258,52 @@ export function LivePlayer({
         else c.requestFullscreen();
     };
 
-    // Toggle PiP
     const togglePip = async (e?: React.MouseEvent) => {
         e?.stopPropagation();
         if (!videoRef.current) return;
-
         try {
-            if (document.pictureInPictureElement) {
-                await document.exitPictureInPicture();
-            } else {
-                await videoRef.current.requestPictureInPicture();
-            }
+            if (document.pictureInPictureElement) await document.exitPictureInPicture();
+            else await videoRef.current.requestPictureInPicture();
         } catch (error) {
             console.error("PiP failed:", error);
         }
     };
 
-    // Handle Casting
-    const handleCast = async (e?: React.MouseEvent) => {
+    const handleCast = (e?: React.MouseEvent) => {
         e?.stopPropagation();
-
-        if (!videoRef.current) return;
-
+        // AirPlay/Cast logic (simplified for refactor)
         const videoElement = videoRef.current as unknown as HTMLVideoElementWithWebKit;
-
-        if (videoElement.webkitShowPlaybackTargetPicker) {
-            try {
-                videoElement.webkitShowPlaybackTargetPicker();
-                return;
-            } catch (error) {
-                console.error("AirPlay failed:", error);
-            }
-        }
-
-        if (videoElement.remote) {
-            try {
-                if (videoElement.remote.state === 'disconnected') {
-                    await videoElement.remote.prompt();
-                } else {
-                    await videoElement.remote.prompt();
-                }
-            } catch (error: any) {
-                if (error?.name === 'AbortError' || error?.name === 'NotAllowedError' || error?.message?.includes('dismissed')) {
-                    // User cancelled
-                } else {
-                    console.error("Cast error:", error);
-                    alert(`Casting failed: ${error?.message || "Unknown error"}`);
-                }
-            }
-        } else {
-            alert("Casting or AirPlay is not supported on this browser/device.");
+        if (videoElement?.webkitShowPlaybackTargetPicker) {
+            videoElement.webkitShowPlaybackTargetPicker();
         }
     };
 
-    // Toggle Closed Captions
     const toggleSubtitles = (e?: React.MouseEvent) => {
         e?.stopPropagation();
-        const video = videoRef.current;
-        if (!video) return;
-
-        const tracks = video.textTracks;
-        if (tracks && tracks.length > 0) {
-            // Find the primary subtitle track
-            let hasEnabled = false;
-            for (let i = 0; i < tracks.length; i++) {
-                if (tracks[i].mode === 'showing') {
-                    tracks[i].mode = 'hidden';
-                } else if (!hasEnabled && tracks[i].kind === 'subtitles' || tracks[i].kind === 'captions') {
-                    tracks[i].mode = 'showing';
-                    hasEnabled = true;
-                }
+        if (!playerRef.current) return;
+        const tracks = playerRef.current.textTracks();
+        let enabled = false;
+        for (let i = 0; i < tracks.length; i++) {
+            if (tracks[i].mode === 'showing') {
+                tracks[i].mode = 'disabled';
+            } else {
+                tracks[i].mode = 'showing';
+                enabled = true;
             }
-            setSubtitlesEnabled(hasEnabled);
-        } else {
-            // Visual toggle even if no tracks found (often useful if tracks are native/burned in via stream but still want a toggle state)
-            setSubtitlesEnabled(prev => !prev);
         }
+        setSubtitlesEnabled(enabled);
     };
 
-    // Toggle Zoom out of pillarboxes
     const toggleZoom = (e?: React.MouseEvent) => {
         e?.stopPropagation();
         setIsZoomed(prev => !prev);
     };
+
+    useEffect(() => {
+        if (volumeBarRef.current) {
+            volumeBarRef.current.style.width = `${volume * 100}%`;
+        }
+    }, [volume]);
 
     if (!streamUrl || hasError) {
         return (
@@ -400,8 +317,6 @@ export function LivePlayer({
     }
 
     const accentBg = accentColor === "yellow" ? "bg-yellow-500" : accentColor === "amber" ? "bg-amber-600" : accentColor === "purple" ? "bg-purple-500" : "bg-red-600";
-    const accentText = accentColor === "yellow" ? "text-yellow-500" : accentColor === "amber" ? "text-amber-500" : accentColor === "purple" ? "text-purple-400" : "text-red-500";
-    const accentBorder = accentColor === "yellow" ? "border-yellow-600/40" : accentColor === "amber" ? "border-amber-600/40" : accentColor === "purple" ? "border-purple-500/40" : "border-red-500/40";
 
     return (
         <div
@@ -412,7 +327,17 @@ export function LivePlayer({
             onClick={togglePlay}
             className="relative w-full h-full bg-black overflow-hidden group cursor-pointer outline-none"
         >
-            <video ref={videoRef} poster={posterUrl} muted={isMuted} playsInline autoPlay className={cn("w-full h-full pointer-events-none transition-transform duration-500", isZoomed ? "object-cover scale-[1.34]" : "object-contain scale-100")} />
+            <div data-vjs-player className="w-full h-full">
+                <video
+                    ref={videoRef}
+                    className={cn(
+                        "video-js vjs-default-skin w-full h-full transition-transform duration-500",
+                        isZoomed ? "vjs-zoomed" : "vjs-contain"
+                    )}
+                    playsInline
+                    crossOrigin="anonymous"
+                />
+            </div>
 
             <UpNextToast nextFilm={nextProgram} visible={showUpNext} accent={accentColor} />
 
@@ -429,32 +354,20 @@ export function LivePlayer({
                 </div>
             </div>
 
-            {/* Custom Control Bar */}
+            {/* Premium Control Bar */}
             <div className={cn("absolute bottom-0 left-0 right-0 z-40 transition-all duration-300 pointer-events-none", showControls ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4")}>
                 <div className="bg-gradient-to-t from-black/95 via-black/40 to-transparent pt-16 md:pt-32 pb-4 md:pb-8 px-4 md:px-10 flex items-center justify-between pointer-events-auto">
                     <div className="flex items-center gap-4 md:gap-8">
-                        <button
-                            onClick={togglePlay}
-                            className="text-white hover:scale-110 transition-transform active:scale-95 shadow-2xl"
-                            title={isPlaying ? "Pause" : "Play"}
-                        >
+                        <button onClick={togglePlay} className="text-white hover:scale-110 transition-transform active:scale-95 shadow-2xl">
                             {isPlaying ? <Pause className="w-8 h-8 md:w-10 md:h-10 fill-white" /> : <Play className="w-8 h-8 md:w-10 md:h-10 fill-white" />}
                         </button>
 
-                        <button
-                            onClick={(e) => { e.stopPropagation(); onToggleChat?.(); }}
-                            className="text-white/60 hover:text-white transition-colors"
-                            title="Toggle Chat"
-                        >
+                        <button onClick={(e) => { e.stopPropagation(); onToggleChat?.(); }} className="text-white/60 hover:text-white transition-colors">
                             <MessageCircle className="w-6 h-6 md:w-8 md:h-8" />
                         </button>
 
                         <div className="flex items-center gap-3 group/volume">
-                            <button
-                                onClick={toggleMute}
-                                className="text-white/60 hover:text-white transition-colors"
-                                title={isMuted ? "Unmute" : "Mute"}
-                            >
+                            <button onClick={toggleMute} className="text-white/60 hover:text-white transition-colors">
                                 {isMuted ? <VolumeX className="w-6 h-6 md:w-7 md:h-7" /> : <Volume2 className="w-6 h-6 md:w-7 md:h-7" />}
                             </button>
                             <div className="w-0 group-hover:w-24 transition-all duration-300 h-1 bg-white/20 rounded-full overflow-hidden">
@@ -464,45 +377,19 @@ export function LivePlayer({
                     </div>
 
                     <div className="flex items-center gap-6">
-                        <button
-                            onClick={toggleZoom}
-                            className={cn(
-                                "transition-colors",
-                                isZoomed ? "text-white" : "text-white/60 hover:text-white"
-                            )}
-                            title={isZoomed ? "Zoom Out" : "Zoom In (Fill 4:3 content)"}
-                        >
+                        <button onClick={toggleZoom} className={cn("transition-colors", isZoomed ? "text-white" : "text-white/60 hover:text-white")}>
                             {isZoomed ? <ZoomOut className="w-6 h-6 md:w-8 md:h-8" /> : <ZoomIn className="w-6 h-6 md:w-8 md:h-8" />}
                         </button>
-                        <button
-                            onClick={toggleSubtitles}
-                            className={cn(
-                                "transition-colors",
-                                subtitlesEnabled ? "text-white" : "text-white/60 hover:text-white"
-                            )}
-                            title="Closed Captions / Subtitles"
-                        >
+                        <button onClick={toggleSubtitles} className={cn("transition-colors", subtitlesEnabled ? "text-white" : "text-white/60 hover:text-white")}>
                             <Subtitles className="w-6 h-6 md:w-8 md:h-8" />
                         </button>
-                        <button
-                            onClick={handleCast}
-                            className="text-white/60 hover:text-white transition-colors"
-                            title="Cast to Device"
-                        >
+                        <button onClick={handleCast} className="text-white/60 hover:text-white transition-colors">
                             <Cast className="w-6 h-6 md:w-8 md:h-8" />
                         </button>
-                        <button
-                            onClick={togglePip}
-                            className="text-white/60 hover:text-white transition-colors"
-                            title="Picture-in-Picture"
-                        >
+                        <button onClick={togglePip} className="text-white/60 hover:text-white transition-colors">
                             <PictureInPicture className="w-6 h-6 md:w-8 md:h-8" />
                         </button>
-                        <button
-                            onClick={toggleFullscreen}
-                            className="text-white/60 hover:text-white transition-colors"
-                            title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
-                        >
+                        <button onClick={toggleFullscreen} className="text-white/60 hover:text-white transition-colors">
                             {isFullscreen ? <Minimize className="w-6 h-6 md:w-8 md:h-8" /> : <Maximize className="w-6 h-6 md:w-8 md:h-8" />}
                         </button>
                     </div>

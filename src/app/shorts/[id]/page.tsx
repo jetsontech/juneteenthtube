@@ -1,12 +1,16 @@
 "use client";
 
-import { use, useEffect, useRef, useState } from "react";
+import { use, useEffect, useRef, useState, useCallback } from "react";
 import { useVideo } from "@/context/VideoContext";
 import { VideoProps } from "@/components/video/VideoCard";
+import videojs from "video.js";
+import type Player from "video.js/dist/types/player";
+import "video.js/dist/video-js.css";
 import { ThumbsUp, ThumbsDown, MessageCircle, Share2, MoreVertical, X, ChevronUp, ChevronDown, Volume2, VolumeX } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
+import { cn } from "@/lib/utils";
 
 export default function ShortsPlayerPage({
     params,
@@ -16,23 +20,25 @@ export default function ShortsPlayerPage({
     const resolvedParams = use(params);
     const router = useRouter();
     const searchParams = useSearchParams();
-    const mode = searchParams.get('mode') || 'portrait'; // Default to portrait for vertical shorts
+    const mode = searchParams.get('mode') || 'portrait';
     const isLandscape = mode === 'landscape';
     const { getVideoById, videos, getLikes, toggleLike } = useVideo();
+
     const [video, setVideo] = useState<VideoProps | undefined>();
     const [liked, setLiked] = useState(false);
     const [disliked, setDisliked] = useState(false);
     const [likesCount, setLikesCount] = useState(0);
-    const [isMuted, setIsMuted] = useState(false); // Default unmuted for better UX
-    const videoRef = useRef<HTMLVideoElement>(null);
+    const [isMuted, setIsMuted] = useState(false);
 
-    // Audio Context Refs (Studio Grade Audio for Shorts)
+    const videoRef = useRef<HTMLVideoElement>(null);
+    const playerRef = useRef<Player | null>(null);
+
+    // Audio Context Refs
     const audioContextRef = useRef<AudioContext | null>(null);
     const sourceNodeRef = useRef<MediaElementAudioSourceNode | null>(null);
     const compressorRef = useRef<DynamicsCompressorNode | null>(null);
 
-    // Web Audio API Setup
-    const setupAudioContext = () => {
+    const setupAudioContext = useCallback(() => {
         if (audioContextRef.current) return;
         const video = videoRef.current;
         if (!video) return;
@@ -42,15 +48,13 @@ export default function ShortsPlayerPage({
             const ctx = new AudioContext();
             const source = ctx.createMediaElementSource(video);
 
-            // Studio Grade Compressor
             const compressor = ctx.createDynamicsCompressor();
-            compressor.threshold.value = -24; // Compress loud spikes
-            compressor.knee.value = 30; // Smooth transition
-            compressor.ratio.value = 12; // Heavy compression for vocal clarity
+            compressor.threshold.value = -24;
+            compressor.knee.value = 30;
+            compressor.ratio.value = 12;
             compressor.attack.value = 0.003;
             compressor.release.value = 0.25;
 
-            // Optional: Gain node to boost overall volume after compression
             const gainNode = ctx.createGain();
             gainNode.gain.value = 1.5;
 
@@ -64,38 +68,35 @@ export default function ShortsPlayerPage({
         } catch (err) {
             console.error("Web Audio API not supported", err);
         }
-    };
-
-    // Try to autoplay unmuted, fallback to muted if browser blocks
-    useEffect(() => {
-        if (videoRef.current) {
-            const video = videoRef.current;
-            video.muted = false;
-            video.volume = 1;
-            video.play().catch(() => {
-                // Browser blocked unmuted autoplay, fallback to muted
-                video.muted = true;
-                setIsMuted(true);
-                video.play().catch(() => {
-                    // Ignore if still blocked
-                });
-            });
-        }
     }, []);
 
-    // Sync isMuted state with video property
+    // Initialize Video.js
     useEffect(() => {
-        if (videoRef.current) {
-            videoRef.current.muted = isMuted;
-            if (!isMuted) {
-                videoRef.current.volume = 1;
-                // Attempt to play if it was paused by browser due to unmuting (some browsers do this)
-                videoRef.current.play().catch(() => {
-                    // Ignore autoplay/interaction errors here
-                });
+        if (!videoRef.current || !video?.videoUrl) return;
+
+        const player = videojs(videoRef.current, {
+            controls: false,
+            autoplay: true,
+            muted: isMuted,
+            loop: true,
+            preload: "auto",
+            playsinline: true,
+            sources: [{ src: video.videoUrl, type: "video/mp4" }]
+        });
+
+        playerRef.current = player;
+
+        player.on('play', () => {
+            if (!audioContextRef.current) setupAudioContext();
+        });
+
+        return () => {
+            if (playerRef.current) {
+                playerRef.current.dispose();
+                playerRef.current = null;
             }
-        }
-    }, [isMuted]);
+        };
+    }, [video?.videoUrl, setupAudioContext, isMuted]);
 
     // Parse duration to seconds for filtering shorts
     const parseDurationToSeconds = (duration: string | undefined): number => {
@@ -106,18 +107,16 @@ export default function ShortsPlayerPage({
         return 0;
     };
 
-    // Get all shorts (videos <= 60 seconds)
     const shorts = videos.filter(v => {
         const dur = parseDurationToSeconds(v.duration);
         return dur > 0 && dur <= 60;
     });
 
-    // Current short index
     const currentIndex = shorts.findIndex(s => s.id === resolvedParams.id);
 
     useEffect(() => {
         if (resolvedParams.id && videos.length > 0) {
-            setTimeout(() => setVideo(getVideoById(resolvedParams.id)), 0);
+            setVideo(getVideoById(resolvedParams.id));
         }
     }, [resolvedParams.id, videos, getVideoById]);
 
@@ -136,35 +135,22 @@ export default function ShortsPlayerPage({
         setLiked(!wasLiked);
         setLikesCount(prev => wasLiked ? prev - 1 : prev + 1);
         if (disliked) setDisliked(false);
-        try {
-            await toggleLike(video.id, 'like');
-        } catch {
-            setLiked(wasLiked);
-        }
+        try { await toggleLike(video.id, 'like'); } catch { setLiked(wasLiked); }
     };
 
     const handleDislike = async () => {
         if (!video) return;
         const wasDisliked = disliked;
         setDisliked(!wasDisliked);
-        if (liked) {
-            setLiked(false);
-            setLikesCount(prev => prev - 1);
-        }
-        try {
-            await toggleLike(video.id, 'dislike');
-        } catch {
-            setDisliked(wasDisliked);
-        }
+        if (liked) { setLiked(false); setLikesCount(prev => prev - 1); }
+        try { await toggleLike(video.id, 'dislike'); } catch { setDisliked(wasDisliked); }
     };
 
     const handleShare = async () => {
         try {
             await navigator.clipboard.writeText(window.location.href);
             alert("Link copied!");
-        } catch (err) {
-            console.error("Failed to copy", err);
-        }
+        } catch (err) { console.error("Failed to copy", err); }
     };
 
     const goToPrevious = () => {
@@ -180,178 +166,108 @@ export default function ShortsPlayerPage({
     };
 
     if (!video) {
-        return <div className="fixed inset-0 bg-black flex items-center justify-center text-white">Loading short...</div>;
+        return <div className="fixed inset-0 bg-black flex items-center justify-center text-white font-black tracking-widest uppercase">Loading Short...</div>;
     }
 
     return (
         <div className="fixed inset-0 bg-black z-[100] flex items-center justify-center">
-            {/* Close button */}
-            <Link href="/" className="absolute top-4 left-4 z-50 p-2 hover:bg-white/10 rounded-full transition-colors">
+            <Link href="/" className="absolute top-4 left-4 z-50 p-2 hover:bg-white/10 rounded-full transition-colors backdrop-blur-md">
                 <X className="w-6 h-6 text-white" />
             </Link>
 
-            {/* Navigation arrows - desktop */}
             <div className="hidden md:flex absolute right-4 top-1/2 -translate-y-1/2 flex-col gap-4 z-50">
-                <button
-                    onClick={goToPrevious}
-                    disabled={currentIndex <= 0}
-                    className="p-3 bg-white/10 hover:bg-white/20 rounded-full disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-                    title="Previous Short"
-                >
+                <button onClick={goToPrevious} disabled={currentIndex <= 0} className="p-3 bg-white/10 hover:bg-white/20 rounded-full transition-all backdrop-blur-xl disabled:opacity-20">
                     <ChevronUp className="w-6 h-6 text-white" />
                 </button>
-                <button
-                    onClick={goToNext}
-                    disabled={currentIndex >= shorts.length - 1}
-                    className="p-3 bg-white/10 hover:bg-white/20 rounded-full disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-                    title="Next Short"
-                >
+                <button onClick={goToNext} disabled={currentIndex >= shorts.length - 1} className="p-3 bg-white/10 hover:bg-white/20 rounded-full transition-all backdrop-blur-xl disabled:opacity-20">
                     <ChevronDown className="w-6 h-6 text-white" />
                 </button>
             </div>
 
-            {/* Main container - dynamic aspect ratio based on mode. Mobile: Edge-to-edge. Desktop: Floating card. */}
-            {/* Main container - dynamic aspect ratio based on mode. Mobile: Edge-to-edge. Desktop: Floating card. */}
-            <div className={`
-                fixed inset-0 z-50 bg-black flex items-center justify-center
-                md:relative md:inset-auto md:z-auto md:bg-transparent
-                md:h-full 
-                ${isLandscape
-                    ? 'md:max-w-[90vw] md:max-h-[90vh] md:aspect-video'
-                    : 'md:max-w-[400px] md:max-h-[90vh] md:aspect-[9/16]'
-                }`}
-            >
-                {/* Video container */}
-                <div className="relative w-full h-full bg-black md:rounded-xl overflow-hidden">
-                    {video.videoUrl ? (
+            <div className={cn(
+                "fixed inset-0 z-50 bg-black flex items-center justify-center md:relative md:inset-auto md:z-auto md:bg-transparent md:h-full transition-all duration-700",
+                isLandscape ? 'md:max-w-[90vw] md:max-h-[90vh] md:aspect-video' : 'md:max-w-[400px] md:max-h-[90vh] md:aspect-[9/16]'
+            )}>
+                <div className="relative w-full h-full bg-black md:rounded-3xl overflow-hidden shadow-2xl border border-white/5">
+                    <div data-vjs-player className="w-full h-full">
                         <video
                             ref={videoRef}
-                            src={video.videoUrl}
-                            className="w-full h-full object-cover"
-                            autoPlay
-                            muted={isMuted}
-                            loop
+                            className="video-js vjs-default-skin w-full h-full object-cover"
                             playsInline
-                            webkit-playsinline=""
-                            controls={false}
-                            onClick={(e) => {
-                                const vid = e.currentTarget;
-                                if (!audioContextRef.current) setupAudioContext();
-                                else if (audioContextRef.current.state === 'suspended') audioContextRef.current.resume();
-
-                                if (vid.paused) vid.play().catch(() => { });
-                                else vid.pause();
-                            }}
                         />
-                    ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                            <Image src={video.thumbnail} alt={video.title} fill sizes="(max-width: 768px) 100vw, 400px" className="object-cover" />
-                        </div>
-                    )}
+                    </div>
 
-                    {/* Bottom info overlay */}
-                    <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
-                        <div className="flex items-center gap-3 mb-3">
-                            <div className="w-10 h-10 rounded-full bg-gray-700 overflow-hidden relative">
+                    <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/90 via-black/40 to-transparent pointer-events-none">
+                        <div className="flex items-center gap-3 mb-4 pointer-events-auto">
+                            <div className="w-10 h-10 rounded-full bg-gray-700 overflow-hidden relative border-2 border-j-gold/30">
                                 {video.channelAvatar ? (
-                                    <Image src={video.channelAvatar} alt={video.channelName} fill sizes="40px" className="object-cover" />
+                                    <Image src={video.channelAvatar} alt="" fill className="object-cover" />
                                 ) : (
-                                    <div className="w-full h-full bg-gradient-to-br from-red-500 to-yellow-500" />
+                                    <div className="w-full h-full bg-gradient-to-br from-j-red to-j-gold" />
                                 )}
                             </div>
                             <div className="flex-1">
-                                <p className="text-white font-bold text-sm">@{video.channelName}</p>
+                                <p className="text-white font-bold text-sm tracking-tight">@{video.channelName}</p>
                             </div>
-                            <button className="px-4 py-1.5 bg-white text-black rounded-full text-sm font-medium hover:bg-gray-200 transition-colors">
+                            <button className="px-5 py-2 bg-white text-black rounded-full text-xs font-black uppercase tracking-widest hover:bg-j-gold transition-colors">
                                 Subscribe
                             </button>
                         </div>
-                        <p className="text-white text-sm line-clamp-2">{video.title}</p>
+                        <p className="text-white/90 text-sm font-medium line-clamp-2 leading-snug">{video.title}</p>
                     </div>
                 </div>
 
-                {/* Right side actions */}
-                <div className="absolute right-2 bottom-24 flex flex-col gap-4 items-center md:relative md:right-0 md:bottom-0 md:ml-4 md:self-end md:mb-20">
-                    <button
-                        onClick={handleLike}
-                        className="flex flex-col items-center gap-1"
-                    >
-                        <div className={`w-12 h-12 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors ${liked ? 'bg-white/20' : ''}`}>
-                            <ThumbsUp className={`w-6 h-6 text-white ${liked ? 'fill-white' : ''}`} />
+                <div className="absolute right-3 bottom-24 flex flex-col gap-5 items-center md:relative md:right-0 md:bottom-0 md:ml-6 md:self-end md:mb-20">
+                    <button onClick={handleLike} className="flex flex-col items-center gap-1.5 group">
+                        <div className={cn("w-14 h-14 rounded-full flex items-center justify-center transition-all duration-300 backdrop-blur-xl", liked ? "bg-j-red text-white scale-110" : "bg-white/10 text-white hover:bg-white/20")}>
+                            <ThumbsUp className={cn("w-6 h-6", liked && "fill-white")} />
                         </div>
-                        <span className="text-white text-xs font-medium">{likesCount}</span>
+                        <span className="text-white text-[10px] font-black uppercase tracking-tighter">{likesCount}</span>
                     </button>
 
-                    <button
-                        onClick={handleDislike}
-                        className="flex flex-col items-center gap-1"
-                    >
-                        <div className={`w-12 h-12 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors ${disliked ? 'bg-white/20' : ''}`}>
-                            <ThumbsDown className={`w-6 h-6 text-white ${disliked ? 'fill-white' : ''}`} />
+                    <button onClick={handleDislike} className="flex flex-col items-center gap-1.5 group">
+                        <div className={cn("w-14 h-14 rounded-full flex items-center justify-center transition-all duration-300 backdrop-blur-xl", disliked ? "bg-white text-black scale-110" : "bg-white/10 text-white hover:bg-white/20")}>
+                            <ThumbsDown className={cn("w-6 h-6", disliked && "fill-white")} />
                         </div>
-                        <span className="text-white text-xs font-medium">Dislike</span>
+                        <span className="text-white text-[10px] font-black uppercase tracking-tighter">Dislike</span>
                     </button>
 
-                    <button className="flex flex-col items-center gap-1">
-                        <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors">
-                            <MessageCircle className="w-6 h-6 text-white" />
+                    <button className="flex flex-col items-center gap-1.5 group">
+                        <div className="w-14 h-14 rounded-full bg-white/10 text-white flex items-center justify-center hover:bg-white/20 transition-all backdrop-blur-xl leading-none">
+                            <MessageCircle className="w-6 h-6" />
                         </div>
-                        <span className="text-white text-xs font-medium">0</span>
+                        <span className="text-white text-[10px] font-black uppercase tracking-tighter">0</span>
                     </button>
 
-                    <button
-                        onClick={handleShare}
-                        className="flex flex-col items-center gap-1"
-                    >
-                        <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors">
-                            <Share2 className="w-6 h-6 text-white" />
+                    <button onClick={handleShare} className="flex flex-col items-center gap-1.5 group">
+                        <div className="w-14 h-14 rounded-full bg-white/10 text-white flex items-center justify-center hover:bg-white/20 transition-all backdrop-blur-xl">
+                            <Share2 className="w-6 h-6" />
                         </div>
-                        <span className="text-white text-xs font-medium">Share</span>
+                        <span className="text-white text-[10px] font-black uppercase tracking-tighter">Share</span>
                     </button>
 
                     <button
                         onClick={() => {
                             if (!audioContextRef.current) setupAudioContext();
-                            else if (audioContextRef.current.state === 'suspended') audioContextRef.current.resume();
-
-                            // Direct user gesture for iOS Safari compatibility
-                            if (videoRef.current) {
+                            if (playerRef.current) {
                                 const newMuted = !isMuted;
-                                videoRef.current.muted = newMuted;
-                                if (!newMuted) {
-                                    videoRef.current.volume = 1;
-                                    // Force play after unmute for browsers that pause on unmute
-                                    videoRef.current.play().catch(() => { });
-                                }
+                                playerRef.current.muted(newMuted);
                                 setIsMuted(newMuted);
                             }
                         }}
-                        className="flex flex-col items-center gap-1"
-                        title={isMuted ? "Unmute" : "Mute"}
+                        className="flex flex-col items-center gap-1.5"
                     >
-                        <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors">
-                            {isMuted ? (
-                                <VolumeX className="w-6 h-6 text-white" />
-                            ) : (
-                                <Volume2 className="w-6 h-6 text-white" />
-                            )}
+                        <div className="w-14 h-14 rounded-full bg-white/10 text-white flex items-center justify-center hover:bg-white/20 transition-all backdrop-blur-xl">
+                            {isMuted ? <VolumeX className="w-6 h-6" /> : <Volume2 className="w-6 h-6" />}
                         </div>
-                        <span className="text-white text-xs font-medium">{isMuted ? 'Muted' : 'Sound'}</span>
+                        <span className="text-white text-[10px] font-black uppercase tracking-tighter">{isMuted ? 'Muted' : 'Sound'}</span>
                     </button>
 
-
-                    <button className="flex flex-col items-center gap-1" title="More options">
-                        <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors">
-                            <MoreVertical className="w-6 h-6 text-white" />
-                        </div>
-                    </button>
-
-                    {/* Channel avatar as sound/music indicator like YouTube */}
-                    <div className="w-10 h-10 rounded-lg bg-gray-700 overflow-hidden border-2 border-white/30 mt-2 animate-spin-slow relative">
+                    <div className="w-12 h-12 rounded-xl bg-gray-800 overflow-hidden border-2 border-white/20 mt-4 animate-spin-slow relative shadow-lg">
                         {video.channelAvatar ? (
-                            <Image src={video.channelAvatar} alt="" fill sizes="40px" className="object-cover" />
+                            <Image src={video.channelAvatar} alt="" fill className="object-cover" />
                         ) : (
-                            <div className="w-full h-full bg-gradient-to-br from-red-500 to-green-500" />
+                            <div className="w-full h-full bg-gradient-to-br from-j-green via-j-gold to-j-red" />
                         )}
                     </div>
                 </div>
