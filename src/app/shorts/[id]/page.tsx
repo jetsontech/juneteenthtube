@@ -26,6 +26,46 @@ export default function ShortsPlayerPage({
     const [isMuted, setIsMuted] = useState(false); // Default unmuted for better UX
     const videoRef = useRef<HTMLVideoElement>(null);
 
+    // Audio Context Refs (Studio Grade Audio for Shorts)
+    const audioContextRef = useRef<AudioContext | null>(null);
+    const sourceNodeRef = useRef<MediaElementAudioSourceNode | null>(null);
+    const compressorRef = useRef<DynamicsCompressorNode | null>(null);
+
+    // Web Audio API Setup
+    const setupAudioContext = () => {
+        if (audioContextRef.current) return;
+        const video = videoRef.current;
+        if (!video) return;
+
+        try {
+            const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+            const ctx = new AudioContext();
+            const source = ctx.createMediaElementSource(video);
+
+            // Studio Grade Compressor
+            const compressor = ctx.createDynamicsCompressor();
+            compressor.threshold.value = -24; // Compress loud spikes
+            compressor.knee.value = 30; // Smooth transition
+            compressor.ratio.value = 12; // Heavy compression for vocal clarity
+            compressor.attack.value = 0.003;
+            compressor.release.value = 0.25;
+
+            // Optional: Gain node to boost overall volume after compression
+            const gainNode = ctx.createGain();
+            gainNode.gain.value = 1.5;
+
+            source.connect(compressor);
+            compressor.connect(gainNode);
+            gainNode.connect(ctx.destination);
+
+            audioContextRef.current = ctx;
+            sourceNodeRef.current = source;
+            compressorRef.current = compressor;
+        } catch (err) {
+            console.error("Web Audio API not supported", err);
+        }
+    };
+
     // Try to autoplay unmuted, fallback to muted if browser blocks
     useEffect(() => {
         if (videoRef.current) {
@@ -196,6 +236,9 @@ export default function ShortsPlayerPage({
                             controls={false}
                             onClick={(e) => {
                                 const vid = e.currentTarget;
+                                if (!audioContextRef.current) setupAudioContext();
+                                else if (audioContextRef.current.state === 'suspended') audioContextRef.current.resume();
+
                                 if (vid.paused) vid.play().catch(() => { });
                                 else vid.pause();
                             }}
@@ -268,6 +311,9 @@ export default function ShortsPlayerPage({
 
                     <button
                         onClick={() => {
+                            if (!audioContextRef.current) setupAudioContext();
+                            else if (audioContextRef.current.state === 'suspended') audioContextRef.current.resume();
+
                             // Direct user gesture for iOS Safari compatibility
                             if (videoRef.current) {
                                 const newMuted = !isMuted;

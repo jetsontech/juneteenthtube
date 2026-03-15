@@ -107,6 +107,11 @@ export function LivePlayer({
     const infoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const currentPlaylistIndex = useRef(0);
 
+    // Audio Context Refs (Studio Grade Audio)
+    const audioContextRef = useRef<AudioContext | null>(null);
+    const sourceNodeRef = useRef<MediaElementAudioSourceNode | null>(null);
+    const compressorRef = useRef<DynamicsCompressorNode | null>(null);
+
     const [isPlaying, setIsPlaying] = useState(false);
     const [hasStartedPlaying, setHasStartedPlaying] = useState(false);
     const [isMuted, setIsMuted] = useState(true);
@@ -230,9 +235,49 @@ export function LivePlayer({
         if (isPlaying) hideTimerRef.current = setTimeout(() => setShowControls(false), 3000);
     }, [isPlaying]);
 
+    // Web Audio API Setup
+    const setupAudioContext = () => {
+        if (audioContextRef.current) return;
+        const video = videoRef.current;
+        if (!video) return;
+
+        try {
+            const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+            const ctx = new AudioContext();
+            const source = ctx.createMediaElementSource(video);
+
+            // Studio Grade Compressor
+            const compressor = ctx.createDynamicsCompressor();
+            compressor.threshold.value = -24; // Compress loud spikes
+            compressor.knee.value = 30; // Smooth transition
+            compressor.ratio.value = 12; // Heavy compression for vocal clarity
+            compressor.attack.value = 0.003;
+            compressor.release.value = 0.25;
+
+            // Optional: Gain node to boost overall volume after compression
+            const gainNode = ctx.createGain();
+            gainNode.gain.value = 1.5;
+
+            source.connect(compressor);
+            compressor.connect(gainNode);
+            gainNode.connect(ctx.destination);
+
+            audioContextRef.current = ctx;
+            sourceNodeRef.current = source;
+            compressorRef.current = compressor;
+        } catch (err) {
+            console.error("Web Audio API not supported", err);
+        }
+    };
+
     const togglePlay = () => {
         const v = videoRef.current;
         if (!v) return;
+
+        // Initialize AudioContext on first user interaction for policy compliance
+        if (!audioContextRef.current) setupAudioContext();
+        else if (audioContextRef.current.state === 'suspended') audioContextRef.current.resume();
+
         if (v.paused) v.play().catch(() => { }); else v.pause();
     };
 
