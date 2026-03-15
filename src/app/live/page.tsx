@@ -197,61 +197,63 @@ export default function LiveTV() {
         </div>
 
         {/* Video Player Boundary */}
-        <div className="relative w-full aspect-[16/9] md:aspect-video max-h-[70vh] bg-black border-b border-white/10 shadow-2xl shrink-0 overflow-hidden">
-          {(() => {
-            const now = new Date();
-            const currentProg = currentChannel.programs?.find(p => {
-              const start = new Date(p.start_time);
-              const end = new Date(p.end_time);
-              return now >= start && now <= end;
-            });
+        <div className="w-full bg-black border-b border-white/10 shadow-2xl shrink-0 flex justify-center">
+          <div className="relative w-full aspect-video max-w-[calc(70vh*16/9)] bg-black overflow-hidden group">
+            {(() => {
+              const now = new Date();
+              const currentProg = currentChannel.programs?.find(p => {
+                const start = new Date(p.start_time);
+                const end = new Date(p.end_time);
+                return now >= start && now <= end;
+              });
 
-            const nextProg = currentChannel.programs?.find(p => {
-              const start = new Date(p.start_time);
-              return start > now;
-            });
+              const nextProg = currentChannel.programs?.find(p => {
+                const start = new Date(p.start_time);
+                return start > now;
+              });
 
-            return (
-              <>
-                <LivePlayer
-                  streamUrl={currentChannel.stream_url}
-                  playlist={currentChannel.playlist}
-                  channelName={currentChannel.name}
-                  channelLogo={currentChannel.logo_url}
-                  channelNumber={channels.findIndex(c => c.id === currentChannel.id) + 1}
-                  accentColor={currentChannel.name.includes("Originals") ? "red" : "amber"}
-                  currentProgram={currentProg ? {
-                    title: currentProg.title,
-                    description: currentProg.description,
-                    year: "2024",
-                    duration: `${Math.round((new Date(currentProg.end_time).getTime() - new Date(currentProg.start_time).getTime()) / 60000)} min`,
-                    startTime: currentProg.start_time,
-                    endTime: currentProg.end_time
-                  } : undefined}
-                  nextProgram={nextProg ? {
-                    title: nextProg.title,
-                    duration: `${Math.round((new Date(nextProg.end_time).getTime() - new Date(nextProg.start_time).getTime()) / 60000)} min`,
-                  } : undefined}
-                  onToggleChat={() => setIsChatOpen(!isChatOpen)}
-                  onNext={() => {
-                    const idx = channels.findIndex((c) => c.id === currentChannel.id);
-                    setCurrentChannel(channels[(idx + 1) % channels.length]);
-                  }}
-                  onPrev={() => {
-                    const idx = channels.findIndex((c) => c.id === currentChannel.id);
-                    setCurrentChannel(channels[(idx - 1 + channels.length) % channels.length]);
-                  }}
-                />
-              </>
-            );
-          })()}
+              return (
+                <>
+                  <LivePlayer
+                    streamUrl={currentChannel.stream_url}
+                    playlist={currentChannel.playlist}
+                    channelName={currentChannel.name}
+                    channelLogo={currentChannel.logo_url}
+                    channelNumber={channels.findIndex(c => c.id === currentChannel.id) + 1}
+                    accentColor={currentChannel.name.includes("Originals") ? "red" : "amber"}
+                    currentProgram={currentProg ? {
+                      title: currentProg.title,
+                      description: currentProg.description,
+                      year: "2024",
+                      duration: `${Math.round((new Date(currentProg.end_time).getTime() - new Date(currentProg.start_time).getTime()) / 60000)} min`,
+                      startTime: currentProg.start_time,
+                      endTime: currentProg.end_time
+                    } : undefined}
+                    nextProgram={nextProg ? {
+                      title: nextProg.title,
+                      duration: `${Math.round((new Date(nextProg.end_time).getTime() - new Date(nextProg.start_time).getTime()) / 60000)} min`,
+                    } : undefined}
+                    onToggleChat={() => setIsChatOpen(!isChatOpen)}
+                    onNext={() => {
+                      const idx = channels.findIndex((c) => c.id === currentChannel.id);
+                      setCurrentChannel(channels[(idx + 1) % channels.length]);
+                    }}
+                    onPrev={() => {
+                      const idx = channels.findIndex((c) => c.id === currentChannel.id);
+                      setCurrentChannel(channels[(idx - 1 + channels.length) % channels.length]);
+                    }}
+                  />
+                </>
+              );
+            })()}
 
-          <LiveChat
-            channelId={currentChannel.id}
-            channelName={currentChannel.name}
-            isOpen={isChatOpen}
-            onClose={() => setIsChatOpen(false)}
-          />
+            <LiveChat
+              channelId={currentChannel.id}
+              channelName={currentChannel.name}
+              isOpen={isChatOpen}
+              onClose={() => setIsChatOpen(false)}
+            />
+          </div>
         </div>
 
         {/* Channel Controls — Fixed Below Player */}

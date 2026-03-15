@@ -19,7 +19,9 @@ import {
     SkipForward,
     PictureInPicture,
     Cast,
-    Subtitles
+    Subtitles,
+    ZoomIn,
+    ZoomOut
 } from "lucide-react";
 
 interface HTMLVideoElementWithWebKit extends HTMLVideoElement {
@@ -116,6 +118,7 @@ export function LivePlayer({
     const [hasError, setHasError] = useState(false);
     const [progress, setProgress] = useState(0);
     const [subtitlesEnabled, setSubtitlesEnabled] = useState(false); // CC State
+    const [isZoomed, setIsZoomed] = useState(false);
 
     // ── FAST Overlay Logic ────────────────────────────
     // (TuneInOverlay removed per user request for faster switching)
@@ -334,6 +337,12 @@ export function LivePlayer({
         }
     };
 
+    // Toggle Zoom out of pillarboxes
+    const toggleZoom = (e?: React.MouseEvent) => {
+        e?.stopPropagation();
+        setIsZoomed(prev => !prev);
+    };
+
     if (!streamUrl || hasError) {
         return (
             <div className="w-full h-full bg-zinc-950 flex flex-col items-center justify-center">
@@ -358,7 +367,7 @@ export function LivePlayer({
             onClick={togglePlay}
             className="relative w-full h-full bg-black overflow-hidden group cursor-pointer outline-none"
         >
-            <video ref={videoRef} poster={posterUrl} muted={isMuted} playsInline autoPlay className="w-full h-full object-cover pointer-events-none" />
+            <video ref={videoRef} poster={posterUrl} muted={isMuted} playsInline autoPlay className={cn("w-full h-full pointer-events-none transition-transform duration-500", isZoomed ? "object-cover scale-[1.34]" : "object-contain scale-100")} />
 
             <UpNextToast nextFilm={nextProgram} visible={showUpNext} accent={accentColor} />
 
@@ -410,6 +419,16 @@ export function LivePlayer({
                     </div>
 
                     <div className="flex items-center gap-6">
+                        <button
+                            onClick={toggleZoom}
+                            className={cn(
+                                "transition-colors",
+                                isZoomed ? "text-white" : "text-white/60 hover:text-white"
+                            )}
+                            title={isZoomed ? "Zoom Out" : "Zoom In (Fill 4:3 content)"}
+                        >
+                            {isZoomed ? <ZoomOut className="w-6 h-6 md:w-8 md:h-8" /> : <ZoomIn className="w-6 h-6 md:w-8 md:h-8" />}
+                        </button>
                         <button
                             onClick={toggleSubtitles}
                             className={cn(
