@@ -19,6 +19,7 @@
   --text-muted: #888888;
   --text-dim: #555555;
   --navbar-h: 60px;
+  --navbar-height: var(--navbar-h);
   --sidebar-w: 260px;
 
   --background: #0f0f0f;
@@ -40,9 +41,8 @@
   --kente-green: #2d5a27;
 
   /* Navbar & Safe Area Logic */
-  /* Default: Trust the env, fallback to 0 */
   --safe-area-top: env(safe-area-inset-top, 0px);
-  --navbar-height: calc(3.5rem + var(--safe-area-top));
+  --navbar-full-height: calc(var(--navbar-h) + var(--safe-area-top));
 }
 
 .main-content {

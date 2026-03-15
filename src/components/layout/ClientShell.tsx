@@ -101,7 +101,7 @@ function ShellContent({ children }: { children: React.ReactNode }) {
                     // 1. Browsing pages: Push if open (64), 0 push if collapsed (per user request)
                     // 2. Watch/Shorts pages: Always 0 push (it's an overlay)
                     !isWatchPage && isOpen ? "sm:pl-64" : "sm:pl-0",
-                    "pl-0" // Mobile: Always 0 push
+                    "pl-0 pt-[var(--navbar-h)]" // Added pt for fixed navbar
                 )}
             >
                 <div

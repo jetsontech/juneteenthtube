@@ -150,7 +150,7 @@ export default function LiveTV() {
     .sort((a, b) => a.category.localeCompare(b.category));
 
   return (
-    <div className="flex flex-col sm:block h-[calc(100dvh-3.5rem)] sm:h-auto overflow-hidden sm:overflow-visible bg-[#141414] text-white font-sans relative z-0">
+    <div className="flex flex-col sm:block h-[calc(100dvh-var(--navbar-h))] sm:h-auto overflow-hidden sm:overflow-visible bg-[#141414] text-white font-sans relative z-0">
       {/* ═══════════════════════════════════════════════════════════ */}
       {/* HERO SECTION — Currently playing channel                   */}
       {/* ═══════════════════════════════════════════════════════════ */}
