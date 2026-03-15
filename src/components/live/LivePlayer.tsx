@@ -358,7 +358,7 @@ export function LivePlayer({
             onClick={togglePlay}
             className="relative w-full h-full bg-black overflow-hidden group cursor-pointer outline-none"
         >
-            <video ref={videoRef} poster={posterUrl} muted={isMuted} playsInline autoPlay className="w-full h-full object-contain pointer-events-none" />
+            <video ref={videoRef} poster={posterUrl} muted={isMuted} playsInline autoPlay className="w-full h-full object-cover pointer-events-none" />
 
             <UpNextToast nextFilm={nextProgram} visible={showUpNext} accent={accentColor} />
 
@@ -410,12 +410,6 @@ export function LivePlayer({
                     </div>
 
                     <div className="flex items-center gap-6">
-                        <div className="flex flex-col items-end mr-2">
-                            <div className="flex items-center gap-2">
-                                <div className="w-2 h-2 rounded-full bg-red-600 animate-pulse shadow-[0_0_10px_rgba(220,38,38,1)]" />
-                                <span className="text-xs font-black uppercase tracking-[0.2em]">Live</span>
-                            </div>
-                        </div>
                         <button
                             onClick={toggleSubtitles}
                             className={cn(
