@@ -8,6 +8,17 @@ import Link from "next/link";
 import { ArrowLeft, ChevronLeft, ChevronRight, Play } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
+const getCategoryGradient = (category: string) => {
+  switch (category) {
+    case 'News': return 'bg-gradient-to-br from-blue-900 to-blue-500';
+    case 'Music': return 'bg-gradient-to-br from-purple-800 to-pink-600';
+    case 'Entertainment': return 'bg-gradient-to-br from-red-700 to-amber-500';
+    case 'Sports': return 'bg-gradient-to-br from-green-900 to-green-500';
+    case 'Kids': return 'bg-gradient-to-br from-teal-700 to-cyan-500';
+    default: return 'bg-gradient-to-br from-zinc-700 to-zinc-500';
+  }
+};
+
 export default function LiveTV() {
   const [channels, setChannels] = useState<Channel[]>([]);
   const [currentChannel, setCurrentChannel] = useState<Channel | null>(null);
@@ -158,16 +169,7 @@ export default function LiveTV() {
         {/* Channel/Program Info Bar - Sitting ABOVE the player functionally */}
         <div className="w-full bg-[#141414] px-4 md:px-12 py-4 border-b border-white/10 z-30">
           <div className="flex items-start gap-3 md:gap-4 max-w-4xl">
-            <div className="w-12 h-12 md:w-16 md:h-16 rounded-xl flex items-center justify-center flex-shrink-0 bg-gradient-to-br border border-white/20 shadow-2xl relative overflow-hidden group/hero-logo transition-transform" style={{
-              backgroundImage: currentChannel.logo_url
-                ? 'none'
-                : (currentChannel.category === 'News' ? 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)' :
-                  currentChannel.category === 'Music' ? 'linear-gradient(135deg, #7e22ce 0%, #db2777 100%)' :
-                    currentChannel.category === 'Entertainment' ? 'linear-gradient(135deg, #b91c1c 0%, #f59e0b 100%)' :
-                      currentChannel.category === 'Sports' ? 'linear-gradient(135deg, #14532d 0%, #22c55e 100%)' :
-                        currentChannel.category === 'Kids' ? 'linear-gradient(135deg, #0f766e 0%, #06b6d4 100%)' :
-                          'linear-gradient(135deg, #3f3f46 0%, #71717a 100%)')
-            }}>
+            <div className={`w-12 h-12 md:w-16 md:h-16 rounded-xl flex items-center justify-center flex-shrink-0 border border-white/20 shadow-2xl relative overflow-hidden group/hero-logo transition-transform ${currentChannel.logo_url ? 'bg-transparent' : getCategoryGradient(currentChannel.category)}`}>
               {currentChannel.logo_url ? (
                 <img src={currentChannel.logo_url} alt={currentChannel.name} className="w-full h-full object-contain p-2 bg-black/80 backdrop-blur-sm group-hover/hero-logo:scale-105 transition-transform duration-300" />
               ) : (
@@ -434,16 +436,7 @@ function ChannelCard({
             `}
     >
       {/* Card Image / Gradient Fallback */}
-      <div className="aspect-video relative overflow-hidden flex items-center justify-center p-3 transition-colors" style={{
-        backgroundImage: channel.logo_url
-          ? 'none'
-          : (channel.category === 'News' ? 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)' :
-            channel.category === 'Music' ? 'linear-gradient(135deg, #7e22ce 0%, #db2777 100%)' :
-              channel.category === 'Entertainment' ? 'linear-gradient(135deg, #b91c1c 0%, #f59e0b 100%)' :
-                channel.category === 'Sports' ? 'linear-gradient(135deg, #14532d 0%, #22c55e 100%)' :
-                  channel.category === 'Kids' ? 'linear-gradient(135deg, #0f766e 0%, #06b6d4 100%)' :
-                    'linear-gradient(135deg, #3f3f46 0%, #71717a 100%)')
-      }}>
+      <div className={`aspect-video relative overflow-hidden flex items-center justify-center p-3 transition-colors ${channel.logo_url ? 'bg-transparent' : getCategoryGradient(channel.category)}`}>
         {/* If there's a logo, we still give it a very subtle background to ensure contrast */}
         {channel.logo_url && <div className="absolute inset-0 bg-[#0f0f0f]" />}
 
