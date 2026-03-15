@@ -18,7 +18,8 @@ import {
     Sparkles,
     SkipForward,
     PictureInPicture,
-    Cast
+    Cast,
+    Subtitles
 } from "lucide-react";
 
 interface HTMLVideoElementWithWebKit extends HTMLVideoElement {
@@ -114,6 +115,7 @@ export function LivePlayer({
     const [isLive, setIsLive] = useState(true);
     const [hasError, setHasError] = useState(false);
     const [progress, setProgress] = useState(0);
+    const [subtitlesEnabled, setSubtitlesEnabled] = useState(false); // CC State
 
     // ── FAST Overlay Logic ────────────────────────────
     // (TuneInOverlay removed per user request for faster switching)
@@ -307,6 +309,31 @@ export function LivePlayer({
         }
     };
 
+    // Toggle Closed Captions
+    const toggleSubtitles = (e?: React.MouseEvent) => {
+        e?.stopPropagation();
+        const video = videoRef.current;
+        if (!video) return;
+
+        const tracks = video.textTracks;
+        if (tracks && tracks.length > 0) {
+            // Find the primary subtitle track
+            let hasEnabled = false;
+            for (let i = 0; i < tracks.length; i++) {
+                if (tracks[i].mode === 'showing') {
+                    tracks[i].mode = 'hidden';
+                } else if (!hasEnabled && tracks[i].kind === 'subtitles' || tracks[i].kind === 'captions') {
+                    tracks[i].mode = 'showing';
+                    hasEnabled = true;
+                }
+            }
+            setSubtitlesEnabled(hasEnabled);
+        } else {
+            // Visual toggle even if no tracks found (often useful if tracks are native/burned in via stream but still want a toggle state)
+            setSubtitlesEnabled(prev => !prev);
+        }
+    };
+
     if (!streamUrl || hasError) {
         return (
             <div className="w-full h-full bg-zinc-950 flex flex-col items-center justify-center">
@@ -334,32 +361,6 @@ export function LivePlayer({
             <video ref={videoRef} poster={posterUrl} muted={isMuted} playsInline autoPlay className="w-full h-full object-contain pointer-events-none" />
 
             <UpNextToast nextFilm={nextProgram} visible={showUpNext} accent={accentColor} />
-
-            {/* Now Playing Metadata (Dynamic Slide-in) */}
-            {currentProgram && (
-                <div className={cn(
-                    "absolute top-4 left-4 md:top-8 md:left-8 z-40 transition-all duration-700 max-w-[calc(100%-2rem)] md:max-w-lg",
-                    showControls ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-8 pointer-events-none"
-                )}>
-                    <div className="flex items-start gap-2 md:gap-4 p-2 md:p-4 bg-black/60 backdrop-blur-2xl rounded-2xl md:rounded-3xl border border-white/10 shadow-2xl">
-                        <div className={cn("w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg", accentBg)}>
-                            {channelLogo ? <img src={channelLogo} alt={channelName} className="w-6 h-6 md:w-8 md:h-8 object-contain" /> : <Tv className="w-6 h-6 md:w-8 md:h-8 text-white" />}
-                        </div>
-                        <div className="min-w-0">
-                            <div className="flex items-center gap-1 md:gap-2 mb-0.5 md:mb-1">
-                                <Radio className={cn("w-2.5 h-2.5 md:w-3 md:h-3 animate-pulse", accentText)} />
-                                <span className={cn("text-[8px] md:text-[10px] font-black uppercase tracking-widest", accentText)}>Now Playing • CH {channelNumber || 1}</span>
-                            </div>
-                            <h3 className="text-sm md:text-xl font-black text-white leading-tight truncate">{currentProgram.title}</h3>
-                            <div className="flex items-center gap-2 mt-1 text-[11px] text-gray-400 font-bold">
-                                {currentProgram.year && <span>{currentProgram.year}</span>}
-                                {currentProgram.director && <><span>•</span><span>{currentProgram.director}</span></>}
-                                <span className={cn("px-1.5 py-0.5 rounded text-[9px]", accentBg, "text-white")}>FAST</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
 
             {/* Program Progress Bar */}
             <div className={cn(
@@ -416,6 +417,16 @@ export function LivePlayer({
                             </div>
                         </div>
                         <button
+                            onClick={toggleSubtitles}
+                            className={cn(
+                                "transition-colors",
+                                subtitlesEnabled ? "text-white" : "text-white/60 hover:text-white"
+                            )}
+                            title="Closed Captions / Subtitles"
+                        >
+                            <Subtitles className="w-6 h-6 md:w-8 md:h-8" />
+                        </button>
+                        <button
                             onClick={handleCast}
                             className="text-white/60 hover:text-white transition-colors"
                             title="Cast to Device"
@@ -437,27 +448,6 @@ export function LivePlayer({
                             {isFullscreen ? <Minimize className="w-6 h-6 md:w-8 md:h-8" /> : <Maximize className="w-6 h-6 md:w-8 md:h-8" />}
                         </button>
                     </div>
-                </div>
-
-                {/* Quick Navigation Overlays */}
-                <div className={cn("absolute right-4 md:right-8 top-1/2 -translate-y-1/2 z-40 flex flex-col gap-2 md:gap-4 transition-all duration-300", showControls ? "opacity-100 translate-x-0" : "opacity-0 translate-x-4 pointer-events-none")}>
-                    <button
-                        onClick={(e) => { e.stopPropagation(); onNext?.(); }}
-                        className="w-10 h-10 md:w-14 md:h-14 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 backdrop-blur-xl flex items-center justify-center transition-all hover:scale-110 active:scale-90 group/btn"
-                        title="Next Channel"
-                    >
-                        <ChevronUp className="w-5 h-5 md:w-7 md:h-7 text-white/40 group-hover/btn:text-white" />
-                    </button>
-                    <div className="flex items-center justify-center">
-                        <div className="w-1 h-1 md:w-1.5 md:h-1.5 bg-white/20 rounded-full" />
-                    </div>
-                    <button
-                        onClick={(e) => { e.stopPropagation(); onPrev?.(); }}
-                        className="w-10 h-10 md:w-14 md:h-14 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 backdrop-blur-xl flex items-center justify-center transition-all hover:scale-110 active:scale-90 group/btn"
-                        title="Previous Channel"
-                    >
-                        <ChevronDown className="w-5 h-5 md:w-7 md:h-7 text-white/40 group-hover/btn:text-white" />
-                    </button>
                 </div>
             </div>
         </div>
