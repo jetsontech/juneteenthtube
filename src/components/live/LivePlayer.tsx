@@ -234,12 +234,11 @@ export function LivePlayer({
     }, [isPlaying]);
 
     const togglePlay = () => {
-        if (!playerRef.current) return;
-        if (!audioContextRef.current) setupAudioContext();
-        else if (audioContextRef.current.state === 'suspended') audioContextRef.current.resume();
+        const player = playerRef.current;
+        if (!player) return;
 
-        if (playerRef.current.paused()) playerRef.current.play().catch(() => { });
-        else playerRef.current.pause();
+        if (player.paused()) player.play().catch(() => { });
+        else player.pause();
     };
 
     const toggleMute = (e: React.MouseEvent) => {
@@ -280,11 +279,13 @@ export function LivePlayer({
 
     const toggleSubtitles = (e?: React.MouseEvent) => {
         e?.stopPropagation();
-        if (!playerRef.current) return;
-        const tracks = playerRef.current.textTracks();
+        const player = playerRef.current;
+        if (!player) return;
+        const tracks = player.textTracks();
         let enabled = false;
         for (let i = 0; i < tracks.length; i++) {
-            const track = tracks[i];
+            const track = (tracks as any)[i];
+            if (!track) continue;
             if (track.mode === 'showing') {
                 track.mode = 'disabled';
             } else {

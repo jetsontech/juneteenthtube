@@ -1896,11 +1896,18 @@ body.sidebar-open-mobile {
 }
 
 /* Video.js Premium Skinning */
-.video-js
-/* @theme {
+.video-js {
+  background-color: transparent;
+  width: 100%;
+  height: 100%;
+}
+
+/*
+@theme {
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-} */
+}
+*/
 
 /* ── Video.js Tech Overrides ── */
 .vjs-tech {
