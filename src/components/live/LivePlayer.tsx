@@ -235,10 +235,13 @@ export function LivePlayer({
 
     const togglePlay = () => {
         const player = playerRef.current;
-        if (!player) return;
+        if (!player || player.isDisposed()) return;
 
-        if (player.paused()) player.play().catch(() => { });
-        else player.pause();
+        if (player.paused()) {
+            player.play()?.catch(() => { });
+        } else {
+            player.pause();
+        }
     };
 
     const toggleMute = (e: React.MouseEvent) => {
@@ -309,11 +312,14 @@ export function LivePlayer({
     const toggleSubtitles = (e?: React.MouseEvent) => {
         e?.stopPropagation();
         const player = playerRef.current;
-        if (!player) return;
-        const tracks = player.textTracks();
+        if (!player || player.isDisposed()) return;
+
+        const tracks = player.textTracks() as unknown as any[];
+        if (!tracks) return;
+
         let enabled = false;
         for (let i = 0; i < tracks.length; i++) {
-            const track = (tracks as any)[i];
+            const track = tracks[i];
             if (!track) continue;
             if (track.mode === 'showing') {
                 track.mode = 'disabled';
