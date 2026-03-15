@@ -29,8 +29,8 @@ export function CustomPlayer({ src, srcH264, poster }: CustomPlayerProps) {
     const compressorRef = useRef<DynamicsCompressorNode | null>(null);
 
     // Playback State (Default to optimized source if available)
+    const [qualityMode, setQualityMode] = useState<'master' | 'optimized'>(srcH264 ? 'optimized' : 'master');
     const [activeSrc, setActiveSrc] = useState(srcH264 || src);
-    const [qualityMode, setQualityMode] = useState<'master' | 'optimized'>('master');
     const [isPlaying, setIsPlaying] = useState(false);
     const [isMuted, setIsMuted] = useState(false);
     const [currentTime, setCurrentTime] = useState(0);
@@ -57,16 +57,17 @@ export function CustomPlayer({ src, srcH264, poster }: CustomPlayerProps) {
     useEffect(() => {
         if (!videoRef.current) return;
 
+        const isHLS = activeSrc.includes('.m3u8');
         const player = videojs(videoRef.current, {
             controls: false, // We use custom UI
             autoplay: false,
             preload: "auto",
             fluid: false,
             playsinline: true,
-            html5: {
-                vhs: { overrideNative: true },
-                hls: { overrideNative: true }
-            }
+            sources: [{
+                src: activeSrc,
+                type: isHLS ? 'application/x-mpegURL' : 'video/mp4'
+            }],
         }, () => {
             playerRef.current = player;
             console.log("Enterprise Video.js Player Ready");
