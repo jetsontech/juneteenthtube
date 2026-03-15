@@ -246,7 +246,6 @@ export default function LiveTV() {
             );
           })()}
 
-          {/* Real-time Live Chat Overlay */}
           <LiveChat
             channelId={currentChannel.id}
             channelName={currentChannel.name}
@@ -254,12 +253,9 @@ export default function LiveTV() {
             onClose={() => setIsChatOpen(false)}
           />
         </div>
-      </div>
 
-      {/* Scrollable content section */}
-      <div className="flex-1 overflow-y-auto sm:overflow-visible bg-transparent relative z-10 overscroll-y-contain pb-20">
-        {/* Channel Controls — Inside Scrollable Section */}
-        <div className="w-full px-4 md:px-12 py-3 bg-[#141414] flex items-center justify-center gap-4">
+        {/* Channel Controls — Fixed Below Player */}
+        <div className="w-full px-4 md:px-12 py-3 bg-[#141414] flex items-center justify-center gap-4 border-b border-white/10 shrink-0">
           <button
             onClick={() => {
               const idx = channels.findIndex(
@@ -290,7 +286,10 @@ export default function LiveTV() {
             <ChevronRight className="w-5 h-5 text-white" />
           </button>
         </div>
+      </div>
 
+      {/* Scrollable content section */}
+      <div className="flex-1 overflow-y-auto sm:overflow-visible bg-[#0a0a0a] relative z-10 overscroll-y-contain pb-20">
         {/* ═══════════════════════════════════════════════════════════ */}
         {/* CHANNEL ROWS — Grouped by category, Netflix-style           */}
         {/* ═══════════════════════════════════════════════════════════ */}
