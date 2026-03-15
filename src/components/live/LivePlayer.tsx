@@ -270,10 +270,39 @@ export function LivePlayer({
 
     const handleCast = (e?: React.MouseEvent) => {
         e?.stopPropagation();
-        // AirPlay/Cast logic (simplified for refactor)
+        setupAudioContext(); // Ensure audio context is ready on interaction
         const videoElement = videoRef.current as unknown as HTMLVideoElementWithWebKit;
         if (videoElement?.webkitShowPlaybackTargetPicker) {
             videoElement.webkitShowPlaybackTargetPicker();
+        }
+    };
+
+    const handleSeek = (e: React.MouseEvent<HTMLDivElement>) => {
+        e.stopPropagation();
+        const player = playerRef.current;
+        const bar = progressBarRef.current?.parentElement;
+        if (!player || !bar) return;
+
+        const rect = bar.getBoundingClientRect();
+        const pos = (e.clientX - rect.left) / rect.width;
+        const newTime = pos * player.duration();
+        player.currentTime(newTime);
+        setProgress(pos * 100);
+    };
+
+    const handleVolumeClick = (e: React.MouseEvent<HTMLDivElement>) => {
+        e.stopPropagation();
+        const player = playerRef.current;
+        const bar = e.currentTarget;
+        if (!player || !bar) return;
+
+        const rect = bar.getBoundingClientRect();
+        const pos = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+        player.volume(pos);
+        setVolume(pos);
+        if (pos > 0 && isMuted) {
+            player.muted(false);
+            setIsMuted(false);
         }
     };
 
@@ -344,10 +373,13 @@ export function LivePlayer({
             <UpNextToast nextFilm={nextProgram} visible={showUpNext} accent={accentColor} />
 
             {/* Program Progress Bar */}
-            <div className={cn(
-                "absolute bottom-0 left-0 right-0 h-1.5 bg-white/10 z-50 transition-all cursor-pointer group/progress",
-                showControls ? "opacity-100 h-2" : "opacity-0"
-            )}>
+            <div
+                className={cn(
+                    "absolute bottom-0 left-0 right-0 h-1.5 bg-white/10 z-50 transition-all cursor-pointer group/progress",
+                    showControls ? "opacity-100 h-2" : "opacity-0"
+                )}
+                onClick={handleSeek}
+            >
                 <div
                     ref={progressBarRef}
                     className={cn("h-full transition-all relative", accentBg)}
@@ -358,9 +390,16 @@ export function LivePlayer({
 
             {/* Premium Control Bar */}
             <div className={cn("absolute bottom-0 left-0 right-0 z-40 transition-all duration-300 pointer-events-none", showControls ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4")}>
-                <div className="bg-gradient-to-t from-black/95 via-black/40 to-transparent pt-16 md:pt-32 pb-4 md:pb-8 px-4 md:px-10 flex items-center justify-between pointer-events-auto">
+                <div
+                    className="bg-gradient-to-t from-black/95 via-black/40 to-transparent pt-16 md:pt-32 pb-4 md:pb-8 px-4 md:px-10 flex items-center justify-between pointer-events-auto"
+                    onClick={(e) => e.stopPropagation()}
+                >
                     <div className="flex items-center gap-4 md:gap-8">
-                        <button onClick={togglePlay} className="text-white hover:scale-110 transition-transform active:scale-95 shadow-2xl" title={isPlaying ? "Pause" : "Play"}>
+                        <button
+                            onClick={(e) => { e.stopPropagation(); togglePlay(); }}
+                            className="text-white hover:scale-110 transition-transform active:scale-95 shadow-2xl"
+                            title={isPlaying ? "Pause" : "Play"}
+                        >
                             {isPlaying ? <Pause className="w-8 h-8 md:w-10 md:h-10 fill-white" /> : <Play className="w-8 h-8 md:w-10 md:h-10 fill-white" />}
                         </button>
 
@@ -372,7 +411,10 @@ export function LivePlayer({
                             <button onClick={toggleMute} className="text-white/60 hover:text-white transition-colors" title={isMuted ? "Unmute" : "Mute"}>
                                 {isMuted ? <VolumeX className="w-6 h-6 md:w-7 md:h-7" /> : <Volume2 className="w-6 h-6 md:w-7 md:h-7" />}
                             </button>
-                            <div className="w-0 group-hover:w-24 transition-all duration-300 h-1 bg-white/20 rounded-full overflow-hidden">
+                            <div
+                                onClick={handleVolumeClick}
+                                className="w-0 group-hover:w-24 transition-all duration-300 h-1 bg-white/20 rounded-full overflow-hidden cursor-pointer"
+                            >
                                 <div ref={volumeBarRef} className="h-full bg-white transition-all" />
                             </div>
                         </div>

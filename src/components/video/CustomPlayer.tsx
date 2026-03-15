@@ -364,8 +364,9 @@ export function CustomPlayer({ src, srcH264, poster }: CustomPlayerProps) {
                     "absolute inset-0 z-[60] bg-transparent transition-opacity duration-300 flex flex-col justify-end pointer-events-none",
                     showControls ? "opacity-100 visible" : "opacity-0 invisible"
                 )}
+                onClick={(e) => e.stopPropagation()}
             >
-                <div className="w-full px-4 pb-4 pt-12 bg-gradient-to-t from-black/90 via-black/40 to-transparent pointer-events-auto">
+                <div className="w-full px-4 pb-4 pt-12 bg-gradient-to-t from-black/90 via-black/40 to-transparent pointer-events-auto" onClick={(e) => e.stopPropagation()}>
                     {/* Progress Bar */}
                     <div ref={progressBarRef} className="relative group/progress h-2 mb-4 cursor-pointer w-full">
                         <div className="absolute inset-0 bg-white/30 rounded-full overflow-hidden" />
