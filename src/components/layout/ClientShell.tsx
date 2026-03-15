@@ -83,7 +83,7 @@ function ShellContent({ children }: { children: React.ReactNode }) {
 
     return (
         <div
-            className="min-h-[100dvh] bg-transparent text-foreground"
+            className="fixed inset-0 w-full h-full overflow-hidden flex flex-col bg-transparent text-foreground"
             onTouchStart={handleTouchStart}
             onTouchEnd={handleTouchEnd}
         >
@@ -96,13 +96,14 @@ function ShellContent({ children }: { children: React.ReactNode }) {
 
             <main
                 className={cn(
-                    "transition-all duration-300 min-h-[calc(100vh-var(--navbar-height))] main-content",
+                    "flex-1 overflow-y-auto w-full relative touch-pan-y transition-all duration-300 main-content",
                     // Desktop: 
                     // 1. Browsing pages: Push if open (64), 0 push if collapsed (per user request)
                     // 2. Watch/Shorts pages: Always 0 push (it's an overlay)
                     !isWatchPage && isOpen ? "sm:pl-64" : "sm:pl-0",
                     "pl-0" // Mobile: Always 0 push
                 )}
+                style={{ WebkitOverflowScrolling: 'touch' }}
             >
                 <div
                     className="w-full max-w-[1600px] mx-auto px-0 sm:px-4"
