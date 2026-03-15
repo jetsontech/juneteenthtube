@@ -76,14 +76,23 @@ function HomeContent() {
 
         {/* Heritage Banner */}
         {selectedCategory === "All" && !searchQuery && (
-          <div className="heritage-banner">
-            <div>
-              <div className="banner-title">Juneteenth — June 19, 1865</div>
-              <div className="banner-sub">
+          <div className="heritage-banner flex flex-col items-center justify-center text-center p-12 bg-zinc-900 rounded-3xl mb-8 relative overflow-hidden group border border-white/5 shadow-2xl">
+            {/* Cinematic Animated Mesh Background */}
+            <div className="absolute inset-0 bg-[linear-gradient(45deg,#1f0505_0%,#2a1f05_50%,#051f05_100%)] bg-[length:200%_200%] animate-[mesh-sweep_20s_ease-in-out_infinite] opacity-40 pointer-events-none group-hover:scale-105 transition-transform duration-[3000ms] ease-out" />
+            <div className="absolute inset-0 bg-black/40 pointer-events-none" />
+
+            <div className="relative z-10 max-w-3xl">
+              <div className="banner-title text-4xl sm:text-5xl font-black text-white mb-4 tracking-tight drop-shadow-lg">
+                <span className="text-j-red">June</span>teenth — 1865
+              </div>
+              <div className="banner-sub text-lg sm:text-xl text-zinc-300 font-medium leading-relaxed mb-8 drop-shadow">
                 Celebrating the day enslaved people in Texas learned of their freedom. Browse thousands of cultural videos, history, music, and more.
               </div>
             </div>
-            <button className="banner-btn" onClick={() => setSelectedCategory("History")}>
+            <button
+              className="banner-btn relative z-10 bg-j-gold hover:bg-yellow-400 text-black px-8 py-3.5 rounded-full font-bold uppercase tracking-wider text-sm transition-all duration-300 hover:shadow-[0_0_20px_rgba(255,215,0,0.4)] hover:scale-105 active:scale-95"
+              onClick={() => setSelectedCategory("History")}
+            >
               Explore History
             </button>
           </div>
@@ -118,8 +127,10 @@ function HomeContent() {
 
             {/* First 3 Videos */}
             <div className="video-grid">
-              {filteredVideos.slice(0, 3).map(v => (
-                <VideoCard key={v.id} video={v} />
+              {filteredVideos.slice(0, 3).map((v, i) => (
+                <div key={v.id} className={`animate-[revealUp_0.8s_cubic-bezier(0.16,1,0.3,1)_forwards] opacity-0 [animation-delay:${i * 120}ms]`}>
+                  <VideoCard video={v} />
+                </div>
               ))}
             </div>
 
@@ -138,8 +149,10 @@ function HomeContent() {
                   <h2 className="section-title">Juneteenth Originals</h2>
                 </div>
                 <div className="video-grid">
-                  {filteredVideos.slice(3).map(v => (
-                    <VideoCard key={v.id} video={v} />
+                  {filteredVideos.slice(3).map((v, i) => (
+                    <div key={v.id} className={`animate-[revealUp_0.8s_cubic-bezier(0.16,1,0.3,1)_forwards] opacity-0 [animation-delay:${(i % 12) * 80}ms]`}>
+                      <VideoCard video={v} />
+                    </div>
                   ))}
                 </div>
               </>
