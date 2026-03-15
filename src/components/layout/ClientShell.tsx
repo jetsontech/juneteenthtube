@@ -40,36 +40,11 @@ function ShellContent({ children }: { children: React.ReactNode }) {
     }, [isOpen]);
 
     // === MOBILE IMMERSION ===
-    // 1. Auto-collapse browser address bar on load (same technique as YouTube/TikTok)
-    // 2. Track real viewport height via CSS variable (handles address bar shrinking)
+    // Native 100dvh handles this perfectly in modern browsers without JS hacks.
     useEffect(() => {
-        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-        if (!isMobile) return;
-
-        // Set real viewport height as CSS variable — updates when address bar show/hides
-        const setAppHeight = () => {
-            document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`);
-        };
-        setAppHeight();
-        window.addEventListener('resize', setAppHeight);
-        window.addEventListener('orientationchange', () => {
-            setTimeout(setAppHeight, 100); // Delay for orientation animation
-        });
-
-        // Auto-scroll to collapse the browser address bar
-        // This is the standard trick: a tiny scroll triggers Safari/Chrome to minimize their chrome
-        if (window.scrollY === 0) {
-            setTimeout(() => {
-                window.scrollTo(0, 1);
-                // Tiny delay then scroll back — the address bar stays collapsed
-                setTimeout(() => {
-                    window.scrollTo(0, 0);
-                    setAppHeight(); // Recalculate after collapse
-                }, 50);
-            }, 300);
-        }
-
-        return () => window.removeEventListener('resize', setAppHeight);
+        // We removed the manual window.innerHeight tracking because it prevents
+        // edge-to-edge drawing (notch to bottom) in iOS Safari with viewport-fit=cover.
+        // The CSS 100dvh property is strictly better.
     }, []);
 
     // Simple Swipe Detection

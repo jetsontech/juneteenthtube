@@ -43,8 +43,6 @@
   /* Default: Trust the env, fallback to 0 */
   --safe-area-top: env(safe-area-inset-top, 0px);
   --navbar-height: calc(3.5rem + var(--safe-area-top));
-  --app-height: 100dvh;
-  /* Updated dynamically by JS on mobile */
 }
 
 .main-content {
@@ -399,7 +397,6 @@ html {
 body {
   min-height: -webkit-fill-available;
   min-height: 100dvh;
-  min-height: var(--app-height, 100dvh);
   width: 100%;
   margin: 0;
   padding: 0;
@@ -417,15 +414,6 @@ body {
   }
 
   touch-action: manipulation;
-}
-
-/* Mobile-specific: ensure no gaps anywhere */
-@media (max-width: 640px) {
-
-  /* Use dynamic app height for the shell */
-  .min-h-\[100dvh\] {
-    min-height: var(--app-height, 100dvh);
-  }
 }
 
 /* === SCROLL PERFORMANCE === */
