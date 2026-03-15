@@ -58,7 +58,7 @@ export const LoginSplash: React.FC<LoginSplashProps> = ({ onUnlock }) => {
             isExiting ? "opacity-0 scale-110 pointer-events-none" : "opacity-100 scale-100"
         )}>
             {/* Shared Background System */}
-            <BackgroundSystem />
+            {/* Removed animated background per user request */}
 
             {/* Content Container */}
             <div className={cn(

@@ -43,7 +43,13 @@ export async function POST(req: NextRequest) {
             },
             body: JSON.stringify({
               event_type: 'transcode',
-              client_payload: { videoId: data.id },
+              client_payload: {
+                videoId: data.id,
+                quality: 'master',
+                crf: 16,
+                preset: 'veryslow',
+                audio_bitrate: '320k'
+              },
             }),
           }
         );

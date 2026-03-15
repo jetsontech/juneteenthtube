@@ -60,7 +60,7 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        const bucketName = process.env.S3_BUCKET_NAME;
+        const bucketName = sanitizeEnv(process.env.S3_BUCKET_NAME);
         if (!bucketName) {
             return NextResponse.json(
                 { error: "Server Configuration Error: Missing Bucket Name" },
@@ -84,10 +84,11 @@ export async function POST(req: NextRequest) {
 
         // Determine Public URL
         let publicUrl = "";
-        if (process.env.S3_PUBLIC_DOMAIN) {
-            publicUrl = `${process.env.S3_PUBLIC_DOMAIN}/${key}`;
+        const publicDomain = sanitizeEnv(process.env.S3_PUBLIC_DOMAIN);
+        if (publicDomain) {
+            publicUrl = `${publicDomain}/${key}`;
         } else {
-            publicUrl = `${process.env.S3_ENDPOINT}/${bucketName}/${key}`;
+            publicUrl = `${cleanEndpoint}/${bucketName}/${key}`;
         }
 
         return NextResponse.json({ signedUrl, publicUrl, key });

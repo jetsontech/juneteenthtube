@@ -196,7 +196,7 @@ export default function ShortsPlayerPage({
                             controls={false}
                             onClick={(e) => {
                                 const vid = e.currentTarget;
-                                if (vid.paused) vid.play();
+                                if (vid.paused) vid.play().catch(() => { });
                                 else vid.pause();
                             }}
                         />

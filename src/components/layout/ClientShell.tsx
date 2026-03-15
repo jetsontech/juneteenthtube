@@ -96,7 +96,7 @@ function ShellContent({ children }: { children: React.ReactNode }) {
 
             <main
                 className={cn(
-                    "flex-1 overflow-y-auto w-full relative touch-pan-y transition-all duration-300 main-content",
+                    "flex-1 overflow-y-auto w-full relative touch-pan-y transition-all duration-300",
                     // Desktop: 
                     // 1. Browsing pages: Push if open (64), 0 push if collapsed (per user request)
                     // 2. Watch/Shorts pages: Always 0 push (it's an overlay)

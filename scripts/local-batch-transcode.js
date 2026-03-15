@@ -46,13 +46,16 @@ async function transcodeFile(inputPath, outputPath) {
         const ffmpeg = spawn(ffmpegPath, [
             '-i', inputPath,
             '-c:v', 'libx264',
-            '-crf', '23',
-            '-preset', 'fast', // fast is fine locally
-            '-threads', '2', // Prevent memory over-saturation on large videos locally
+            '-crf', '16',             // Master quality visually lossless
+            '-preset', 'veryslow',    // Maximum compression efficiency
+            '-pix_fmt', 'yuv420p',    // Standard color compatibility
+            '-profile:v', 'high',     // High profile for better quality/size ratio
+            '-level', '4.2',          // Target modern devices
             '-c:a', 'aac',
             '-ac', '2',
-            '-b:a', '128k',
-            '-movflags', '+faststart',
+            '-ar', '48000',           // High fidelity sample rate
+            '-b:a', '320k',           // High fidelity audio bitrate
+            '-movflags', '+faststart', // Instant playback
             '-y',
             outputPath
         ]);

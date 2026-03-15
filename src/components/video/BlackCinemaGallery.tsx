@@ -366,7 +366,7 @@ function CinemaPlayer({ src, accent, onEnded, autoPlay }: { src: string; accent:
     const togglePlay = () => {
         const v = videoRef.current;
         if (!v) return;
-        if (v.paused) { v.play(); } else { v.pause(); }
+        if (v.paused) { v.play().catch(() => { }); } else { v.pause(); }
     };
     const toggleMute = () => {
         const v = videoRef.current;

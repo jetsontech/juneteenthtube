@@ -39,7 +39,7 @@ const S3 = new S3Client({
     responseChecksumValidation: "WHEN_REQUIRED",
 });
 
-const BUCKET_NAME = process.env.S3_BUCKET_NAME;
+const BUCKET_NAME = sanitizeEnv(process.env.S3_BUCKET_NAME);
 
 interface UploadPart {
     ETag: string;
@@ -142,10 +142,11 @@ export async function POST(req: NextRequest) {
 
             // Construct Public URL
             let publicUrl = "";
-            if (process.env.S3_PUBLIC_DOMAIN) {
-                publicUrl = `${process.env.S3_PUBLIC_DOMAIN}/${key}`;
+            const publicDomain = sanitizeEnv(process.env.S3_PUBLIC_DOMAIN);
+            if (publicDomain) {
+                publicUrl = `${publicDomain}/${key}`;
             } else {
-                publicUrl = `${process.env.S3_ENDPOINT}/${BUCKET_NAME}/${key}`;
+                publicUrl = `${cleanEndpoint}/${BUCKET_NAME}/${key}`;
             }
 
             return NextResponse.json({

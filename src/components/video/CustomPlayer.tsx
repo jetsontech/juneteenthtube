@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import Image from "next/image";
 import {
     Play,
@@ -219,19 +219,32 @@ export function CustomPlayer({ src, srcH264, poster }: CustomPlayerProps) {
         setShowControls(true);
     };
 
+    // Helper to safely play video and handle the promise to avoid AbortError
+    const safePlay = useCallback(async () => {
+        if (!videoRef.current) return;
+        try {
+            await videoRef.current.play();
+        } catch (error: any) {
+            // Ignore AbortError as it's expected when play() is interrupted by pause()
+            if (error.name !== 'AbortError') {
+                console.warn("Play request failed:", error);
+            }
+        }
+    }, [videoRef]);
+
     // Toggle Play/Pause
-    const togglePlay = (e?: React.MouseEvent) => {
+    const togglePlay = useCallback(async (e?: React.MouseEvent) => {
         e?.stopPropagation();
         if (videoRef.current) {
             setShowControls(true); // Always show controls on interaction
             if (videoRef.current.paused || hasEnded) {
-                videoRef.current.play();
+                await safePlay();
                 setHasEnded(false);
             } else {
                 videoRef.current.pause();
             }
         }
-    };
+    }, [safePlay, hasEnded]);
 
     // Handle Seek
     const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -578,10 +591,9 @@ export function CustomPlayer({ src, srcH264, poster }: CustomPlayerProps) {
                         px-4 
                         pb-4 
                         pt-12 
-                        glass-panel pointer-events-auto
+                        bg-gradient-to-t from-black/90 via-black/40 to-transparent pointer-events-auto
                     "
                 >
-                    <div className="gloss-overlay" />
                     {/* Progress Bar */}
                     <div
                         ref={progressBarRef}

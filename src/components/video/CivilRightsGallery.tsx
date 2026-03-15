@@ -397,7 +397,7 @@ function CivilRightsPlayer({ src, accent }: { src: string; accent: string }) {
     const togglePlay = () => {
         const v = videoRef.current;
         if (!v) return;
-        if (v.paused) { v.play(); setIsPlaying(true); }
+        if (v.paused) { v.play().catch(() => { }); setIsPlaying(true); }
         else { v.pause(); setIsPlaying(false); }
     };
 
