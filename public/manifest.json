@@ -2,7 +2,7 @@
     "name": "Juneteenth Tube",
     "short_name": "Juneteenth",
     "start_url": "/",
-    "display": "fullscreen",
+    "display": "standalone",
     "background_color": "#0f0f0f",
     "theme_color": "#0f0f0f",
     "orientation": "portrait",

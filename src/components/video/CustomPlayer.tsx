@@ -1,118 +1,133 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import Image from "next/image";
+import videojs from "video.js";
+import type Player from "video.js/dist/types/player";
+import "video.js/dist/video-js.css";
 import {
-    Play,
-    Pause,
-    Volume2,
-    VolumeX,
-    Maximize,
-    Minimize,
-    PictureInPicture,
-    Cast,
-    Maximize2,
-    AlertCircle,
-    Settings
+    Play, Pause, Volume2, VolumeX, Maximize, Minimize,
+    PictureInPicture, Cast, Maximize2, AlertCircle, Settings
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface CustomPlayerProps {
     src: string;
-    srcH264?: string; // Transcoded H.264 fallback (tried only if primary fails)
+    srcH264?: string;
     poster?: string;
     transcodeStatus?: 'pending' | 'processing' | 'completed' | 'failed' | null;
 }
 
-interface HTMLVideoElementWithWebKit extends HTMLVideoElement {
-    webkitShowPlaybackTargetPicker?: () => void;
-    webkitEnterFullscreen?: () => void;
-}
-
 export function CustomPlayer({ src, srcH264, poster }: CustomPlayerProps) {
-    const [activeSrc, setActiveSrc] = useState(src); // Start with Master quality
-    const [qualityMode, setQualityMode] = useState<'master' | 'optimized'>('master');
-    const [triedFallback, setTriedFallback] = useState(false);
-    const [playbackError, setPlaybackError] = useState<string | null>(null);
-
-    // Link: https://juneteenthtube-h0sp0offd-jets-projects-a83f6733.vercel.app
-    useEffect(() => {
-        console.log(`[CustomPlayer] Source updated:`, { src, srcH264 });
-        setActiveSrc(src); // Default to master on new video
-        setQualityMode('master');
-        setTriedFallback(false);
-        setPlaybackError(null);
-        setHasStartedPlaying(false);
-        setIsBuffering(true);
-    }, [src, srcH264]);
-
     const videoRef = useRef<HTMLVideoElement>(null);
+    const playerRef = useRef<Player | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
 
+    // Audio Context Refs
+    const audioContextRef = useRef<AudioContext | null>(null);
+    const sourceNodeRef = useRef<MediaElementAudioSourceNode | null>(null);
+    const compressorRef = useRef<DynamicsCompressorNode | null>(null);
+
     // Playback State
+    const [activeSrc, setActiveSrc] = useState(src);
+    const [qualityMode, setQualityMode] = useState<'master' | 'optimized'>('master');
     const [isPlaying, setIsPlaying] = useState(false);
     const [isMuted, setIsMuted] = useState(false);
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
     const [volume, setVolume] = useState(1);
-    const [isFullscreen, setIsFullscreen] = useState(false);
     const [hasEnded, setHasEnded] = useState(false);
     const [showControls, setShowControls] = useState(true);
     const [isZoomed, setIsZoomed] = useState(false);
     const [isBuffering, setIsBuffering] = useState(true);
     const [hasStartedPlaying, setHasStartedPlaying] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
-
-    // NEW: Custom CSS Fullscreen state for Mobile
-    const [isCssFullscreen, setIsCssFullscreen] = useState(false);
-    const [windowHeight, setWindowHeight] = useState(0); // Track window height for safe scaling
-
+    const [playbackError, setPlaybackError] = useState<string | null>(null);
     const [qualityBadge, setQualityBadge] = useState<string | null>(null);
 
-    // Progress bar ref for CSS variable
-    const progressBarRef = useRef<HTMLDivElement>(null);
+    // Fullscreen state
+    const [isFullscreen, setIsFullscreen] = useState(false);
+    const [isCssFullscreen, setIsCssFullscreen] = useState(false);
+    const [windowHeight, setWindowHeight] = useState(0);
 
-    // User Interaction State
+    const progressBarRef = useRef<HTMLDivElement>(null);
     const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-    // Force playsinline for iOS (React sometimes is tricky with this)
+    // Initialize Video.js
     useEffect(() => {
-        if (videoRef.current) {
-            videoRef.current.setAttribute("playsinline", "");
-            videoRef.current.setAttribute("webkit-playsinline", "");
-        }
-    }, []);
+        if (!videoRef.current) return;
 
-    // CRITICAL: Cleanup body scroll lock on unmount or when CSS fullscreen exits
-    useEffect(() => {
+        const player = videojs(videoRef.current, {
+            controls: false, // We use custom UI
+            autoplay: false,
+            preload: "auto",
+            fluid: false,
+            playsinline: true,
+            sources: [{ src: activeSrc, type: "video/mp4" }],
+            html5: {
+                vhs: { overrideNative: true },
+                nativeAudioTracks: false,
+                nativeVideoTracks: false
+            }
+        }, () => {
+            playerRef.current = player;
+            console.log("Enterprise Video.js Player Ready");
+        });
+
+        // Event Listeners
+        player.on('play', () => setIsPlaying(true));
+        player.on('pause', () => setIsPlaying(false));
+        player.on('ended', () => {
+            setIsPlaying(false);
+            setHasEnded(true);
+            setShowControls(true);
+        });
+        player.on('timeupdate', () => {
+            if (!isDragging) setCurrentTime(player.currentTime() || 0);
+        });
+        player.on('loadedmetadata', () => {
+            setDuration(player.duration() || 0);
+            const w = player.videoWidth();
+            const h = player.videoHeight();
+            if (w >= 3840 || h >= 2160) setQualityBadge("4K");
+            else if (w >= 1920 || h >= 1080) setQualityBadge("HD");
+            else setQualityBadge(null);
+        });
+        player.on('waiting', () => setIsBuffering(true));
+        player.on('playing', () => {
+            setIsBuffering(false);
+            setHasStartedPlaying(true);
+            setPlaybackError(null);
+        });
+        player.on('error', () => {
+            setIsBuffering(false);
+            setPlaybackError("Playback error or format unsupported.");
+        });
+
         return () => {
-            // Always restore scroll when component unmounts
-            document.body.style.overflow = '';
-        };
-    }, []);
-
-    // Handle Window Resize (for orientation changes)
-    useEffect(() => {
-        const handleResize = () => {
-            if (isCssFullscreen) {
-                setWindowHeight(window.innerHeight);
+            if (playerRef.current && !playerRef.current.isDisposed()) {
+                playerRef.current.dispose();
+                playerRef.current = null;
             }
         };
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
-    }, [isCssFullscreen]);
+    }, []);
 
-    // Update body scroll lock + CSS fullscreen height variable
+    // Source Reactivity
     useEffect(() => {
-        if (!isCssFullscreen) {
-            document.body.style.overflow = '';
-        }
-        if (containerRef.current && isCssFullscreen) {
-            containerRef.current.style.setProperty('--window-height', `${windowHeight}px`);
-        }
-    }, [isCssFullscreen, windowHeight]);
+        if (playerRef.current) {
+            const time = playerRef.current.currentTime();
+            const wasPlaying = !playerRef.current.paused();
 
-    // Update progress bar CSS variable
+            playerRef.current.src({ src: activeSrc, type: "video/mp4" });
+
+            playerRef.current.ready(() => {
+                playerRef.current!.currentTime(time || 0);
+                if (wasPlaying) playerRef.current!.play()?.catch(() => { });
+            });
+        }
+    }, [activeSrc]);
+
+    // Update Progress Bar CSS
     useEffect(() => {
         if (progressBarRef.current) {
             const pct = duration > 0 ? (currentTime / duration) * 100 : 0;
@@ -120,619 +135,300 @@ export function CustomPlayer({ src, srcH264, poster }: CustomPlayerProps) {
         }
     }, [currentTime, duration]);
 
-    // Reactive Effect for Source & Error Handling
+    // Handle CSS Fullscreen (Mobile/iOS)
     useEffect(() => {
-        if (!videoRef.current) return;
-        const video = videoRef.current;
+        const handleResize = () => { if (isCssFullscreen) setWindowHeight(window.innerHeight); };
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, [isCssFullscreen]);
 
-        const handlePlayInternal = () => {
-            // Low-level fixes if needed
-        };
-
-        const handleVideoError = () => {
-            const error = video.error;
-            let errorMessage = "An unknown video error occurred.";
-
-            if (error) {
-                switch (error.code) {
-                    case 1: errorMessage = "Video loading aborted by user."; break;
-                    case 2: errorMessage = "Network error while loading video. Check your connection or R2/Supabase permissions."; break;
-                    case 3: errorMessage = "Video decoding failed. The format might be unsupported or the file corrupted."; break;
-                    case 4: errorMessage = "Video source not supported or URL is invalid. Check signed URL expiry."; break;
-                }
-            }
-
-            console.error(`❌ [JuneteenthTube] Video Error: ${errorMessage}`, {
-                code: error?.code,
-                message: error?.message,
-                src: activeSrc,
-                readyState: video.readyState,
-                networkState: video.networkState
-            });
-
-            // Reactive fallback: if Master (usually HEVC) fails, auto-try Optimized (H.264)
-            if ((error?.code === 3 || error?.code === 4) && !triedFallback && srcH264) {
-                console.log('🔄 Compatibility Fallback: Switching to H.264 Optimized Source');
-                setTriedFallback(true);
-                setQualityMode('optimized');
-                setActiveSrc(srcH264);
-                setPlaybackError(null);
-            } else if (error?.code === 3 || error?.code === 4) {
-                setPlaybackError('Format not supported by your browser. Try Chrome or Safari for the best experience.');
-            } else {
-                setPlaybackError('Playback error occurred.');
-            }
-            setIsBuffering(false);
-        };
-
-        const handleCanPlay = () => {
-            setPlaybackError(null);
-            setIsBuffering(false);
-        };
-
-        video.addEventListener('play', handlePlayInternal);
-        video.addEventListener('error', handleVideoError);
-
-        return () => {
-            video.removeEventListener('play', handlePlayInternal);
-            video.removeEventListener('error', handleVideoError);
-        };
-    }, [activeSrc, srcH264, triedFallback]);
-
-    // Format time helper
-    const formatTime = (time: number) => {
-        if (!isFinite(time)) return "0:00";
-        const minutes = Math.floor(time / 60);
-        const seconds = Math.floor(time % 60);
-        return `${minutes}:${seconds.toString().padStart(2, "0")}`;
-    };
-
-    // Handle Metadata Load
-    const onLoadedMetadata = () => {
-        if (videoRef.current) {
-            setDuration(videoRef.current.duration);
-
-            // DETECT VIDEO QUALITY
-            const { videoWidth, videoHeight } = videoRef.current;
-            // Simple logic: Height or Width checks
-            if (videoWidth >= 3840 || videoHeight >= 2160) {
-                setQualityBadge("4K");
-            } else if (videoWidth >= 1920 || videoHeight >= 1080) {
-                setQualityBadge("HD");
-            } else {
-                setQualityBadge(null); // SD
-            }
+    useEffect(() => {
+        if (!isCssFullscreen) document.body.style.overflow = '';
+        if (containerRef.current && isCssFullscreen) {
+            containerRef.current.style.setProperty('--window-height', `${windowHeight}px`);
         }
-    };
+        return () => { document.body.style.overflow = ''; };
+    }, [isCssFullscreen, windowHeight]);
 
-    // Handle Time Update
-    const onTimeUpdate = () => {
-        if (videoRef.current && !isDragging) {
-            setCurrentTime(videoRef.current.currentTime);
+    // Auto-hide controls
+    useEffect(() => {
+        if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
+        if (isPlaying && !hasEnded) {
+            controlsTimeoutRef.current = setTimeout(() => setShowControls(false), 3000);
         }
-    };
+    }, [isPlaying, hasEnded]);
 
-    // Handle Video Ended
-    const onEnded = () => {
-        setIsPlaying(false);
-        setHasEnded(true);
+    const resetControls = () => {
         setShowControls(true);
+        if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
+        if (isPlaying && !hasEnded) {
+            controlsTimeoutRef.current = setTimeout(() => setShowControls(false), 3000);
+        }
     };
 
-    // Helper to safely play video and handle the promise to avoid AbortError
-    const safePlay = useCallback(async () => {
-        if (!videoRef.current) return;
-        try {
-            await videoRef.current.play();
-        } catch (error: any) {
-            // Ignore AbortError as it's expected when play() is interrupted by pause()
-            if (error.name !== 'AbortError') {
-                console.warn("Play request failed:", error);
-            }
-        }
-    }, [videoRef]);
+    // Web Audio API Setup
+    const setupAudioContext = () => {
+        if (audioContextRef.current) return;
+        const video = videoRef.current;
+        if (!video) return;
 
-    // Toggle Play/Pause
+        try {
+            const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+            const ctx = new AudioContext();
+            const source = ctx.createMediaElementSource(video);
+
+            // Studio Grade Compressor
+            const compressor = ctx.createDynamicsCompressor();
+            compressor.threshold.value = -24; // Compress loud spikes
+            compressor.knee.value = 30; // Smooth transition
+            compressor.ratio.value = 12; // Heavy compression for vocal clarity
+            compressor.attack.value = 0.003;
+            compressor.release.value = 0.25;
+
+            // Optional: Gain node to boost overall volume after compression
+            const gainNode = ctx.createGain();
+            gainNode.gain.value = 1.5;
+
+            source.connect(compressor);
+            compressor.connect(gainNode);
+            gainNode.connect(ctx.destination);
+
+            audioContextRef.current = ctx;
+            sourceNodeRef.current = source;
+            compressorRef.current = compressor;
+        } catch (err) {
+            console.error("Web Audio API not supported", err);
+        }
+    };
+
     const togglePlay = useCallback(async (e?: React.MouseEvent) => {
         e?.stopPropagation();
-        if (videoRef.current) {
-            setShowControls(true); // Always show controls on interaction
-            if (videoRef.current.paused || hasEnded) {
-                await safePlay();
-                setHasEnded(false);
+        if (playerRef.current) {
+            resetControls();
+
+            // Initialize AudioContext on first user interaction for policy compliance
+            if (!audioContextRef.current) setupAudioContext();
+            else if (audioContextRef.current.state === 'suspended') audioContextRef.current.resume();
+
+            if (playerRef.current.paused() || hasEnded) {
+                try {
+                    await playerRef.current.play();
+                    setHasEnded(false);
+                } catch (e) { }
             } else {
-                videoRef.current.pause();
+                playerRef.current.pause();
             }
         }
-    }, [safePlay, hasEnded]);
+    }, [hasEnded]);
 
-    // Handle Seek
     const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
         const time = parseFloat(e.target.value);
-        if (videoRef.current) {
-            videoRef.current.currentTime = time;
+        if (playerRef.current) {
+            playerRef.current.currentTime(time);
             setCurrentTime(time);
         }
     };
 
-    // Toggle Mute
     const toggleMute = (e?: React.MouseEvent) => {
         e?.stopPropagation();
-        if (videoRef.current) {
-            videoRef.current.muted = !isMuted;
-            setIsMuted(!isMuted);
+        if (playerRef.current) {
+            const muted = !playerRef.current.muted();
+            playerRef.current.muted(muted);
+            setIsMuted(muted);
         }
     };
 
-    // Handle Volume Change
     const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const newVolume = parseFloat(e.target.value);
-        if (videoRef.current) {
-            videoRef.current.volume = newVolume;
-            if (newVolume === 0) {
+        const newVol = parseFloat(e.target.value);
+        if (playerRef.current) {
+            playerRef.current.volume(newVol);
+            if (newVol === 0) {
+                playerRef.current.muted(true);
                 setIsMuted(true);
-                videoRef.current.muted = true;
             } else if (isMuted) {
+                playerRef.current.muted(false);
                 setIsMuted(false);
-                videoRef.current.muted = false;
             }
         }
-        setVolume(newVolume);
+        setVolume(newVol);
     };
 
-    // Toggle PiP
-    const togglePip = async (e?: React.MouseEvent) => {
-        e?.stopPropagation();
-        if (!videoRef.current) return;
-
-        try {
-            if (document.pictureInPictureElement) {
-                await document.exitPictureInPicture();
-            } else {
-                await videoRef.current.requestPictureInPicture();
-            }
-        } catch (error) {
-            console.error("PiP failed:", error);
-        }
-    };
-
-    // Quality Switcher
     const toggleQuality = (e?: React.MouseEvent) => {
         e?.stopPropagation();
         if (!srcH264) return;
-
         const newMode = qualityMode === 'master' ? 'optimized' : 'master';
-        const newSrc = newMode === 'master' ? src : srcH264;
-        const savedTime = videoRef.current?.currentTime || 0;
-
         setQualityMode(newMode);
-        setActiveSrc(newSrc);
-
-        // Restore playback position after source change
-        setTimeout(() => {
-            if (videoRef.current) {
-                videoRef.current.currentTime = savedTime;
-                if (isPlaying) videoRef.current.play();
-            }
-        }, 100);
+        setActiveSrc(newMode === 'master' ? src : srcH264);
     };
 
-    // Handle Casting (Chrome / Safari support)
-    const handleCast = async (e?: React.MouseEvent) => {
-        e?.stopPropagation();
-
-        if (!videoRef.current) return;
-
-        const videoElement = videoRef.current as unknown as HTMLVideoElementWithWebKit;
-
-        // 1. Try Safari/iOS AirPlay (webkitShowPlaybackTargetPicker)
-        if (videoElement.webkitShowPlaybackTargetPicker) {
-            try {
-                videoElement.webkitShowPlaybackTargetPicker();
-                return;
-            } catch (error) {
-                console.error("AirPlay failed:", error);
-            }
-        }
-
-        // 2. Try Chrome/Standard Remote Playback API
-        if (videoElement.remote) {
-            try {
-                if (videoElement.remote.state === 'disconnected') {
-                    await videoElement.remote.prompt();
-                } else {
-                    await videoElement.remote.prompt();
-                }
-            } catch (error) {
-                if (error instanceof Error && (error.name === 'AbortError' || error.name === 'NotAllowedError' || error.message?.includes('dismissed'))) {
-                    // User cancelled
-                } else {
-                    console.error("Cast error:", error);
-                    alert(`Casting failed: ${(error instanceof Error ? error.message : "Unknown error")}`);
-                }
-            }
-        } else {
-            alert("Casting or AirPlay is not supported on this browser/device.");
-        }
-    };
-
-    // Toggle Fullscreen - Smart handling for Mobile vs Desktop
-    const toggleFullscreen = async (e?: React.MouseEvent) => {
-        e?.stopPropagation();
-        if (!containerRef.current || !videoRef.current) return;
-
-        // Detect iOS specifically (needs CSS workaround)
-        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as unknown as { MSStream: unknown }).MSStream;
-
-        // iOS: Use CSS Overlay "Pseudo-Fullscreen" to allow force-zoom/cover
+    const toggleFullscreen = () => {
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
         if (isIOS) {
-            const willEnter = !isCssFullscreen;
-            setIsCssFullscreen(willEnter);
-            // Force zoom/cover when entering mobile fullscreen
-            if (willEnter) {
-                setWindowHeight(window.innerHeight); // Set initial height
-                setIsZoomed(true);
-                // Lock body scroll
-                document.body.style.overflow = 'hidden';
+            const enter = !isCssFullscreen;
+            setIsCssFullscreen(enter);
+            setIsZoomed(enter);
+            document.body.style.overflow = enter ? 'hidden' : '';
+        } else if (playerRef.current) {
+            if (playerRef.current.isFullscreen()) {
+                playerRef.current.exitFullscreen();
+                setIsFullscreen(false);
             } else {
-                document.body.style.overflow = '';
-            }
-            return;
-        }
-
-        // Android / Desktop: Standard Fullscreen API
-        try {
-            if (!document.fullscreenElement && !(document as unknown as { webkitFullscreenElement: Element }).webkitFullscreenElement) {
-                // Enter Fullscreen
-                if (containerRef.current.requestFullscreen) {
-                    await containerRef.current.requestFullscreen();
-                } else if ((containerRef.current as unknown as { webkitRequestFullscreen: () => Promise<void> }).webkitRequestFullscreen) {
-                    await (containerRef.current as unknown as { webkitRequestFullscreen: () => Promise<void> }).webkitRequestFullscreen(); // Safari/Old Chrome
-                } else if ((containerRef.current as unknown as { msRequestFullscreen: () => Promise<void> }).msRequestFullscreen) {
-                    await (containerRef.current as unknown as { msRequestFullscreen: () => Promise<void> }).msRequestFullscreen(); // IE/Edge
-                } else {
-                    // Fallback to CSS Fullscreen if native fails
-                    console.warn("Native fullscreen not supported, falling back to CSS");
-                    setIsCssFullscreen(true);
-                    setWindowHeight(window.innerHeight);
-                    setIsZoomed(true);
-                    document.body.style.overflow = 'hidden';
-                }
-            } else {
-                // Exit Fullscreen
-                if (document.exitFullscreen) {
-                    await document.exitFullscreen();
-                } else if ((document as unknown as { webkitExitFullscreen: () => Promise<void> }).webkitExitFullscreen) {
-                    await (document as unknown as { webkitExitFullscreen: () => Promise<void> }).webkitExitFullscreen();
-                } else if ((document as unknown as { msExitFullscreen: () => Promise<void> }).msExitFullscreen) {
-                    await (document as unknown as { msExitFullscreen: () => Promise<void> }).msExitFullscreen();
-                }
-            }
-        } catch (err) {
-            console.error(`Error attempting to toggle fullscreen: ${err}`);
-            // Fallback to CSS Fullscreen if native fails
-            setIsCssFullscreen(!isCssFullscreen);
-            if (!isCssFullscreen) {
-                setWindowHeight(window.innerHeight);
-                setIsZoomed(true);
-                document.body.style.overflow = 'hidden';
-            } else {
-                document.body.style.overflow = '';
+                playerRef.current.requestFullscreen();
+                setIsFullscreen(true);
             }
         }
     };
 
-    // Listen for Fullscreen Changes
-    useEffect(() => {
-        const handleFullscreenChange = () => {
-            setIsFullscreen(!!document.fullscreenElement);
-        };
-
-        document.addEventListener("fullscreenchange", handleFullscreenChange);
-        document.addEventListener("webkitfullscreenchange", handleFullscreenChange);
-
-        return () => {
-            document.removeEventListener("fullscreenchange", handleFullscreenChange);
-            document.removeEventListener("webkitfullscreenchange", handleFullscreenChange);
-        };
-    }, []);
-
-    // Auto-hide controls
-    const resetControlsTimeout = () => {
-        setShowControls(true);
-        if (controlsTimeoutRef.current) {
-            clearTimeout(controlsTimeoutRef.current);
-        }
-        if (isPlaying && !hasEnded) {
-            controlsTimeoutRef.current = setTimeout(() => {
-                setShowControls(false);
-            }, 6000);
-        }
+    const togglePip = async (e?: React.MouseEvent) => {
+        e?.stopPropagation();
+        if (document.pictureInPictureElement) await document.exitPictureInPicture();
+        else if (videoRef.current) await videoRef.current.requestPictureInPicture();
     };
 
-    // Fix: Separate effect initialization to avoid synchronous setState warning
-    useEffect(() => {
-        // Only set timeout if playing, don't force showControls(true) here unconditionally
-        if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
-
-        if (isPlaying && !hasEnded) {
-            controlsTimeoutRef.current = setTimeout(() => {
-                setShowControls(false);
-            }, 6000);
-        }
-        // We intentionally don't call resetControlsTimeout() here to avoid the state loop
-    }, [isPlaying, hasEnded]);
-
-    const handleMouseMove = () => {
-        resetControlsTimeout();
+    const formatTime = (time: number) => {
+        if (!isFinite(time)) return "0:00";
+        const m = Math.floor(time / 60);
+        const s = Math.floor(time % 60);
+        return `${m}:${s.toString().padStart(2, "0")}`;
     };
 
     return (
         <div
             ref={containerRef}
             className={cn(
-                "group relative bg-black overflow-hidden flex flex-col",
+                "group relative bg-black overflow-hidden flex flex-col items-center justify-center",
                 isCssFullscreen ? "fixed inset-0 z-[10000] w-full dynamic-height" : "w-full h-full"
             )}
-            onMouseMove={handleMouseMove}
+            onMouseMove={resetControls}
             onClick={togglePlay}
-            onMouseLeave={resetControlsTimeout}
+            onMouseLeave={() => setShowControls(false)}
         >
-            <video
-                ref={videoRef}
-                src={activeSrc}
-                preload="metadata"
-                className={cn(
-                    "w-full h-full flex-grow pointer-events-none",
-                    (isZoomed || isCssFullscreen) ? "object-cover" : "object-contain"
-                )}
-                onTimeUpdate={onTimeUpdate}
-                onLoadedMetadata={onLoadedMetadata}
-                onEnded={onEnded}
-                onPlay={() => {
-                    setIsPlaying(true);
-                }}
-                onPause={() => {
-                    setIsPlaying(false);
-                    setShowControls(true); // Always show controls when paused
-                }}
-                onWaiting={() => setIsBuffering(true)}
-                onCanPlayThrough={() => setIsBuffering(false)}
-                onPlaying={() => {
-                    setIsPlaying(true);
-                    setIsBuffering(false);
-                    setHasStartedPlaying(true);
-                }}
-                playsInline
-                crossOrigin="anonymous"
-                disablePictureInPicture={false}
-                disableRemotePlayback={false}
-            />
+            {/* Video.js Container */}
+            <div data-vjs-player className={cn("w-full h-full absolute inset-0 flex items-center justify-center")}>
+                <video
+                    ref={videoRef}
+                    className={cn(
+                        "video-js vjs-default-skin w-full h-full",
+                        (isZoomed || isCssFullscreen) ? "vjs-zoomed" : "vjs-contain"
+                    )}
+                    crossOrigin="anonymous"
+                />
+            </div>
 
-            {/* High-Quality Poster Overlay - Only shows before first play or after video ends */}
+            {/* Premium Quality Badge */}
+            {(qualityBadge) && hasStartedPlaying && (
+                <div className="absolute top-4 right-4 z-[40] pointer-events-none">
+                    <div className={cn(
+                        "px-3 py-1.5 backdrop-blur-md rounded-full text-[10px] font-black tracking-[0.1em] border shadow-2xl flex items-center gap-2",
+                        qualityMode === 'master' ? "bg-j-gold/20 border-j-gold/40 text-j-gold" : "bg-black/40 border-white/10 text-white/70"
+                    )}>
+                        <span className="opacity-60">QUALITY</span>
+                        <span className="drop-shadow-sm">{qualityBadge} {qualityMode === 'master' ? 'MASTER' : 'OPTIMIZED'}</span>
+                        {qualityMode === 'master' && <span className="flex h-1.5 w-1.5 rounded-full bg-j-gold animate-pulse" />}
+                    </div>
+                </div>
+            )}
+
+            {/* Poster Overlay */}
             {poster && (!hasStartedPlaying || hasEnded) && (
-                <div className="absolute inset-0 z-[1] pointer-events-none">
+                <div className="absolute inset-0 z-[10] pointer-events-none">
                     <Image
                         src={poster}
                         alt="Video thumbnail"
                         fill
                         priority
-                        sizes="100vw"
-                        className={cn(
-                            "object-contain",
-                            isZoomed && "object-cover"
-                        )}
+                        className={cn("object-contain", isZoomed && "object-cover")}
                     />
                 </div>
             )}
 
-            {/* Buffering Spinner — visible during stalls */}
+            {/* Buffering Indicator */}
             {isBuffering && hasStartedPlaying && (
-                <div className="absolute inset-0 z-[5] flex items-center justify-center pointer-events-none">
+                <div className="absolute inset-0 z-[20] flex items-center justify-center pointer-events-none">
                     <div className="w-14 h-14 border-4 border-white/30 border-t-white rounded-full animate-spin" />
                 </div>
             )}
 
-            {/* Non-blocking playback error/status banner */}
+            {/* Error Banner */}
             {playbackError && (
-                <div className="absolute top-4 left-4 right-4 z-[50] flex items-center gap-2 bg-black/70 backdrop-blur-md rounded-lg px-3 py-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                <div className="absolute top-4 left-4 right-4 z-[50] flex items-center gap-2 bg-black/70 backdrop-blur-md rounded-lg px-3 py-2">
                     <AlertCircle className="w-4 h-4 text-amber-400 flex-shrink-0" />
                     <span className="text-xs text-gray-300 flex-1">{playbackError}</span>
-                    <button
-                        onClick={() => setPlaybackError(null)}
-                        className="text-gray-500 hover:text-white transition-colors p-1"
-                        aria-label="Dismiss"
-                    >
-                        <span className="text-xs">✕</span>
-                    </button>
+                    <button onClick={() => setPlaybackError(null)} className="text-gray-500 hover:text-white p-1"><span className="text-xs">✕</span></button>
                 </div>
             )}
 
-            {/* Interaction Layer - Intercepts all clicks reliably without blocking controls layer above it */}
-            <div
-                className="absolute inset-0 z-10 bg-transparent"
-                onClick={togglePlay}
-            />
-
-            {/* Big Play/Replay Overlay - REMOVED per user request */}
-
-            {/* Unified Quality Badge (Top Right) */}
-            {(qualityBadge) && hasStartedPlaying && (
-                <div className="absolute top-4 right-4 z-10 pointer-events-none">
-                    <div className={cn(
-                        "px-3 py-1.5 backdrop-blur-md rounded-full text-[10px] font-black tracking-[0.1em] border shadow-2xl flex items-center gap-2 animate-in fade-in slide-in-from-right-4 duration-700",
-                        qualityMode === 'master'
-                            ? "bg-j-gold/20 border-j-gold/40 text-j-gold"
-                            : "bg-black/40 border-white/10 text-white/70"
-                    )}>
-                        <span className="opacity-60">QUALITY</span>
-                        <span className="drop-shadow-sm">
-                            {qualityBadge} {qualityMode === 'master' ? 'MASTER' : 'OPTIMIZED'}
-                        </span>
-                        {qualityMode === 'master' && (
-                            <span className="flex h-1.5 w-1.5 rounded-full bg-j-gold animate-pulse" />
-                        )}
-                    </div>
-                </div>
-            )}
-
-            {/* SVG Filter for Video Sharpening - REMOVED for performance */}
-
-            {/* Controls Bar */}
+            {/* Custom Controls UI (Glassmorphism) */}
             <div
                 className={cn(
                     "absolute inset-0 z-[60] bg-transparent transition-opacity duration-300 flex flex-col justify-end pointer-events-none",
                     showControls ? "opacity-100 visible" : "opacity-0 invisible"
                 )}
             >
-                <div
-                    className="
-                        w-full 
-                        px-4 
-                        pb-4 
-                        pt-12 
-                        bg-gradient-to-t from-black/90 via-black/40 to-transparent pointer-events-auto
-                    "
-                >
+                <div className="w-full px-4 pb-4 pt-12 bg-gradient-to-t from-black/90 via-black/40 to-transparent pointer-events-auto">
                     {/* Progress Bar */}
-                    <div
-                        ref={progressBarRef}
-                        className="relative group/progress h-2 mb-4 cursor-pointer w-full"
-                    >
-                        {/* Background Track */}
-                        <div className="absolute top-0 left-0 right-0 bottom-0 bg-white/30 rounded-full overflow-hidden">
-                        </div>
-
-                        {/* Native Range Input for Interaction */}
+                    <div ref={progressBarRef} className="relative group/progress h-2 mb-4 cursor-pointer w-full">
+                        <div className="absolute inset-0 bg-white/30 rounded-full overflow-hidden" />
                         <input
                             type="range"
-                            aria-label="Seek video"
+                            title="Seek video"
+                            placeholder="Seek video"
                             min="0"
                             max={isFinite(duration) ? duration : 100}
                             step="0.1"
                             value={currentTime}
                             onChange={handleSeek}
                             onInput={handleSeek}
-                            onPointerDown={() => {
-                                setIsDragging(true);
-                                resetControlsTimeout();
-                            }}
+                            onPointerDown={() => { setIsDragging(true); resetControls(); }}
                             onPointerUp={(e) => {
                                 setIsDragging(false);
-                                if (videoRef.current) {
-                                    videoRef.current.currentTime = parseFloat(e.currentTarget.value);
-                                }
+                                if (playerRef.current) playerRef.current.currentTime(parseFloat(e.currentTarget.value));
                             }}
                             className="absolute top-[-12px] left-0 w-full h-8 opacity-0 z-20 cursor-pointer touch-none"
                         />
-
-                        {/* Visual Progress Fill */}
-                        <div
-                            className="absolute top-0 left-0 h-full bg-j-red rounded-full z-10 pointer-events-none progress-fill"
-                        />
-
-                        {/* Scrubber Knob (Visual only) */}
-                        <div
-                            className="
-                            absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full shadow-md z-10 pointer-events-none
-                            scale-0 group-hover/progress:scale-100 transition-transform left-[var(--progress-percent)]
-                        "
-                        />
+                        <div className="absolute top-0 left-0 h-full bg-j-red rounded-full z-10 pointer-events-none progress-fill" />
+                        <div className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full shadow-md z-10 pointer-events-none scale-0 group-hover/progress:scale-100 transition-transform left-[var(--progress-percent)]" />
                     </div>
 
-                    {/* Buttons Row */}
+                    {/* Bottom Row Controls */}
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
-                            {/* Play/Pause */}
-                            <button
-                                onClick={togglePlay}
-                                className="text-white hover:text-j-red transition-colors focus:outline-none p-4 -m-4 relative z-50 pointer-events-auto touch-manipulation"
-                                aria-label={isPlaying ? "Pause" : "Play"}
-                            >
+                            <button onClick={togglePlay} className="text-white hover:text-j-red transition-colors p-4 -m-4 relative z-50">
                                 {isPlaying ? <Pause className="w-8 h-8" /> : <Play className="w-8 h-8" />}
                             </button>
-
-                            {/* Volume Group */}
                             <div className="flex items-center gap-2 group/volume">
-                                <button
-                                    onClick={toggleMute}
-                                    className="text-white hover:text-white/80 transition-colors focus:outline-none"
-                                >
+                                <button onClick={toggleMute} className="text-white hover:text-white/80 transition-colors">
                                     {isMuted || volume === 0 ? <VolumeX className="w-6 h-6" /> : <Volume2 className="w-6 h-6" />}
                                 </button>
                                 <div className="w-0 overflow-hidden group-hover/volume:w-24 transition-all duration-300 flex items-center">
-                                    <input
-                                        type="range"
-                                        aria-label="Volume"
-                                        min="0"
-                                        max="1"
-                                        step="0.05"
-                                        value={isMuted ? 0 : volume}
-                                        onChange={handleVolumeChange}
-                                        className="w-20 h-1 bg-white/30 rounded-lg appearance-none cursor-pointer accent-white"
-                                    />
+                                    <input type="range" title="Volume" placeholder="Volume" aria-label="Volume" min="0" max="1" step="0.05" value={isMuted ? 0 : volume} onChange={handleVolumeChange} className="w-20 h-1 bg-white/30 rounded-lg appearance-none cursor-pointer accent-white" />
                                 </div>
                             </div>
-
-                            {/* Time Info */}
                             <div className="text-white/80 text-sm font-medium font-mono">
                                 {formatTime(currentTime)} / {formatTime(duration)}
                             </div>
                         </div>
 
-                        {/* Right Side */}
                         <div className="flex items-center gap-4">
-                            <button
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    setIsZoomed(!isZoomed);
-                                }}
-                                className="text-white hover:text-j-gold transition-colors focus:outline-none p-4 -m-4 relative z-50 pointer-events-auto touch-manipulation"
-                                title={isZoomed ? "Original Aspect" : "Zoom to Fill"}
-                            >
+                            <button onClick={(e) => { e.stopPropagation(); setIsZoomed(!isZoomed); }} className="text-white hover:text-j-gold transition-colors p-4 -m-4 relative z-50" title={isZoomed ? "Original Aspect" : "Zoom to Fill"}>
                                 <Maximize2 className="w-6 h-6" />
                             </button>
-                            {/* Quality Switcher */}
                             {srcH264 && (
-                                <button
-                                    onClick={toggleQuality}
-                                    className={cn(
-                                        "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all border",
-                                        qualityMode === 'master'
-                                            ? "bg-j-gold/20 text-j-gold border-j-gold/50 shadow-lg shadow-j-gold/10"
-                                            : "bg-white/5 text-white/60 border-white/10 hover:bg-white/10"
-                                    )}
-                                    title="Switch between Master and Optimized quality"
-                                >
+                                <button onClick={toggleQuality} className={cn("flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all border", qualityMode === 'master' ? "bg-j-gold/20 text-j-gold border-j-gold/50 shadow-lg shadow-j-gold/10" : "bg-white/5 text-white/60 border-white/10 hover:bg-white/10")}>
                                     <Settings className={cn("w-3.5 h-3.5", qualityMode === 'master' && "animate-spin-slow")} />
                                     {qualityMode === 'master' ? 'Ultra HD' : 'Optimized'}
                                 </button>
                             )}
-
-                            <button
-                                onClick={handleCast}
-                                className="text-white hover:text-white/80 transition-colors focus:outline-none p-4 -m-4 relative z-50 pointer-events-auto touch-manipulation"
-                                title="Cast to Device"
-                            >
-                                <Cast className="w-6 h-6" />
-                            </button>
-                            <button
-                                onClick={togglePip}
-                                className="text-white hover:text-white/80 transition-colors focus:outline-none p-4 -m-4 relative z-50 pointer-events-auto touch-manipulation"
-                                title="Picture-in-Picture"
-                            >
+                            <button onClick={togglePip} className="text-white hover:text-white/80 transition-colors p-4 -m-4 relative z-50" title="Picture in Picture" aria-label="Picture in Picture">
                                 <PictureInPicture className="w-6 h-6" />
                             </button>
-                            <button
-                                onClick={toggleFullscreen}
-                                className="text-white hover:text-white/80 transition-colors focus:outline-none p-4 -m-4 relative z-50 pointer-events-auto touch-manipulation"
-                            >
+                            <button onClick={toggleFullscreen} className="text-white hover:text-white/80 transition-colors p-4 -m-4 relative z-50">
                                 {isFullscreen || isCssFullscreen ? <Minimize className="w-7 h-7" /> : <Maximize className="w-7 h-7" />}
                             </button>
                         </div>
                     </div>
                 </div>
             </div>
-        </div >
+        </div>
     );
 }
