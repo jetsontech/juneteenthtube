@@ -167,8 +167,49 @@ export default function LiveTV() {
           </Link>
         </div>
 
+        {/* Channel/Program Info Bar - Sitting ABOVE the player functionally */}
+        <div className="w-full bg-[#141414] px-4 md:px-12 py-4 border-b border-white/10 z-30">
+          <div className="flex items-start gap-3 md:gap-4 max-w-4xl">
+            <div className="w-12 h-12 md:w-16 md:h-16 rounded-xl flex items-center justify-center flex-shrink-0 bg-zinc-900 border border-white/10 shadow-2xl relative overflow-hidden">
+              {currentChannel.logo_url ? (
+                <img src={currentChannel.logo_url} alt={currentChannel.name} className="w-full h-full object-contain p-2" />
+              ) : (
+                <span className="text-xl font-bold text-white/50">{currentChannel.name.charAt(0)}</span>
+              )}
+            </div>
+            <div className="min-w-0 flex flex-col justify-center">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="w-2 h-2 rounded-full bg-red-600 animate-pulse shadow-[0_0_8px_rgba(220,38,38,0.8)]" />
+                <span className="text-[10px] md:text-xs font-black uppercase tracking-[0.2em] text-white/80">
+                  Now Playing • CH {channels.findIndex(c => c.id === currentChannel.id) + 1}
+                </span>
+              </div>
+              {(() => {
+                const now = new Date();
+                const currentProg = currentChannel.programs?.find(p => {
+                  const start = new Date(p.start_time);
+                  const end = new Date(p.end_time);
+                  return now >= start && now <= end;
+                });
+                return (
+                  <>
+                    <h2 className="text-lg md:text-2xl font-black text-white leading-tight truncate">
+                      {currentProg ? currentProg.title : currentChannel.name}
+                    </h2>
+                    {currentProg && (
+                      <p className="text-xs md:text-sm text-white/50 font-medium mt-0.5 truncate max-w-xl">
+                        {currentProg.description || "Live Broadcast"}
+                      </p>
+                    )}
+                  </>
+                );
+              })()}
+            </div>
+          </div>
+        </div>
+
         {/* Video Player Boundary */}
-        <div className="relative w-full aspect-[16/9] md:aspect-video max-h-[70vh] bg-black border-y border-white/10 shadow-2xl shrink-0 overflow-hidden">
+        <div className="relative w-full aspect-[16/9] md:aspect-video max-h-[70vh] bg-black border-b border-white/10 shadow-2xl shrink-0 overflow-hidden">
           {(() => {
             const now = new Date();
             const currentProg = currentChannel.programs?.find(p => {
@@ -184,35 +225,6 @@ export default function LiveTV() {
 
             return (
               <>
-                {/* Fixed Channel/Program Info Bar Above Player */}
-                <div className="absolute top-0 left-0 right-0 z-40 bg-gradient-to-b from-black/90 to-transparent pt-4 pb-8 px-4 md:px-8 pointer-events-none">
-                  <div className="flex items-start gap-3 md:gap-4 max-w-4xl">
-                    <div className="w-12 h-12 md:w-16 md:h-16 rounded-xl flex items-center justify-center flex-shrink-0 bg-zinc-900 border border-white/10 shadow-2xl relative overflow-hidden">
-                      {currentChannel.logo_url ? (
-                        <img src={currentChannel.logo_url} alt={currentChannel.name} className="w-full h-full object-contain p-2" />
-                      ) : (
-                        <span className="text-xl font-bold text-white/50">{currentChannel.name.charAt(0)}</span>
-                      )}
-                    </div>
-                    <div className="min-w-0 flex flex-col justify-center drop-shadow-md">
-                      <div className="flex items-center gap-2 mb-1">
-                        <div className="w-2 h-2 rounded-full bg-red-600 animate-pulse shadow-[0_0_8px_rgba(220,38,38,0.8)]" />
-                        <span className="text-[10px] md:text-xs font-black uppercase tracking-[0.2em] text-white/80">
-                          Now Playing • CH {channels.findIndex(c => c.id === currentChannel.id) + 1}
-                        </span>
-                      </div>
-                      <h2 className="text-lg md:text-2xl font-black text-white leading-tight truncate">
-                        {currentProg ? currentProg.title : currentChannel.name}
-                      </h2>
-                      {currentProg && (
-                        <p className="text-xs md:text-sm text-white/50 font-medium mt-0.5 truncate max-w-xl">
-                          {currentProg.description || "Live Broadcast"}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
                 <LivePlayer
                   streamUrl={currentChannel.stream_url}
                   playlist={currentChannel.playlist}
