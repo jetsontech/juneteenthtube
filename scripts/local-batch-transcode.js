@@ -51,6 +51,9 @@ async function transcodeFile(inputPath, outputPath) {
             '-pix_fmt', 'yuv420p',    // Standard color compatibility
             '-profile:v', 'high',     // High profile for better quality/size ratio
             '-level', '4.2',          // Target modern devices
+            '-g', '48',               // Set GOP size (2 seconds for 24fps) for better seeking/buffering
+            '-keyint_min', '48',      // Minimum GOP size
+            '-sc_threshold', '0',     // Disable scene cut detection for fixed GOP (better for VOD streaming)
             '-c:a', 'aac',
             '-ac', '2',
             '-ar', '48000',           // High fidelity sample rate

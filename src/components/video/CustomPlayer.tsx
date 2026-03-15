@@ -63,7 +63,10 @@ export function CustomPlayer({ src, srcH264, poster }: CustomPlayerProps) {
             preload: "auto",
             fluid: false,
             playsinline: true,
-            sources: [{ src: activeSrc, type: "video/mp4" }],
+            sources: [{
+                src: activeSrc,
+                type: activeSrc.includes('.m3u8') ? 'application/x-mpegURL' : 'video/mp4'
+            }],
             html5: {
                 vhs: { overrideNative: true },
                 nativeAudioTracks: false,
@@ -105,7 +108,7 @@ export function CustomPlayer({ src, srcH264, poster }: CustomPlayerProps) {
         });
 
         return () => {
-            if (playerRef.current && !playerRef.current.isDisposed()) {
+            if (playerRef.current) {
                 playerRef.current.dispose();
                 playerRef.current = null;
             }
@@ -114,15 +117,10 @@ export function CustomPlayer({ src, srcH264, poster }: CustomPlayerProps) {
 
     // Source Reactivity
     useEffect(() => {
-        if (playerRef.current) {
-            const time = playerRef.current.currentTime();
-            const wasPlaying = !playerRef.current.paused();
-
-            playerRef.current.src({ src: activeSrc, type: "video/mp4" });
-
-            playerRef.current.ready(() => {
-                playerRef.current!.currentTime(time || 0);
-                if (wasPlaying) playerRef.current!.play()?.catch(() => { });
+        if (playerRef.current && activeSrc) {
+            playerRef.current.src({
+                src: activeSrc,
+                type: activeSrc.includes('.m3u8') ? 'application/x-mpegURL' : 'video/mp4'
             });
         }
     }, [activeSrc]);
