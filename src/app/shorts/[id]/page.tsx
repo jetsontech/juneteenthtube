@@ -88,8 +88,7 @@ export default function ShortsPlayerPage({
             }],
             html5: {
                 vhs: { overrideNative: true },
-                nativeAudioTracks: false,
-                nativeVideoTracks: false
+                hls: { overrideNative: true }
             }
         });
 

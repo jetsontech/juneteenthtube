@@ -65,8 +65,6 @@ export function CustomPlayer({ src, srcH264, poster }: CustomPlayerProps) {
             playsinline: true,
             html5: {
                 vhs: { overrideNative: true },
-                nativeAudioTracks: false,
-                nativeVideoTracks: false,
                 hls: { overrideNative: true }
             }
         }, () => {
@@ -119,6 +117,11 @@ export function CustomPlayer({ src, srcH264, poster }: CustomPlayerProps) {
             }
         };
     }, []);
+
+    // Sync activeSrc with props changes
+    useEffect(() => {
+        setActiveSrc(srcH264 || src);
+    }, [src, srcH264]);
 
     // Source Reactivity
     useEffect(() => {
