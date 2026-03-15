@@ -362,7 +362,7 @@ export function LivePlayer({
                             {isPlaying ? <Pause className="w-8 h-8 md:w-10 md:h-10 fill-white" /> : <Play className="w-8 h-8 md:w-10 md:h-10 fill-white" />}
                         </button>
 
-                        <button onClick={(e) => { e.stopPropagation(); onToggleChat?.(); }} className="text-white/60 hover:text-white transition-colors">
+                        <button onClick={(e) => { e.stopPropagation(); onToggleChat?.(); }} className="text-white/60 hover:text-white transition-colors" title="Toggle Chat">
                             <MessageCircle className="w-6 h-6 md:w-8 md:h-8" />
                         </button>
 
@@ -383,13 +383,13 @@ export function LivePlayer({
                         <button onClick={toggleSubtitles} className={cn("transition-colors", subtitlesEnabled ? "text-white" : "text-white/60 hover:text-white")}>
                             <Subtitles className="w-6 h-6 md:w-8 md:h-8" />
                         </button>
-                        <button onClick={handleCast} className="text-white/60 hover:text-white transition-colors">
+                        <button onClick={handleCast} className="text-white/60 hover:text-white transition-colors" title="Cast to device">
                             <Cast className="w-6 h-6 md:w-8 md:h-8" />
                         </button>
-                        <button onClick={togglePip} className="text-white/60 hover:text-white transition-colors">
+                        <button onClick={togglePip} className="text-white/60 hover:text-white transition-colors" title="Picture in Picture">
                             <PictureInPicture className="w-6 h-6 md:w-8 md:h-8" />
                         </button>
-                        <button onClick={toggleFullscreen} className="text-white/60 hover:text-white transition-colors">
+                        <button onClick={toggleFullscreen} className="text-white/60 hover:text-white transition-colors" title="Fullscreen">
                             {isFullscreen ? <Minimize className="w-6 h-6 md:w-8 md:h-8" /> : <Maximize className="w-6 h-6 md:w-8 md:h-8" />}
                         </button>
                     </div>
