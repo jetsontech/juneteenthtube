@@ -21,11 +21,11 @@ export async function GET(request: NextRequest) {
 
     const data = await response.text();
 
-    // Fix for the "Handful" problem: 
-    // Captures the base URL so relative video segments (.ts files) load correctly.
+    // Fix: Identify the base directory of the stream
     const baseUrl = targetUrl.substring(0, targetUrl.lastIndexOf('/') + 1);
     
-    // Rewrites the playlist content to use absolute paths
+    // Fix: Rewrite any line that isn't a comment (#) or a full URL (http) 
+    // to include the absolute path back to the provider.
     const rewrittenData = data.replace(/^(?!(#|http|https|data))/gm, baseUrl);
 
     return new NextResponse(rewrittenData, {
@@ -33,6 +33,7 @@ export async function GET(request: NextRequest) {
       headers: {
         'Content-Type': 'application/vnd.apple.mpegurl',
         'Access-Control-Allow-Origin': '*',
+        'Cache-Control': 'no-store, max-age=0'
       },
     });
 
