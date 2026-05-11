@@ -4,9 +4,7 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const targetUrl = searchParams.get('url');
 
-  if (!targetUrl) {
-    return NextResponse.json({ error: 'No URL provided' }, { status: 400 });
-  }
+  if (!targetUrl) return NextResponse.json({ error: 'No URL' }, { status: 400 });
 
   try {
     const response = await fetch(targetUrl, {
@@ -17,26 +15,22 @@ export async function GET(request: NextRequest) {
       }
     });
 
-    if (!response.ok) throw new Error(`Provider returned ${response.status}`);
+    if (!response.ok) throw new Error(`Provider Status: ${response.status}`);
 
     const data = await response.text();
-
-    // Fix: Identify the base directory of the stream
     const baseUrl = targetUrl.substring(0, targetUrl.lastIndexOf('/') + 1);
     
-    // Fix: Rewrite any line that isn't a comment (#) or a full URL (http) 
-    // to include the absolute path back to the provider.
+    // Rewrites relative segments to absolute URLs
     const rewrittenData = data.replace(/^(?!(#|http|https|data))/gm, baseUrl);
 
     return new NextResponse(rewrittenData, {
       status: 200,
       headers: {
-        'Content-Type': 'application/vnd.apple.mpegurl',
+        'Content-Type': 'application/vnd.apple.mpegurl', // Forces HLS recognition
         'Access-Control-Allow-Origin': '*',
         'Cache-Control': 'no-store, max-age=0'
       },
     });
-
   } catch (error: any) {
     return NextResponse.json({ error: 'Proxy Error', details: error.message }, { status: 500 });
   }
