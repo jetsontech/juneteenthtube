@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
 
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 8000); // 10s limit
+    const timeoutId = setTimeout(() => controller.abort(), 8000); // 8s limit
 
     const response = await fetch(targetUrl, {
       signal: controller.signal,
