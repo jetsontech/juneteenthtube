@@ -10,29 +10,30 @@ export async function GET(request: NextRequest) {
 
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 9000); // 9 second limit
+    const timeoutId = setTimeout(() => controller.abort(), 6000); // Shorter 6s timeout
 
     const response = await fetch(targetUrl, {
       signal: controller.signal,
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
         'Accept': '*/*',
-        'Referer': 'https://www.pluto.tv/',
         'Origin': 'https://www.pluto.tv',
-        'Connection': 'keep-alive'
+        'Referer': 'https://www.pluto.tv/'
       }
     });
 
     clearTimeout(timeoutId);
 
-    if (!response.ok) throw new Error(`Provider Status: ${response.status}`);
+    if (!response.ok) throw new Error(`Status: ${response.status}`);
 
     const data = await response.text();
     const urlObj = new URL(targetUrl);
     const baseUrl = urlObj.origin + urlObj.pathname.substring(0, urlObj.pathname.lastIndexOf('/') + 1);
     
-    // Rewrites relative paths to absolute URLs so segments load through the same proxy
-    const rewrittenData = data.replace(/^(?!(#|http|https|data))/gm, baseUrl);
+    // Improved Rewrite: Ensures segments are forced through the proxy too
+    const rewrittenData = data.replace(/^(?!(#|http|https|data))/gm, (match) => {
+        return `/api/cors-proxy?url=${encodeURIComponent(baseUrl + match)}`;
+    });
 
     return new NextResponse(rewrittenData, {
       status: 200,
@@ -43,10 +44,6 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error: any) {
-    console.error("Proxy Failure:", error.message);
-    return NextResponse.json({ 
-        error: 'Stream Handshake Failed', 
-        details: error.message 
-    }, { status: 504 });
+    return NextResponse.json({ error: 'Signal Timeout', details: error.message }, { status: 504 });
   }
 }
