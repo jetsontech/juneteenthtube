@@ -7,88 +7,77 @@ import "video.js/dist/video-js.css";
 import { Play, Pause, Volume2, VolumeX, Maximize, Zap, ZoomIn, ZoomOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export function LivePlayer({ streamUrl, onToggleChat }: { streamUrl: string; onToggleChat?: () => void }) {
+export function LivePlayer({ streamUrl }: { streamUrl: string }) {
     const videoRef = useRef<HTMLVideoElement>(null);
     const playerRef = useRef<Player | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
+    const [mounted, setMounted] = useState(false);
     const [isPlaying, setIsPlaying] = useState(false);
     const [isMuted, setIsMuted] = useState(true);
     const [hasError, setHasError] = useState(false);
     const [isZoomed, setIsZoomed] = useState(false);
 
+    // 1. Prevent Hydration Crash
     useEffect(() => {
-        if (!videoRef.current) return;
+        setMounted(true);
+    }, []);
 
-        // Initialize with advanced HLS settings
+    // 2. Initialize Player ONLY on Client
+    useEffect(() => {
+        if (!mounted || !videoRef.current) return;
+
         const player = videojs(videoRef.current, {
             autoplay: true,
             muted: true,
             controls: false,
             responsive: true,
             fluid: true,
-            html5: {
-                vhs: {
-                    overrideNative: true,
-                    handleManifestRedirects: true,
-                    enableLowInitialConfig: true
-                }
-            }
+            html5: { vhs: { overrideNative: true } }
         });
 
         playerRef.current = player;
-
         player.on('play', () => { setIsPlaying(true); setHasError(false); });
         player.on('pause', () => setIsPlaying(false));
-        player.on('error', (e) => {
-            console.error("VideoJS Error:", player.error());
-            setHasError(true);
-        });
+        player.on('error', () => setHasError(true));
 
-        return () => { player.dispose(); };
-    }, []);
+        return () => {
+            if (playerRef.current) {
+                playerRef.current.dispose();
+                playerRef.current = null;
+            }
+        };
+    }, [mounted]);
 
+    // 3. Load Source via Proxy
     useEffect(() => {
-        const player = playerRef.current;
-        if (player && streamUrl) {
+        if (playerRef.current && streamUrl && mounted) {
             setHasError(false);
             const proxiedUrl = `/api/cors-proxy?url=${encodeURIComponent(streamUrl)}`;
-            
-            player.src({
-                src: proxiedUrl,
-                type: 'application/x-mpegURL'
-            });
-
-            // Force a reload of the source tech
-            player.load();
-            player.play().catch(() => console.log("Autoplay waiting..."));
+            playerRef.current.src({ src: proxiedUrl, type: 'application/x-mpegURL' });
+            playerRef.current.play().catch(() => {});
         }
-    }, [streamUrl]);
+    }, [streamUrl, mounted]);
+
+    if (!mounted) return <div className="w-full h-full bg-black animate-pulse" />;
 
     if (hasError) {
         return (
-            <div className="w-full h-full bg-black flex flex-col items-center justify-center p-6">
+            <div className="w-full h-full bg-zinc-950 flex flex-col items-center justify-center p-6">
                 <Zap className="w-12 h-12 text-red-600 mb-4 animate-pulse" />
-                <h3 className="text-white font-bold uppercase tracking-widest text-lg">Signal Interrupted</h3>
-                <p className="text-white/40 text-[10px] uppercase mt-2">Attempting to re-acquire broadcast link...</p>
-                <button 
-                    onClick={() => window.location.reload()}
-                    className="mt-8 px-6 py-2 border border-white/10 text-white text-[10px] font-black uppercase tracking-widest hover:bg-white/5 transition-all"
-                >
-                    Hard Reset
-                </button>
+                <h3 className="text-white font-bold uppercase tracking-widest">Signal Lost</h3>
+                <button onClick={() => window.location.reload()} className="mt-4 text-[10px] text-white/40 hover:text-white uppercase font-black underline">Retry Connection</button>
             </div>
         );
     }
 
     return (
         <div ref={containerRef} className="relative w-full h-full bg-black overflow-hidden group">
-            <video ref={videoRef} className={cn("video-js vjs-big-play-centered w-full h-full transition-transform duration-700", isZoomed ? "scale-150" : "scale-100")} playsInline />
+            <video ref={videoRef} className={cn("video-js w-full h-full transition-transform duration-700", isZoomed ? "scale-150" : "scale-100")} playsInline />
             
-            {/* Minimal Overlay for Control */}
             <div className="absolute inset-0 z-40 p-8 flex flex-col justify-between bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
                 <div className="flex items-center gap-2">
                     <div className="w-2 h-2 rounded-full bg-red-600 animate-pulse" />
-                    <span className="text-white/70 text-[10px] font-black uppercase tracking-widest">Live • {streamUrl.split('/')[2]}</span>
+                    <span className="text-white/70 text-[10px] font-black uppercase tracking-widest">Live Signal</span>
                 </div>
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-6">
