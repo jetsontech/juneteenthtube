@@ -7,7 +7,19 @@ import "video.js/dist/video-js.css";
 import { Play, Pause, Volume2, VolumeX, Maximize, Zap, ZoomIn, ZoomOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export function LivePlayer({ streamUrl }: { streamUrl: string }) {
+interface LivePlayerProps {
+    streamUrl: string;
+    accentColor?: string;
+    onToggleChat?: () => void;
+    nextProgram?: any;
+    currentProgram?: any;
+}
+
+export function LivePlayer({ 
+    streamUrl, 
+    accentColor = "red", 
+    onToggleChat 
+}: LivePlayerProps) {
     const placeholderRef = useRef<HTMLDivElement>(null);
     const playerRef = useRef<Player | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
@@ -53,9 +65,8 @@ export function LivePlayer({ streamUrl }: { streamUrl: string }) {
             setHasError(false);
             if (watchdogRef.current) clearTimeout(watchdogRef.current);
 
-            // Watchdog: If no 'playing' event within 15s, signal failure
             watchdogRef.current = setTimeout(() => {
-                if (!player.paused() && !isPlaying) setHasError(true);
+                if (!isPlaying) setHasError(true);
             }, 15000);
 
             const proxiedUrl = `/api/cors-proxy?url=${encodeURIComponent(streamUrl)}`;
@@ -78,10 +89,9 @@ export function LivePlayer({ streamUrl }: { streamUrl: string }) {
     return (
         <div ref={containerRef} className="relative w-full h-full bg-black overflow-hidden group">
             <div ref={placeholderRef} className={cn("w-full h-full absolute inset-0 transition-transform duration-700", isZoomed ? "scale-125" : "scale-100")} />
-            
             <div className="absolute inset-0 z-40 p-10 flex flex-col justify-between bg-gradient-to-t from-black/90 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
                 <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-red-600 animate-pulse" />
+                    <div className={cn("w-2 h-2 rounded-full animate-pulse", accentColor === "yellow" ? "bg-yellow-500" : "bg-red-600")} />
                     <span className="text-white/80 text-[10px] font-black uppercase tracking-widest">Live Signal</span>
                 </div>
                 <div className="flex items-center justify-between">
