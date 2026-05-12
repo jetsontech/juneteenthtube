@@ -26,18 +26,15 @@ export async function GET(request: NextRequest) {
 
     if (!response.ok) throw new Error(`Provider Status: ${response.status}`);
 
+    // Replace your existing data.replace logic with this:
     const data = await response.text();
     const urlObj = new URL(targetUrl);
     const baseUrl = urlObj.origin + urlObj.pathname.substring(0, urlObj.pathname.lastIndexOf('/') + 1);
     
-    /**
-     * TRIPLE-CHECKED REWRITE LOGIC:
-     * 1. Relative paths -> Absolute URL -> Proxied
-     * 2. Absolute URLs -> Proxied
-     */
     const rewrittenData = data.split('\n').map(line => {
       const trimmed = line.trim();
       if (trimmed && !trimmed.startsWith('#')) {
+        // Force segments and sub-playlists through the proxy
         const fullUrl = trimmed.startsWith('http') ? trimmed : (baseUrl + trimmed);
         return `/api/cors-proxy?url=${encodeURIComponent(fullUrl)}`;
       }
