@@ -24,14 +24,27 @@ export async function GET(request: NextRequest) {
     const data = await response.text();
     const urlObj = new URL(targetUrl);
     
-    // Logic to handle relative paths inside the m3u8 file
+    // Logic to handle all types of relative paths inside the m3u8 file
     const baseUrl = urlObj.origin + urlObj.pathname.substring(0, urlObj.pathname.lastIndexOf('/') + 1);
 
     const rewrittenData = data.split('\n').map(line => {
       const trimmed = line.trim();
-      // If it's a link (not a comment/tag), wrap it in our proxy
+      
+      // If it's a link (not a comment/tag/empty), wrap it in our proxy
       if (trimmed && !trimmed.startsWith('#')) {
-        const fullUrl = trimmed.startsWith('http') ? trimmed : (baseUrl + trimmed);
+        let fullUrl;
+        
+        if (trimmed.startsWith('http')) {
+          // Case 1: Absolute URL (https://...)
+          fullUrl = trimmed;
+        } else if (trimmed.startsWith('/')) {
+          // Case 2: Root-Relative URL (/hls/stream...)
+          fullUrl = urlObj.origin + trimmed;
+        } else {
+          // Case 3: Path-Relative URL (stream.m3u8)
+          fullUrl = baseUrl + trimmed;
+        }
+        
         return `/api/cors-proxy?url=${encodeURIComponent(fullUrl)}`;
       }
       return line;
