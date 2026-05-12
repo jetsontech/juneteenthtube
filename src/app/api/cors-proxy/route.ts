@@ -19,29 +19,30 @@ export async function GET(request: NextRequest) {
         'Accept': '*/*',
         'Referer': 'https://www.pluto.tv/',
         'Origin': 'https://www.pluto.tv',
-        'X-Forwarded-For': '12.34.56.78' // Spoofing a generic US IP
       }
     });
 
     clearTimeout(timeoutId);
 
-    if (!response.ok) {
-      // If the provider blocks Vercel, we need to know
-      return NextResponse.json({ error: `Provider Blocked (${response.status})` }, { status: response.status });
-    }
+    if (!response.ok) throw new Error(`Provider Status: ${response.status}`);
 
     const data = await response.text();
     const urlObj = new URL(targetUrl);
     const baseUrl = urlObj.origin + urlObj.pathname.substring(0, urlObj.pathname.lastIndexOf('/') + 1);
     
     /**
-     * RECURSIVE REWRITE: 
-     * This ensures that relative .m3u8 AND .ts segments are all 
-     * pulled through your proxy instead of directly from the provider.
+     * TRIPLE-CHECKED REWRITE LOGIC:
+     * 1. Relative paths -> Absolute URL -> Proxied
+     * 2. Absolute URLs -> Proxied
      */
-    const rewrittenData = data.replace(/^(?!(#|http|https|data))/gm, (match) => {
-        return `/api/cors-proxy?url=${encodeURIComponent(baseUrl + match)}`;
-    });
+    const rewrittenData = data.split('\n').map(line => {
+      const trimmed = line.trim();
+      if (trimmed && !trimmed.startsWith('#')) {
+        const fullUrl = trimmed.startsWith('http') ? trimmed : (baseUrl + trimmed);
+        return `/api/cors-proxy?url=${encodeURIComponent(fullUrl)}`;
+      }
+      return line;
+    }).join('\n');
 
     return new NextResponse(rewrittenData, {
       status: 200,
@@ -52,7 +53,7 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error: any) {
-    console.error("Proxy Timeout:", error.message);
-    return NextResponse.json({ error: 'Signal Timeout' }, { status: 504 });
+    // Return a 504 status so Video.js triggers its 'error' event immediately
+    return new NextResponse('Signal Timeout', { status: 504 });
   }
 }
