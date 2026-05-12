@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
 
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 8000); // 8s limit
+    const timeoutId = setTimeout(() => controller.abort(), 8000); // 8s limit to stay under Vercel Hobby ceiling
 
     const response = await fetch(targetUrl, {
       signal: controller.signal,
@@ -26,16 +26,30 @@ export async function GET(request: NextRequest) {
 
     if (!response.ok) throw new Error(`Provider Status: ${response.status}`);
 
-    // Replace your existing data.replace logic with this:
     const data = await response.text();
     const urlObj = new URL(targetUrl);
+    
+    // Get the base directory (e.g., https://site.com/live/stream/)
     const baseUrl = urlObj.origin + urlObj.pathname.substring(0, urlObj.pathname.lastIndexOf('/') + 1);
     
+    /**
+     * UNIVERSAL REWRITE LOGIC
+     * Handles:
+     * 1. Absolute: https://cdn.com/seg.ts -> Proxied
+     * 2. Root-Relative: /hls/seg.ts -> Proxied
+     * 3. Path-Relative: seg.ts -> Proxied
+     */
     const rewrittenData = data.split('\n').map(line => {
       const trimmed = line.trim();
       if (trimmed && !trimmed.startsWith('#')) {
-        // Force segments and sub-playlists through the proxy
-        const fullUrl = trimmed.startsWith('http') ? trimmed : (baseUrl + trimmed);
+        let fullUrl;
+        if (trimmed.startsWith('http')) {
+          fullUrl = trimmed;
+        } else if (trimmed.startsWith('/')) {
+          fullUrl = urlObj.origin + trimmed;
+        } else {
+          fullUrl = baseUrl + trimmed;
+        }
         return `/api/cors-proxy?url=${encodeURIComponent(fullUrl)}`;
       }
       return line;
@@ -51,6 +65,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (error: any) {
     // Return a 504 status so Video.js triggers its 'error' event immediately
+    console.error('Proxy Error:', error.message);
     return new NextResponse('Signal Timeout', { status: 504 });
   }
 }
