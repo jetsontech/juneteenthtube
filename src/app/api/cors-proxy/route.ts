@@ -33,13 +33,15 @@ export async function GET(request: NextRequest) {
     });
 
     return new NextResponse(rewrittenData, {
-      headers: {
-        'Content-Type': 'application/vnd.apple.mpegurl',
-        'Access-Control-Allow-Origin': '*',
-        'Cache-Control': 'no-cache',
-      },
-    });
-  } catch (err) {
-    return new NextResponse('Signal Lost', { status: 504 });
-  }
-}
+  status: 200,
+  headers: {
+    // CRITICAL: Tells the player this is an HLS playlist
+    'Content-Type': 'application/vnd.apple.mpegurl',
+    // Prevents browser from blocking the "text" as a security risk
+    'X-Content-Type-Options': 'nosniff',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Range',
+    'Cache-Control': 'no-cache, no-store, must-revalidate',
+  },
+});
