@@ -9,47 +9,29 @@ export async function GET(request: NextRequest) {
   if (!targetUrl) return NextResponse.json({ error: 'No URL' }, { status: 400 });
 
   try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 8000); // 8s limit to stay under Vercel Hobby ceiling
-
     const response = await fetch(targetUrl, {
-      signal: controller.signal,
+      next: { revalidate: 0 },
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
         'Accept': '*/*',
-        'Referer': 'https://www.pluto.tv/',
         'Origin': 'https://www.pluto.tv',
+        'Referer': 'https://www.pluto.tv/',
       }
     });
-
-    clearTimeout(timeoutId);
 
     if (!response.ok) throw new Error(`Provider Status: ${response.status}`);
 
     const data = await response.text();
     const urlObj = new URL(targetUrl);
     
-    // Get the base directory (e.g., https://site.com/live/stream/)
+    // Logic to handle relative paths inside the m3u8 file
     const baseUrl = urlObj.origin + urlObj.pathname.substring(0, urlObj.pathname.lastIndexOf('/') + 1);
-    
-    /**
-     * UNIVERSAL REWRITE LOGIC
-     * Handles:
-     * 1. Absolute: https://cdn.com/seg.ts -> Proxied
-     * 2. Root-Relative: /hls/seg.ts -> Proxied
-     * 3. Path-Relative: seg.ts -> Proxied
-     */
+
     const rewrittenData = data.split('\n').map(line => {
       const trimmed = line.trim();
+      // If it's a link (not a comment/tag), wrap it in our proxy
       if (trimmed && !trimmed.startsWith('#')) {
-        let fullUrl;
-        if (trimmed.startsWith('http')) {
-          fullUrl = trimmed;
-        } else if (trimmed.startsWith('/')) {
-          fullUrl = urlObj.origin + trimmed;
-        } else {
-          fullUrl = baseUrl + trimmed;
-        }
+        const fullUrl = trimmed.startsWith('http') ? trimmed : (baseUrl + trimmed);
         return `/api/cors-proxy?url=${encodeURIComponent(fullUrl)}`;
       }
       return line;
@@ -64,7 +46,6 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error: any) {
-    // Return a 504 status so Video.js triggers its 'error' event immediately
     console.error('Proxy Error:', error.message);
     return new NextResponse('Signal Timeout', { status: 504 });
   }
