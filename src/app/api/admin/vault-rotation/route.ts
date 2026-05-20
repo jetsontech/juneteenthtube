@@ -204,13 +204,13 @@ export async function POST(req: NextRequest) {
         const { data: channels } = await supabaseAdmin.from('channels').select('id, name');
         if (!channels) throw new Error("No channels found");
 
-        const legacyChannel = channels.find(c => c.name === 'The Legacy Vault');
-        const sarembokChannel = channels.find(c => c.name === 'SAREMBOK');
-        const jtubeChannel = channels.find(c => c.name === 'J-Tube Originals');
+        const legacyChannel = channels.find((c: { name: string; id: string }) => c.name === 'The Legacy Vault');
+        const sarembokChannel = channels.find((c: { name: string; id: string }) => c.name === 'SAREMBOK');
+        const jtubeChannel = channels.find((c: { name: string; id: string }) => c.name === 'J-Tube Originals');
 
         // 2. Fetch all videos to map
         const { data: allVideos } = await supabaseAdmin.from('videos').select('*');
-        const videoMap = new Map(allVideos?.map(v => [v.video_url, v.id]));
+        const videoMap = new Map(allVideos?.map((v: any) => [v.video_url, v.id]));
 
         // Helper: Schedule a channel
         const fillChannel = async (channelId: string, videos: any[], tag: string) => {
@@ -264,22 +264,21 @@ export async function POST(req: NextRequest) {
             return 0;
         };
 
-        // 3. Sync Legacy Vault (Static List)
         if (legacyChannel) {
-            const missing = VAULT_VIDEOS.filter(v => !videoMap.has(v.url));
+            const missing = VAULT_VIDEOS.filter((v: any) => !videoMap.has(v.url));
             if (missing.length > 0) {
                 const { data: nvs } = await supabaseAdmin.from('videos').insert(
-                    missing.map(v => ({
+                    missing.map((v: any) => ({
                         title: v.title,
                         video_url: v.url,
                         category: 'Legacy',
                         duration: v.duration,
-                        transcode_status: 'completed',
+                        transcode_status: 'completed' as const,
                         state: 'published',
                         owner_id: null
                     }))
                 ).select();
-                nvs?.forEach(v => videoMap.set(v.video_url, v.id));
+                nvs?.forEach((v: any) => videoMap.set(v.video_url, v.id));
                 syncedCount += nvs?.length || 0;
             }
             scheduledCount += await fillChannel(legacyChannel.id, VAULT_VIDEOS, "Legacy Vault");
@@ -287,14 +286,14 @@ export async function POST(req: NextRequest) {
 
         // 4. Sync SAREMBOK (Dynamic)
         if (sarembokChannel) {
-            const sVideos = allVideos?.filter(v => v.category === 'SAREMBOK' || v.category === 'Music' || v.category === 'Entertainment') || [];
+            const sVideos = allVideos?.filter((v: any) => v.category === 'SAREMBOK' || v.category === 'Music' || v.category === 'Entertainment') || [];
             scheduledCount += await fillChannel(sarembokChannel.id, sVideos, "SAREMBOK Entertainment");
         }
 
         // 5. Sync J-Tube Originals (Dynamic - Non-Vault)
         if (jtubeChannel) {
-            const vaultUrls = new Set(VAULT_VIDEOS.map(v => v.url));
-            const jVideos = allVideos?.filter(v => v.category === 'J-Tube Originals' && !vaultUrls.has(v.video_url)) || [];
+            const vaultUrls = new Set(VAULT_VIDEOS.map((v: any) => v.url));
+            const jVideos = allVideos?.filter((v: any) => v.category === 'J-Tube Originals' && !vaultUrls.has(v.video_url)) || [];
             if (jVideos.length > 0) {
                 scheduledCount += await fillChannel(jtubeChannel.id, jVideos, "J-Tube Original");
             }
