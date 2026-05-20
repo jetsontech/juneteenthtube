@@ -91,14 +91,14 @@ export function FreedomMap() {
             <div className="mb-8 flex justify-between items-end">
                 <div>
                     <h2 className="text-5xl font-serif italic">The Freedom Map</h2>
-                    <p className="text-gray-500 mt-2">Live coverage from the heart of the celebration.</p>
+                    <p className="text-gray-500 mt-2">Coverage from the heart of the celebration.</p>
                 </div>
                 <div className="flex items-center space-x-2 text-xs text-green-500 font-bold">
                     <span className="relative flex h-2 w-2">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                        <span className="absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                         <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
                     </span>
-                    <span>142 STREAMS LIVE NOW</span>
+                    <span>142 STREAMS ACTIVE NOW</span>
                 </div>
             </div>
 
@@ -230,9 +230,9 @@ export function FreedomMap() {
                             >
                                 <X className="w-6 h-6" />
                             </button>
-                            <div className="absolute top-6 left-6 bg-red-600 text-white text-[10px] font-bold px-3 py-1 rounded-full flex items-center space-x-1">
-                                <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></span>
-                                <span>LIVE</span>
+                            <div className="absolute top-6 left-6 bg-j-red text-white text-[10px] font-bold px-3 py-1 rounded-full flex items-center space-x-1">
+                                <span className="w-1.5 h-1.5 bg-white rounded-full"></span>
+                                <span>ONLINE</span>
                             </div>
                         </div>
                         <div className="p-10">
@@ -260,7 +260,7 @@ export function FreedomMap() {
                             </div>
 
                             <button className="w-full mt-6 py-4 rounded-xl bg-legacy-red text-white font-bold hover:bg-red-700 transition shadow-lg shadow-red-900/20 uppercase tracking-widest text-sm">
-                                ENTER LIVESTREAM
+                                VIEW GALLERY
                             </button>
                         </div>
                     </div>

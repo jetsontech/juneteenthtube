@@ -24,7 +24,7 @@ const CustomPlayer = dynamic(
     { ssr: false, loading: () => <div className="w-full h-full bg-gray-900 animate-pulse" /> }
 );
 
-const CATEGORIES = ["All", "SAREMBOK", "Parade", "Music", "Food", "History", "Speeches", "Live", "2024"] as const;
+const CATEGORIES = ["All", "SAREMBOK", "Parade", "Music", "Food", "History", "Speeches", "2024"] as const;
 
 export default function WatchPage({
     params,
@@ -298,8 +298,8 @@ export default function WatchPage({
                                 <button
                                     onClick={handleSubscribe}
                                     className={`px-5 py-2.5 rounded-full text-[13px] font-black uppercase tracking-wider transition-all flex-shrink-0 shadow-lg ${isSubscribed
-                                            ? "bg-white/10 text-white hover:bg-white/20 border border-white/10"
-                                            : "bg-white text-black hover:bg-gray-200"
+                                        ? "bg-white/10 text-white hover:bg-white/20 border border-white/10"
+                                        : "bg-white text-black hover:bg-gray-200"
                                         }`}
                                 >
                                     {isSubscribed ? "Subscribed" : "Subscribe"}
@@ -356,8 +356,8 @@ export default function WatchPage({
                                             onClick={handleComment}
                                             disabled={!newComment.trim()}
                                             className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${newComment.trim()
-                                                    ? "bg-[#3ea6ff] text-black hover:bg-[#65b8ff]"
-                                                    : "bg-[#272727] text-gray-500 cursor-not-allowed"
+                                                ? "bg-[#3ea6ff] text-black hover:bg-[#65b8ff]"
+                                                : "bg-[#272727] text-gray-500 cursor-not-allowed"
                                                 }`}
                                         >
                                             Comment

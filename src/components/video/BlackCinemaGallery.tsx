@@ -495,12 +495,6 @@ function ChannelGuide({ channels, activeId, onSelect }: { channels: Channel[]; a
                                 <span className={cn("text-[10px] font-mono", isActive ? ch.accentText : "text-gray-600")}>
                                     CH {ch.number}
                                 </span>
-                                {isActive && (
-                                    <div className="flex items-center gap-1">
-                                        <div className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse" />
-                                        <span className="text-[8px] text-red-400 font-bold uppercase">Live</span>
-                                    </div>
-                                )}
                             </div>
                             <h4 className={cn(
                                 "text-sm font-bold truncate transition-colors",
@@ -513,7 +507,7 @@ function ChannelGuide({ channels, activeId, onSelect }: { channels: Channel[]; a
                     </button>
                 );
             })}
-        </div>
+        </div >
     );
 }
 

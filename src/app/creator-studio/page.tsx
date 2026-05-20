@@ -3,14 +3,13 @@
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { AdminLiveStudio } from "@/components/admin/AdminLiveStudio";
-import { UploadCloud, Tv, LayoutDashboard, ShieldCheck } from "lucide-react";
+import { UploadCloud, LayoutDashboard, ShieldCheck } from "lucide-react";
 import { useVideo } from "@/context/VideoContext";
 
 export default function CreatorStudioPage() {
     const { user, isAdmin, loading } = useAuth();
     const router = useRouter();
-    const [activeTab, setActiveTab] = useState<'overview' | 'channels'>('overview');
+    const [activeTab, setActiveTab] = useState<'overview'>('overview');
     const { uploadVideo, isUploading, uploadProgress, cancelUpload } = useVideo();
     const [fileRef, setFileRef] = useState<HTMLInputElement | null>(null);
 
@@ -49,13 +48,6 @@ export default function CreatorStudioPage() {
                             <LayoutDashboard className="w-5 h-5" />
                             Overview
                         </button>
-                        <button
-                            onClick={() => setActiveTab('channels')}
-                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-bold ${activeTab === 'channels' ? 'bg-j-gold text-black' : 'text-gray-400 hover:bg-white/10 hover:text-white'}`}
-                        >
-                            <Tv className="w-5 h-5" />
-                            Live Channels
-                        </button>
                     </nav>
                 </div>
                 <div className="mt-auto p-6 border-t border-white/10">
@@ -80,7 +72,7 @@ export default function CreatorStudioPage() {
                             {/* Header */}
                             <div>
                                 <h1 className="text-4xl font-black mb-2">Welcome Back, Creator</h1>
-                                <p className="text-gray-400 text-lg">Manage the platform, upload premium content, and orchestrate Live TV.</p>
+                                <p className="text-gray-400 text-lg">Manage the platform, and upload premium content.</p>
                             </div>
 
                             {/* Action Cards */}
@@ -109,30 +101,10 @@ export default function CreatorStudioPage() {
                                     </button>
                                 </div>
 
-                                {/* Channel Card */}
-                                <div className="bg-white/5 border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-all group backdrop-blur-md relative overflow-hidden">
-                                    <div className="absolute top-0 right-0 w-32 h-32 bg-j-green/20 blur-[50px] -mr-16 -mt-16 rounded-full group-hover:bg-j-green/40 transition-all pointer-events-none" />
-                                    <div className="w-12 h-12 bg-j-green rounded-xl flex items-center justify-center mb-6 shadow-lg shadow-j-green/20">
-                                        <Tv className="w-6 h-6 text-white" />
-                                    </div>
-                                    <h3 className="text-xl font-bold mb-2">Live Orchestration</h3>
-                                    <p className="text-gray-400 text-sm mb-6 h-10">Schedule EPG streams and manage premium channels like SAREMBOK.</p>
-                                    <button
-                                        className="w-full py-3 bg-j-gold text-black font-bold rounded-xl hover:brightness-110 transition-all shadow-lg shadow-j-gold/20"
-                                        onClick={() => setActiveTab('channels')}
-                                    >
-                                        Manage Channels
-                                    </button>
-                                </div>
                             </div>
                         </div>
                     )}
 
-                    {activeTab === 'channels' && (
-                        <div className="animate-fade-in-up bg-white/5 border border-white/10 rounded-2xl backdrop-blur-xl p-2 h-full">
-                            <AdminLiveStudio />
-                        </div>
-                    )}
 
                 </div>
             </div>

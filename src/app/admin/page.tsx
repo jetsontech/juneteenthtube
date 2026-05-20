@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import { useVideo } from "@/context/VideoContext";
-import { AdminLiveStudio } from "@/components/admin/AdminLiveStudio";
+
 import {
     LayoutDashboard,
     Video,
@@ -21,8 +21,7 @@ import {
     Ban,
     UserCheck,
     MoreVertical,
-    FileVideo,
-    Tv
+    FileVideo
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
@@ -31,7 +30,7 @@ export default function AdminDashboard() {
     const { videos, deleteVideo } = useVideo();
     const [searchQuery, setSearchQuery] = useState("");
     const [filterStatus, setFilterStatus] = useState<string>("all");
-    const [activeTab, setActiveTab] = useState<"videos" | "users" | "livetv">("videos");
+    const [activeTab, setActiveTab] = useState<"videos" | "users">("videos");
 
     // Statistics
     const stats = {
@@ -138,18 +137,6 @@ export default function AdminDashboard() {
                                 <Users className="w-4 h-4" /> User Accounts
                             </span>
                             {activeTab === "users" && <div className="absolute bottom-0 left-0 right-0 h-1 bg-j-gold" />}
-                        </button>
-                        <button
-                            onClick={() => setActiveTab("livetv")}
-                            className={cn(
-                                "px-8 py-5 text-sm font-black uppercase tracking-widest transition-all relative whitespace-nowrap",
-                                activeTab === "livetv" ? "text-red-500" : "text-gray-500 hover:text-white"
-                            )}
-                        >
-                            <span className="flex items-center gap-2">
-                                <Tv className="w-4 h-4" /> 🔴 Live Studio
-                            </span>
-                            {activeTab === "livetv" && <div className="absolute bottom-0 left-0 right-0 h-1 shadow-[0_0_10px_rgba(220,38,38,0.8)] bg-red-500" />}
                         </button>
                     </div>
 
@@ -262,65 +249,67 @@ export default function AdminDashboard() {
                                 </table>
                             </div>
                         </>
-                    ) : activeTab === "users" ? (
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-left">
-                                <thead className="bg-white/[0.03] text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">
-                                    <tr>
-                                        <th className="px-8 py-4">User Details</th>
-                                        <th className="px-8 py-4">Statistics</th>
-                                        <th className="px-8 py-4">Status</th>
-                                        <th className="px-8 py-4 text-right">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-white/5">
-                                    {mockUsers.map((user) => (
-                                        <tr key={user.id} className="hover:bg-white/[0.01] transition-colors">
-                                            <td className="px-8 py-6">
-                                                <div className="flex items-center gap-4">
-                                                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-j-red to-j-gold flex items-center justify-center text-white font-black">
-                                                        {user.name[0]}
-                                                    </div>
-                                                    <div>
-                                                        <p className="text-white font-bold">{user.name}</p>
-                                                        <p className="text-xs text-gray-500">{user.email}</p>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td className="px-8 py-6 text-gray-400 text-sm font-bold">
-                                                {user.uploads} uploads
-                                                <p className="text-[10px] text-gray-600 uppercase font-black mt-0.5">Joined {user.joined}</p>
-                                            </td>
-                                            <td className="px-8 py-6">
-                                                <span className={cn(
-                                                    "px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest",
-                                                    user.status === 'active' ? "bg-green-500/10 text-green-500" : "bg-red-500/10 text-red-500"
-                                                )}>
-                                                    {user.status}
-                                                </span>
-                                            </td>
-                                            <td className="px-8 py-6 text-right">
-                                                <div className="flex items-center justify-end gap-2">
-                                                    <button className="p-3 text-gray-500 hover:text-white hover:bg-white/10 rounded-2xl transition-all" title="Reset Password">
-                                                        <RefreshCw className="w-5 h-5" />
-                                                    </button>
-                                                    <button className="p-3 text-gray-500 hover:text-j-gold hover:bg-j-gold/10 rounded-2xl transition-all" title="Suspend Account">
-                                                        <Ban className="w-5 h-5" />
-                                                    </button>
-                                                    <button className="p-3 text-gray-500 hover:text-j-red hover:bg-red-500/10 rounded-2xl transition-all" title="Delete Account">
-                                                        <Trash2 className="w-5 h-5" />
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
                     ) : (
-                        <div className="p-6">
-                            <AdminLiveStudio />
-                        </div>
+                        <>
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left">
+                                    <thead className="bg-white/[0.03] text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">
+                                        <tr>
+                                            <th className="px-8 py-4">User Details</th>
+                                            <th className="px-8 py-4">Statistics</th>
+                                            <th className="px-8 py-4">Status</th>
+                                            <th className="px-8 py-4 text-right">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-white/5">
+                                        {mockUsers.map((user) => (
+                                            <tr key={user.id} className="hover:bg-white/[0.01] transition-colors">
+                                                <td className="px-8 py-6">
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-j-red to-j-gold flex items-center justify-center text-white font-black">
+                                                            {user.name[0]}
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-white font-bold">{user.name}</p>
+                                                            <p className="text-xs text-gray-500">{user.email}</p>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td className="px-8 py-6 text-gray-400 text-sm font-bold">
+                                                    {user.uploads} uploads
+                                                    <p className="text-[10px] text-gray-600 uppercase font-black mt-0.5">Joined {user.joined}</p>
+                                                </td>
+                                                <td className="px-8 py-6">
+                                                    <span className={cn(
+                                                        "px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest",
+                                                        user.status === 'active' ? "bg-green-500/10 text-green-500" : "bg-red-500/10 text-red-500"
+                                                    )}>
+                                                        {user.status}
+                                                    </span>
+                                                </td>
+                                                <td className="px-8 py-6 text-right">
+                                                    <div className="flex items-center justify-end gap-2">
+                                                        <button className="p-3 text-gray-500 hover:text-white hover:bg-white/10 rounded-2xl transition-all" title="Reset Password">
+                                                            <RefreshCw className="w-5 h-5" />
+                                                        </button>
+                                                        <button className="p-3 text-gray-500 hover:text-j-gold hover:bg-j-gold/10 rounded-2xl transition-all" title="Suspend Account">
+                                                            <Ban className="w-5 h-5" />
+                                                        </button>
+                                                        <button className="p-3 text-gray-500 hover:text-j-red hover:bg-red-500/10 rounded-2xl transition-all" title="Delete Account">
+                                                            <Trash2 className="w-5 h-5" />
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div className="p-12 text-center">
+                                <Users className="w-12 h-12 text-gray-700 mx-auto mb-4" />
+                                <h3 className="text-xl font-bold text-gray-400">User Management is currently under maintenance</h3>
+                            </div>
+                        </>
                     )}
                 </div>
 

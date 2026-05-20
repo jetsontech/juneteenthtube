@@ -15,7 +15,7 @@ interface NavbarProps {
     onMenuClick: () => void;
 }
 
-const CATEGORIES = ["All", "SAREMBOK", "Parade", "Music", "Food", "History", "Speeches", "Live", "2024", "Photos"] as const;
+const CATEGORIES = ["All", "SAREMBOK", "Parade", "Music", "Food", "History", "Speeches", "2024", "Photos"] as const;
 
 export function Navbar({ onMenuClick }: NavbarProps) {
     const fileInputRef = useRef<HTMLInputElement>(null);

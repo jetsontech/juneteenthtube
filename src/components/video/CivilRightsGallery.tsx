@@ -228,7 +228,7 @@ const SECTIONS: Section[] = [
             {
                 id: "rock-n-roll-revue-cr",
                 title: "Rock 'n' Roll Revue",
-                description: "Live from Harlem's Apollo Theater — Duke Ellington, Nat King Cole, Dinah Washington, and more. A vibrant celebration of Black musical talent that helped break cultural barriers during the Civil Rights era.",
+                description: "Recorded from Harlem's Apollo Theater — Duke Ellington, Nat King Cole, Dinah Washington, and more. A vibrant celebration of Black musical talent that helped break cultural barriers during the Civil Rights era.",
                 source: "Archive.org",
                 url: "https://archive.org/download/rock-n-roll-revue-1955/Rock%20%27n%27%20Roll%20Revue%20%281955%29.mp4",
                 year: "1955",

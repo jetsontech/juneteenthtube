@@ -189,7 +189,7 @@ const VAULT_VIDEOS = [
         url: "https://archive.org/download/rock-n-roll-revue-1955/Rock%20%27n%27%20Roll%20Revue%20%281955%29.mp4",
         duration: "1:10:00",
         category: "J-Tube Originals",
-        description: "Live from Harlem's Apollo Theater — Duke Ellington, Nat King Cole, and more."
+        description: "Recorded from Harlem's Apollo Theater — Duke Ellington, Nat King Cole, and more."
     }
 ];
 
