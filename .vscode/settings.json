@@ -1,0 +1,28 @@
+{
+    "css.lint.unknownAtRules": "ignore",
+    "scss.lint.unknownAtRules": "ignore",
+    "less.lint.unknownAtRules": "ignore",
+    "css.validate": false,
+    "css.customData": [
+        ".vscode/tailwind.json"
+    ],
+    "files.associations": {
+        "*.css": "tailwindcss"
+    },
+    "files.exclude": {
+        "**/.next": true,
+        "**/node_modules": true,
+        "**/.git": true,
+        "**/.vercel": true
+    },
+    "search.exclude": {
+        "**/.next": true,
+        "**/node_modules": true,
+        "**/build": true,
+        "**/dist": true
+    },
+    "files.watcherExclude": {
+        "**/.next/**": true,
+        "**/node_modules/**": true
+    }
+}

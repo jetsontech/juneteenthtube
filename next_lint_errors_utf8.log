@@ -1,0 +1,131 @@
+﻿
+> juneteenthtube@0.1.0 lint
+> eslint
+
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\generate_originals_channel.mjs
+  15:41  warning  'channelError' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\ingest_iptv.mjs
+  32:15  warning  'targetLanguages' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\juneteenthtube-tv\screens\HomeScreen.js
+  48:21  warning  Image elements must have an alt prop, either with meaningful text, or an empty string for decorative images  jsx-a11y/alt-text
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\reset-failed-transcodes.js
+  1:1   error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  2:26  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\scripts\check_streams.js
+  1:26  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  2:1   error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\scripts\copy_logo.mjs
+  2:8  warning  'path' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\scripts\etv_configure.js
+  1:18  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\scripts\etv_explore.js
+  1:18  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\scripts\etv_finish.js
+  1:18  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\scripts\etv_schema.js
+  1:18  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\scripts\poll-transcode.js
+  1:1   error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  2:26  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\scripts\reorder_channels.js
+  1:26  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  2:1   error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\scripts\seed_premium_channels.ts
+  99:17  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\app\admin\page.tsx
+   8:5   warning  'LayoutDashboard' is defined but never used  @typescript-eslint/no-unused-vars
+  20:5   warning  'UserMinus' is defined but never used        @typescript-eslint/no-unused-vars
+  22:5   warning  'UserCheck' is defined but never used        @typescript-eslint/no-unused-vars
+  23:5   warning  'MoreVertical' is defined but never used     @typescript-eslint/no-unused-vars
+  59:62  warning  'sourceKey' is defined but never used        @typescript-eslint/no-unused-vars
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\app\creator-studio\page.tsx
+  14:13  warning  'uploadVideo' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  14:26  warning  'isUploading' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  14:39  warning  'uploadProgress' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  14:55  warning  'cancelUpload' is assigned a value but never used    @typescript-eslint/no-unused-vars
+  15:12  warning  'fileRef' is assigned a value but never used         @typescript-eslint/no-unused-vars
+  15:21  warning  'setFileRef' is assigned a value but never used      @typescript-eslint/no-unused-vars
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\app\live\page.tsx
+   13:9   warning  'categories' is assigned a value but never used                                                                                                                                                                                                                                          @typescript-eslint/no-unused-vars
+  337:11  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\app\page.tsx
+  3:20  warning  'useEffect' is defined but never used   @typescript-eslint/no-unused-vars
+  5:15  warning  'VideoProps' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\components\admin\AdminLiveStudio.tsx
+  282:53  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\components\interactive\LegacyVault.tsx
+  5:23  warning  'Search' is defined but never used     @typescript-eslint/no-unused-vars
+  5:37  warning  'Info' is defined but never used       @typescript-eslint/no-unused-vars
+  5:60  warning  'Database' is defined but never used   @typescript-eslint/no-unused-vars
+  5:70  warning  'Megaphone' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\components\layout\InstallBanner.tsx
+  14:12  warning  'isAndroid' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\components\layout\Navbar.tsx
+    5:10  warning  'Menu' is defined but never used                                                           @typescript-eslint/no-unused-vars
+    5:16  warning  'Search' is defined but never used                                                         @typescript-eslint/no-unused-vars
+    5:24  warning  'Video' is defined but never used                                                          @typescript-eslint/no-unused-vars
+    5:31  warning  'Bell' is defined but never used                                                           @typescript-eslint/no-unused-vars
+    5:37  warning  'User' is defined but never used                                                           @typescript-eslint/no-unused-vars
+    5:43  warning  'X' is defined but never used                                                              @typescript-eslint/no-unused-vars
+    5:46  warning  'UploadCloud' is defined but never used                                                    @typescript-eslint/no-unused-vars
+   11:10  warning  'StateSelector' is defined but never used                                                  @typescript-eslint/no-unused-vars
+  443:34  warning  Unused eslint-disable directive (no problems were reported from 'react/forbid-dom-props')
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\components\layout\Sidebar.tsx
+   4:10  warning  'cn' is defined but never used         @typescript-eslint/no-unused-vars
+  33:10  warning  'useState' is defined but never used   @typescript-eslint/no-unused-vars
+  33:20  warning  'useEffect' is defined but never used  @typescript-eslint/no-unused-vars
+  37:35  warning  'onClose' is defined but never used    @typescript-eslint/no-unused-vars
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\components\live\EPG.tsx
+   38:68  warning  'categories' is defined but never used                                                                                                                                                                                                                                                   @typescript-eslint/no-unused-vars
+   38:96  warning  'onCategorySelect' is defined but never used                                                                                                                                                                                                                                             @typescript-eslint/no-unused-vars
+  141:41  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  163:73  warning  'i' is defined but never used                                                                                                                                                                                                                                                            @typescript-eslint/no-unused-vars
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\components\live\LivePlayer.tsx
+   22:12  warning  'showControls' is assigned a value but never used        @typescript-eslint/no-unused-vars
+   23:12  warning  'isFullscreen' is assigned a value but never used        @typescript-eslint/no-unused-vars
+   24:12  warning  'isLive' is assigned a value but never used              @typescript-eslint/no-unused-vars
+  132:11  warning  'resetHideTimer' is assigned a value but never used      @typescript-eslint/no-unused-vars
+  147:11  warning  'togglePlay' is assigned a value but never used          @typescript-eslint/no-unused-vars
+  154:11  warning  'toggleMute' is assigned a value but never used          @typescript-eslint/no-unused-vars
+  168:11  warning  'handleVolumeChange' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  179:11  warning  'toggleFullscreen' is assigned a value but never used    @typescript-eslint/no-unused-vars
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\components\video\CategoryBar.tsx
+  3:10  warning  'cn' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\components\video\CivilRightsGallery.tsx
+    4:85   warning  'BookOpen' is defined but never used            @typescript-eslint/no-unused-vars
+    4:102  warning  'ChevronRight' is defined but never used        @typescript-eslint/no-unused-vars
+    4:116  warning  'Radio' is defined but never used               @typescript-eslint/no-unused-vars
+  243:7    warning  'ALL_FILMS' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\components\video\CustomPlayer.tsx
+  166:8  warning  React Hook useEffect has a missing dependency: 'src'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+Ô£û 69 problems (13 errors, 56 warnings)
+  0 errors and 1 warning potentially fixable with the `--fix` option.
+

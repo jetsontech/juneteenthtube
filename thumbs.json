@@ -1,0 +1,15 @@
+[dotenv@17.2.3] injecting env (9) from .env.local -- tip: ÔÜÖ´©Å  override existing env vars with { override: true }
+[
+  {
+    "title": "Juneteenth Stage (Official High-Res MP4)",
+    "thumbnail_url": "https://images.unsplash.com/photo-1610483145520-412708686f94?q=80&w=600&auto=format&fit=crop"
+  },
+  {
+    "title": "DJI_20250615_211427_150_video",
+    "thumbnail_url": "https://images.unsplash.com/photo-1610483145520-412708686f94?q=80&w=600&auto=format&fit=crop"
+  },
+  {
+    "title": "DJI_20240623_182037_459_video",
+    "thumbnail_url": "https://images.unsplash.com/photo-1610483145520-412708686f94?q=80&w=600&auto=format&fit=crop"
+  }
+]

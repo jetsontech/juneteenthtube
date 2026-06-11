@@ -1,0 +1,28 @@
+﻿
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\app\live\page.tsx
+  46:25  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\components\admin\AdminLiveStudio.tsx
+  205:60  error  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+  272:64  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  272:78  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\components\layout\Navbar.tsx
+  457:71  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\components\live\EPG.tsx
+  39:36  error  Error: Cannot call impure function during render
+
+`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\components\live\EPG.tsx:39:36
+  37 |
+  38 | export function EPG({ channels, currentChannelId, onChannelSelect, categories, activeCategory, onCategorySelect }: EPGProps) {
+> 39 |     const [now, setNow] = useState(Date.now());
+     |                                    ^^^^^^^^^^ Cannot call impure function
+  40 |     const scrollContainerRef = useRef<HTMLDivElement>(null);
+  41 |
+  42 |     // Update 'now' every minute  react-hooks/purity
+
+Ô£û 6 problems (6 errors, 0 warnings)
+

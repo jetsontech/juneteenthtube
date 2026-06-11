@@ -1,0 +1,40 @@
+
+> juneteenthtube@0.1.0 lint
+> eslint
+
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\app\admin\page.tsx
+   7:5  warning  'LayoutDashboard' is defined but never used  @typescript-eslint/no-unused-vars
+  19:5  warning  'UserMinus' is defined but never used        @typescript-eslint/no-unused-vars
+  21:5  warning  'UserCheck' is defined but never used        @typescript-eslint/no-unused-vars
+  22:5  warning  'MoreVertical' is defined but never used     @typescript-eslint/no-unused-vars
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\app\api\transcode\route.ts
+   76:45  warning  '_reject' is defined but never used  @typescript-eslint/no-unused-vars
+  104:18  warning  'e' is defined but never used        @typescript-eslint/no-unused-vars
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\app\page.tsx
+  3:20  warning  'useEffect' is defined but never used    @typescript-eslint/no-unused-vars
+  3:50  warning  'useRef' is defined but never used       @typescript-eslint/no-unused-vars
+  3:58  warning  'useCallback' is defined but never used  @typescript-eslint/no-unused-vars
+  6:15  warning  'VideoProps' is defined but never used   @typescript-eslint/no-unused-vars
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\components\interactive\LegacyVault.tsx
+  5:23  warning  'Search' is defined but never used     @typescript-eslint/no-unused-vars
+  5:37  warning  'Info' is defined but never used       @typescript-eslint/no-unused-vars
+  5:60  warning  'Database' is defined but never used   @typescript-eslint/no-unused-vars
+  5:70  warning  'Megaphone' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\components\layout\InstallBanner.tsx
+  14:12  warning  'isAndroid' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\jetso\.gemini\antigravity\scratch\juneteenthtube\src\components\video\CivilRightsGallery.tsx
+    4:85   warning  'BookOpen' is defined but never used             @typescript-eslint/no-unused-vars
+    4:102  warning  'ChevronRight' is defined but never used         @typescript-eslint/no-unused-vars
+    4:116  warning  'Radio' is defined but never used                @typescript-eslint/no-unused-vars
+  243:7    warning  'ALL_FILMS' is assigned a value but never used   @typescript-eslint/no-unused-vars
+  244:7    warning  'CATEGORIES' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  250:10   warning  'CivilRightsPlayer' is defined but never used    @typescript-eslint/no-unused-vars
+
+Ô£û 21 problems (0 errors, 21 warnings)
+

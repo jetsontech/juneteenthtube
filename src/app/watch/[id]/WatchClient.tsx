@@ -1,0 +1,543 @@
+"use client";
+
+import { useEffect, useState, useMemo, useRef } from "react";
+import dynamic from "next/dynamic";
+import Image from "next/image";
+import Link from "next/link";
+import { CategoryBar } from "@/components/video/CategoryBar";
+import { ThumbsUp, ThumbsDown, Share2, MoreHorizontal, Clock } from "lucide-react";
+import { useVideo } from "@/context/VideoContext";
+import { useAuth } from "@/context/AuthContext";
+import { getDisplayViews, parseViews } from "@/lib/viewHelpers";
+
+interface Comment {
+    id: number | string;
+    user: string;
+    text: string;
+    timestamp: string;
+    user_name?: string;
+    content?: string;
+    created_at?: string;
+}
+
+// Dynamic import to avoid SSR issues
+const CustomPlayer = dynamic(
+    () => import("@/components/video/CustomPlayer").then(mod => mod.CustomPlayer),
+    { ssr: false, loading: () => <div className="w-full h-full bg-gray-900 animate-pulse" /> }
+);
+
+const CATEGORIES = ["All", "SAREMBOK", "Parade", "Music", "Food", "History", "Speeches", "2024"] as const;
+
+export default function WatchClient({ videoId }: { videoId: string }) {
+    const { getVideoById, videos, watchLater, getVideoComments, postComment, getLikes, toggleLike, getSubscription, toggleSubscription, addToHistory, addToWatchLater, removeFromWatchLater, isInWatchLater, incrementView } = useVideo();
+    const { user } = useAuth();
+    const [sidebarCategory, setSidebarCategory] = useState<string>("All");
+
+    // Derived Recommendations logic
+    const filteredSidebarVideos = useMemo(() => {
+        return videos
+            .filter(v => v.id !== videoId)
+            .filter(v => sidebarCategory === "All" || v.category === sidebarCategory);
+    }, [videos, videoId, sidebarCategory]);
+
+    // Derived State (No side effects)
+    const video = useMemo(() => {
+        if (!videoId || videos.length === 0) return undefined;
+        return getVideoById(videoId);
+    }, [videoId, videos, getVideoById]);
+
+    // Interaction State
+    const [isSubscribed, setIsSubscribed] = useState(false);
+    const [liked, setLiked] = useState(false);
+    const [disliked, setDisliked] = useState(false);
+    const [likesCount, setLikesCount] = useState(0);
+    const isMyVideo = useMemo(() => {
+        if (!video || !user) return false;
+        return video.ownerId === user.id;
+    }, [video, user]);
+
+    const displayedViews = useMemo(() => {
+        if (!video) return 0;
+        const dbViews = parseViews(video.views);
+        return getDisplayViews(video.id, dbViews, likesCount, isMyVideo);
+    }, [video, likesCount, isMyVideo]);
+    const [toastMessage, setToastMessage] = useState<string | null>(null);
+    const isSharingRef = useRef(false);
+
+    useEffect(() => {
+        if (!toastMessage) return;
+        const timer = setTimeout(() => setToastMessage(null), 3000);
+        return () => clearTimeout(timer);
+    }, [toastMessage]);
+
+    const inWatchLater = useMemo(() => {
+        return video ? isInWatchLater(video.id) : false;
+    }, [video, watchLater, isInWatchLater]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    // Track watch history when video is found
+    useEffect(() => {
+        if (video) {
+            addToHistory(video);
+        }
+    }, [video?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    // Watch Later Toggle
+    const handleWatchLater = () => {
+        if (!video) return;
+        if (inWatchLater) {
+            removeFromWatchLater(video.id);
+        } else {
+            addToWatchLater(video.id);
+        }
+    };
+
+    // Comments State
+    const [comments, setComments] = useState<Comment[]>([]);
+    const [newComment, setNewComment] = useState("");
+
+    // Fetch Engagement Data
+    useEffect(() => {
+        if (!videoId) return;
+
+        getVideoComments(videoId).then((data) => setComments(data as Comment[]));
+
+        getLikes(videoId).then(({ likes, userStatus }) => {
+            setLikesCount(likes);
+            if (userStatus === 'like') setLiked(true);
+            else if (userStatus === 'dislike') setDisliked(true);
+        });
+
+        if (video?.channelName) {
+            getSubscription(video.channelName).then(setIsSubscribed);
+        }
+
+    }, [videoId, video?.channelName, getVideoComments, getLikes, getSubscription]);
+
+    const handleComment = async () => {
+        if (!newComment.trim() || !video) return;
+        try {
+            const added = await postComment(video.id, newComment, "You") as Record<string, unknown>;
+            const commentData = (added?.comment || added) as Record<string, unknown>;
+            const newCommentObj = {
+                id: (commentData?.id as string | number) || Date.now(),
+                user: (commentData?.user_name as string) || (commentData?.user as string) || "You",
+                text: (commentData?.content as string) || (commentData?.text as string) || newComment,
+                timestamp: commentData?.created_at ? new Date(commentData.created_at as string).toLocaleDateString() : new Date().toLocaleDateString()
+            };
+            setComments(prev => [newCommentObj, ...prev]);
+            setNewComment("");
+        } catch (e) {
+            console.error("Comment failed", e);
+            alert("Failed to post comment. Try again.");
+        }
+    };
+
+    const handleSubscribe = async () => {
+        if (!video) return;
+        try {
+            const newState = await toggleSubscription(video.channelName);
+            setIsSubscribed(newState);
+            // Sync to localStorage for subscriptions page fallback
+            const stored = localStorage.getItem("jt_subscriptions");
+            const list: string[] = stored ? JSON.parse(stored) : [];
+            const updated = newState
+                ? [...new Set([...list, video.channelName])]
+                : list.filter(c => c !== video.channelName);
+            localStorage.setItem("jt_subscriptions", JSON.stringify(updated));
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+    const handleLike = async () => {
+        if (!video) return;
+        const wasLiked = liked;
+        setLiked(!wasLiked);
+        setLikesCount(prev => wasLiked ? prev - 1 : prev + 1);
+        if (disliked) setDisliked(false);
+
+        try {
+            await toggleLike(video.id, 'like');
+        } catch {
+            setLiked(wasLiked);
+        }
+    };
+
+    const handleDislike = async () => {
+        if (!video) return;
+        const wasDisliked = disliked;
+        setDisliked(!wasDisliked);
+        if (liked) {
+            setLiked(false);
+            setLikesCount(prev => prev - 1);
+        }
+
+        try {
+            await toggleLike(video.id, 'dislike');
+        } catch {
+            setDisliked(wasDisliked);
+        }
+    };
+
+    const handleShare = async () => {
+        if (!video || isSharingRef.current) return;
+        isSharingRef.current = true;
+
+        const shareData = {
+            title: video.title,
+            text: `Watch "${video.title}" on CultureQuest`,
+            url: window.location.href
+        };
+
+        // 1. Immediately copy to clipboard in parallel while user gesture is fresh (NO await!)
+        let copiedSuccessfully = false;
+        try {
+            navigator.clipboard.writeText(window.location.href)
+                .then(() => { copiedSuccessfully = true; })
+                .catch(() => {});
+        } catch {
+            // Fallback to legacy document.execCommand('copy') synchronous trick
+            try {
+                const textArea = document.createElement("textarea");
+                textArea.value = window.location.href;
+                textArea.style.position = "fixed";  // Avoid scrolling to bottom
+                textArea.style.opacity = "0";
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                const successful = document.execCommand("copy");
+                document.body.removeChild(textArea);
+                if (successful) copiedSuccessfully = true;
+            } catch (fallbackErr) {
+                console.warn("Legacy copy failed:", fallbackErr);
+            }
+        }
+
+        try {
+            if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+                await navigator.share(shareData);
+                setToastMessage("Shared successfully!");
+            } else {
+                await navigator.clipboard.writeText(window.location.href);
+                setToastMessage("Link copied to clipboard!");
+            }
+        } catch (err) {
+            const errObj = err && typeof err === 'object' ? (err as Record<string, unknown>) : null;
+            const errorName = errObj && typeof errObj.name === 'string' ? errObj.name : '';
+            const errorMessage = errObj && typeof errObj.message === 'string' ? errObj.message : '';
+            const isAbort = errorName === 'AbortError' || errorMessage.includes('AbortError') || errorMessage.includes('Share canceled') || errorMessage.includes('aborted');
+            const isAlreadySharing = errorName === 'InvalidStateError' || errorMessage.includes('InvalidStateError') || errorMessage.includes('not yet completed');
+            
+            if (!isAbort && !isAlreadySharing) {
+                console.warn("Share failed:", err);
+                if (copiedSuccessfully) {
+                    setToastMessage("Link copied to clipboard!");
+                } else {
+                    setToastMessage("Failed to copy link. Copy URL manually!");
+                }
+            }
+        } finally {
+            // Keep the lock active for 1000ms to allow mobile OS transitions to finish
+            setTimeout(() => {
+                isSharingRef.current = false;
+            }, 1000);
+        }
+    };
+
+    if (!video) {
+        return <div className="p-8 text-white text-center">Loading video...</div>;
+    }
+
+    // Extracted Recommendations block for reusability (Mobile bottom vs Desktop side)
+    const renderRecommendations = () => (
+        <>
+            <div className="mb-4 flex flex-col gap-3">
+                <CategoryBar
+                    categories={CATEGORIES}
+                    selectedCategory={sidebarCategory}
+                    onCategoryChange={setSidebarCategory}
+                    className="bg-transparent border-none px-0"
+                />
+            </div>
+
+            <div className="flex flex-col lg:flex-col grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4 lg:gap-4 sm:grid xl:flex">
+                {filteredSidebarVideos.map((v) => (
+                    <Link href={`/watch/${v.id}`} key={v.id} className="flex gap-3 cursor-pointer group hover:bg-white/5 p-2 rounded-xl transition-colors">
+                        <div className="w-[160px] sm:w-[180px] lg:w-[160px] xl:w-[180px] flex-shrink-0 aspect-video bg-gray-800 rounded-xl overflow-hidden relative shadow-md group-hover:shadow-white/5 transition-all">
+                            {v.thumbnail ? (
+                                <Image
+                                    src={v.thumbnail}
+                                    fill
+                                    sizes="180px"
+                                    className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                                    alt={v.title}
+                                />
+                            ) : (
+                                <div className="w-full h-full bg-gradient-to-br from-gray-800 to-black flex items-center justify-center">
+                                    <span className="text-gray-500 text-[10px]">No Thumb</span>
+                                </div>
+                            )}
+                            <div className="absolute bottom-1 right-1 bg-black/80 px-1.5 py-0.5 rounded text-[10px] text-white font-bold backdrop-blur-sm">
+                                {v.duration}
+                            </div>
+                        </div>
+                        <div className="flex-1 min-w-0 flex flex-col justify-center py-0.5">
+                            <h4 className="font-bold text-white text-[13px] line-clamp-2 mb-1 group-hover:text-j-gold transition-colors leading-snug">{v.title}</h4>
+                            <p className="text-[11px] text-gray-400 font-medium truncate">{v.channelName}</p>
+                            <p className="text-[11px] text-gray-400 truncate">{v.views} views • {v.postedAt}</p>
+                        </div>
+                    </Link>
+                ))}
+            </div>
+        </>
+    );
+
+    return (
+        <div className="flex flex-col sm:block h-[calc(100dvh-3.5rem)] sm:h-auto overflow-hidden sm:overflow-visible bg-transparent relative z-0">
+            {/* Ambient Backgrounds */}
+            <div className="absolute top-0 right-0 w-[80vw] sm:w-[50vw] h-[60vh] bg-[radial-gradient(circle_at_100%_0%,_#3f2e05_0%,_transparent_70%)] opacity-40 pointer-events-none z-[-1]" />
+            <div className="absolute top-[20vh] left-0 w-[100vw] h-[80vh] bg-[radial-gradient(circle_at_50%_50%,_#4a0000_0%,_transparent_60%)] opacity-20 pointer-events-none z-[-1]" />
+            <div className="absolute bottom-0 left-0 w-[80vw] sm:w-[50vw] h-[50vh] bg-[radial-gradient(circle_at_0%_100%,_#0a2f0a_0%,_transparent_70%)] opacity-30 pointer-events-none z-[-1]" />
+
+            <div className="max-w-[1600px] mx-auto w-full h-full flex flex-col lg:flex-row lg:gap-6 lg:items-start pt-0 sm:pt-6">
+
+                {/* LEFT COLUMN: Player (Sticky Mobile, Static Desktop) + Info + Comments */}
+                <div className="flex-1 w-full lg:w-[65%] xl:w-[70%] flex flex-col h-full sm:h-auto">
+
+                    {/* Player Container (Sticky top on mobile. 100vw edge-to-edge) */}
+                    <div className="w-full flex-shrink-0 relative z-50 bg-black sm:bg-transparent shadow-[0_20px_60px_rgba(0,0,0,0.8)] sm:shadow-none sm:px-4 md:px-6 lg:px-0">
+                        <div className="relative aspect-video w-full bg-black overflow-hidden sm:shadow-[0_30px_90px_rgba(0,0,0,0.9)] sm:ring-1 sm:ring-white/10 sm:rounded-2xl group flex-shrink-0">
+                            {video.videoUrl ? (
+                                <CustomPlayer
+                                    src={video.videoUrl}
+                                    srcH264={video.videoUrlH264}
+                                    poster={video.thumbnail}
+                                    videoId={video.id}
+                                    onPlayStart={() => incrementView(video.id)}
+                                />
+                            ) : (
+                                <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
+                                    <div className="text-center">
+                                        <p className="text-white/50 mb-2">Mock Video ID: {video.id}</p>
+                                        <p className="text-sm text-gray-500">(No actual video file associated with this mock data)</p>
+                                        <button 
+                                            onClick={() => incrementView(video.id)}
+                                            className="mt-4 bg-j-red text-white px-6 py-2 rounded-full font-bold hover:scale-105 transition-transform"
+                                        >
+                                            Simulate Play
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Scrollable Content Below Player on Mobile */}
+                    <div className="flex-1 overflow-y-auto sm:overflow-visible overscroll-y-contain pb-10 sm:px-4 md:px-6 lg:px-0">
+                        {/* Video Info */}
+                        <div className="px-4 sm:px-0 mt-4 sm:mt-6">
+                            <h1 className="text-[20px] sm:text-[24px] font-black text-white leading-tight tracking-tight drop-shadow-md">
+                                {video.title}
+                            </h1>
+
+                            <p className="mt-2 text-[13px] text-gray-400 font-medium tracking-wide">
+                                {displayedViews.toLocaleString()} VIEWS • {(video.postedAt || "Recently").toUpperCase()}
+                            </p>
+
+                            {/* Actions Row */}
+                            <div className="flex items-center gap-3 mt-4 -mx-4 sm:-mx-0 px-4 sm:px-0 overflow-x-auto no-scrollbar pb-2">
+                                <div className="flex items-center bg-white/5 backdrop-blur-xl border border-white/10 rounded-full flex-shrink-0 shadow-lg">
+                                    <button
+                                        onClick={handleLike}
+                                        className="flex items-center gap-2 pl-5 pr-4 py-2.5 rounded-l-full hover:bg-white/10 transition-colors"
+                                        aria-label="Like video"
+                                    >
+                                        <ThumbsUp className={`w-5 h-5 ${liked ? "fill-white" : ""}`} />
+                                        <span className="text-[13px] font-bold">{likesCount}</span>
+                                    </button>
+                                    <div className="w-px h-6 bg-white/20"></div>
+                                    <button
+                                        onClick={handleDislike}
+                                        className="pl-4 pr-5 py-2.5 rounded-r-full hover:bg-white/10 transition-colors"
+                                        aria-label="Dislike video"
+                                    >
+                                        <ThumbsDown className={`w-5 h-5 ${disliked ? "fill-white" : ""}`} />
+                                    </button>
+                                </div>
+
+                                <button
+                                    onClick={handleWatchLater}
+                                    className={`flex items-center gap-2 px-5 py-2.5 backdrop-blur-xl border rounded-full transition-all text-[13px] font-bold flex-shrink-0 shadow-lg active:scale-95 ${inWatchLater ? 'bg-j-gold/20 border-j-gold/40 text-j-gold' : 'bg-white/5 border-white/10 hover:bg-white/10 text-white'}`}
+                                >
+                                    <Clock className="w-5 h-5" />
+                                    <span>{inWatchLater ? 'Saved' : 'Save'}</span>
+                                </button>
+
+                                <button
+                                    onClick={handleShare}
+                                    className="flex items-center gap-2 px-5 py-2.5 bg-white/5 backdrop-blur-xl border border-white/10 hover:bg-white/10 rounded-full transition-all text-white text-[13px] font-bold flex-shrink-0 shadow-lg active:scale-95"
+                                >
+                                    <Share2 className="w-5 h-5" />
+                                    <span>Share</span>
+                                </button>
+
+                                <a
+                                    href={video.videoUrl}
+                                    download
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center gap-2 px-5 py-2.5 bg-white/5 backdrop-blur-xl border border-white/10 hover:bg-white/10 rounded-full transition-all text-white text-[13px] font-bold flex-shrink-0 shadow-lg active:scale-95"
+                                >
+                                    <MoreHorizontal className="w-5 h-5" />
+                                    <span>More</span>
+                                </a>
+                            </div>
+
+                            {/* Channel Row */}
+                            <div className="flex items-center gap-4 mt-6 py-4 px-4 bg-black/40 backdrop-blur-md rounded-2xl border border-white/5 shadow-inner">
+                                <div className="w-12 h-12 rounded-full bg-j-green flex-shrink-0 overflow-hidden cursor-pointer hover:scale-105 transition-transform relative ring-2 ring-white/10">
+                                    {video.channelAvatar ? (
+                                        <Image src={video.channelAvatar} alt={video.channelName} fill sizes="48px" className="object-cover" />
+                                    ) : (
+                                        <div className="w-full h-full bg-gradient-to-br from-j-green to-j-gold flex items-center justify-center text-white font-black text-lg">
+                                            {(video.channelName || "Guest").charAt(0).toUpperCase()}
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="flex flex-col min-w-0 flex-1">
+                                    <h3 className="font-bold text-white text-[15px] truncate hover:text-j-gold transition-colors cursor-pointer">{video.channelName}</h3>
+                                    <p className="text-[12px] text-gray-400 font-medium">1.2K subscribers</p>
+                                </div>
+                                <button
+                                    onClick={handleSubscribe}
+                                    className={`px-5 py-2.5 rounded-full text-[13px] font-black uppercase tracking-wider transition-all flex-shrink-0 shadow-lg ${isSubscribed
+                                        ? "bg-white/10 text-white hover:bg-white/20 border border-white/10"
+                                        : "bg-white text-black hover:bg-gray-200"
+                                        }`}
+                                >
+                                    {isSubscribed ? "Subscribed" : "Subscribe"}
+                                </button>
+                            </div>
+
+                            {/* Description Box */}
+                            <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-4 mt-4 text-sm hover:bg-white/10 transition-colors cursor-pointer group shadow-lg">
+                                <div className="flex flex-wrap gap-x-3 gap-y-1 text-[13px] text-white mb-2">
+                                    <span className="font-bold">{displayedViews.toLocaleString()} views</span>
+                                    <span className="font-bold">{video.postedAt || "Recently"}</span>
+                                    <span className="text-j-gold font-medium">#Juneteenth #Atlanta</span>
+                                </div>
+                                <p className="text-[14px] text-white/90 whitespace-pre-line leading-relaxed line-clamp-2 group-hover:line-clamp-none font-medium">
+                                    {video.videoUrl ?
+                                        "Uploaded from your device. Watch and enjoy the highlights from this year's parade!" :
+                                        "Experience the vibrant energy of the 2024 Juneteenth Atlanta Parade! Featuring marching bands, dance troupes, and community floats."}
+                                </p>
+                                <button className="mt-3 text-white/50 text-[12px] font-bold uppercase tracking-widest group-hover:hidden">Show More</button>
+                            </div>
+                        </div>
+
+                        {/* Mobile Recommendations (Hidden on Desktop) */}
+                        <div className="block lg:hidden mt-8 px-4 sm:px-0">
+                            <h3 className="text-xl font-bold text-white mb-6">Up Next</h3>
+                            {renderRecommendations()}
+                        </div>
+
+                        {/* Comments Section */}
+                        <div className="mt-8 px-4 sm:px-0 border-t border-white/5 pt-8">
+                            <h3 className="text-xl font-bold text-white mb-6">{comments.length} Comments</h3>
+
+                            <div className="flex items-start gap-4 mb-8">
+                                <div className="w-10 h-10 rounded-full bg-j-red flex-shrink-0 flex items-center justify-center text-white font-bold text-lg select-none">
+                                    Y
+                                </div>
+                                <div className="flex-1">
+                                    <input
+                                        type="text"
+                                        value={newComment}
+                                        onChange={(e) => setNewComment(e.target.value)}
+                                        placeholder="Add a comment..."
+                                        className="w-full bg-transparent border-b border-white/20 pb-1 text-white placeholder-gray-400 focus:outline-none focus:border-white transition-colors text-sm"
+                                        onKeyDown={(e) => e.key === 'Enter' && handleComment()}
+                                    />
+                                    <div className="flex justify-end mt-2 gap-2">
+                                        <button
+                                            className="px-4 py-2 text-sm font-medium text-white hover:bg-[#272727] rounded-full transition-colors"
+                                            onClick={() => setNewComment("")}
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button
+                                            onClick={handleComment}
+                                            disabled={!newComment.trim()}
+                                            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${newComment.trim()
+                                                ? "bg-[#3ea6ff] text-black hover:bg-[#65b8ff]"
+                                                : "bg-[#272727] text-gray-500 cursor-not-allowed"
+                                                }`}
+                                        >
+                                            Comment
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="space-y-6 pb-20">
+                                {comments.length === 0 ? (
+                                    <p className="text-gray-400 py-4">No comments yet.</p>
+                               ) : (
+                                    comments.map((comment) => (
+                                        <div key={comment.id} className="flex gap-4 group">
+                                            <div className="w-10 h-10 rounded-full bg-gray-700 flex-shrink-0 flex items-center justify-center text-white text-xs font-bold select-none">
+                                                {(comment.user_name || comment.user || "G")[0].toUpperCase()}
+                                            </div>
+                                            <div className="flex-1">
+                                                <div className="flex items-baseline gap-2 mb-1">
+                                                    <span className="font-bold text-white text-sm cursor-pointer hover:text-gray-300">@{comment.user_name || comment.user || "Guest"}</span>
+                                                    <span className="text-xs text-gray-400 hover:text-white cursor-pointer">
+                                                        {comment.created_at ? new Date(comment.created_at).toLocaleDateString() : (comment.timestamp || "Just now")}
+                                                    </span>
+                                                </div>
+                                                <p className="text-sm text-white leading-normal">{comment.content || comment.text}</p>
+                                                <div className="flex items-center gap-4 mt-2">
+                                                    <button
+                                                        className="flex items-center gap-1.5 text-gray-400 hover:text-white group-hover:opacity-100 opacity-0 transition-opacity"
+                                                        aria-label="Like comment"
+                                                    >
+                                                        <ThumbsUp className="w-3.5 h-3.5" />
+                                                        <span className="text-xs"></span>
+                                                    </button>
+                                                    <button
+                                                        className="flex items-center text-gray-400 hover:text-white group-hover:opacity-100 opacity-0 transition-opacity"
+                                                        aria-label="Dislike comment"
+                                                    >
+                                                        <ThumbsDown className="w-3.5 h-3.5" />
+                                                    </button>
+                                                    <button className="text-xs font-medium text-gray-400 hover:text-white rounded-full px-2 py-1 hover:bg-[#272727]">
+                                                        Reply
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        </div>
+                    </div> {/* End Left Column Scrollable Container */}
+                </div> {/* End Left Column Wrapper */}
+
+                {/* RIGHT COLUMN: Recommendations ONLY ON DESKTOP */}
+                <div className="hidden lg:flex lg:w-[35%] xl:w-[30%] lg:sticky lg:top-6 lg:h-[calc(100vh-6rem)] overflow-y-auto pr-4 pb-10 flex-col gap-4 custom-scrollbar">
+                    <h3 className="text-xl font-bold text-white pl-2">Up Next</h3>
+                    {renderRecommendations()}
+                </div>
+
+            </div>
+
+            {/* Elegant Toast Notification */}
+            {toastMessage && (
+                <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[200] bg-zinc-950/90 text-white border border-white/10 px-5 py-3 rounded-full text-xs font-bold uppercase tracking-wider backdrop-blur-md shadow-2xl animate-fade-in flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 bg-j-gold rounded-full animate-ping" />
+                    {toastMessage}
+                </div>
+            )}
+        </div>
+    );
+}

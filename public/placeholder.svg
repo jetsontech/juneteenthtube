@@ -1,0 +1,28 @@
+<svg width="1920" height="1080" viewBox="0 0 1920 1080" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1920" height="1080" fill="#0D0D0D"/>
+  <rect x="0" y="0" width="1920" height="1080" fill="url(#goldGradient)" fill-opacity="0.05"/>
+  
+  <defs>
+    <linearGradient id="goldGradient" x1="800" y1="300" x2="1120" y2="780" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFD700"/>
+      <stop offset="0.5" stop-color="#BF953F"/>
+      <stop offset="1" stop-color="#B38728"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="15" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Central "J" Monogram style shape -->
+  <path d="M960 340 C960 340 1080 340 1080 460 V620 C1080 740 960 740 960 740 C840 740 840 620 840 620" 
+        stroke="url(#goldGradient)" stroke-width="40" stroke-linecap="round" fill="none" filter="url(#glow)"/>
+
+  <!-- Text -->
+  <text x="960" y="850" font-family="ui-sans-serif, system-ui, sans-serif" font-weight="800" font-size="24" fill="#555" text-anchor="middle" letter-spacing="0.3em">
+    IMAGE PENDING
+  </text>
+</svg>
