@@ -3,6 +3,8 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect, useRef, useMemo, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
+import { safeUUID } from '@/lib/utils';
+import { getDisplayViews } from '@/lib/viewHelpers';
 import pLimit from 'p-limit';
 
 export interface VideoProps {
@@ -21,259 +23,13 @@ export interface VideoProps {
     videoUrlH264?: string;
     transcodeStatus?: 'pending' | 'processing' | 'completed' | 'failed' | null;
     ownerId?: string;
+    isFeatured?: boolean;
+    isTrending?: boolean;
+    featuredTitle?: string;
+    featuredCategory?: string;
 }
 
-const MOCK_VIDEOS: VideoProps[] = [
-    // ── User's Juneteenth Reference Content ──────────────────────────────
-    {
-        id: "juneteenth-parade-houston",
-        title: "Juneteenth Parade Houston 2024 — Full Coverage",
-        thumbnail: "https://images.unsplash.com/photo-1568283094541-11910ebafcf0?q=80&w=800",
-        channelName: "Texas Heritage TV",
-        channelAvatar: "",
-        views: "142K",
-        postedAt: "2 weeks ago",
-        duration: "12:00",
-        videoUrl: "https://archive.org/download/HM_African_American_Family_Detroit/HM_African_American_Family_Detroit.mp4",
-        category: "Parade",
-        state: "TX"
-    },
-    {
-        id: "freedom-songs-south",
-        title: "Freedom Songs of the South: A Musical Journey",
-        thumbnail: "https://images.unsplash.com/photo-1516280440502-311548cb45b3?q=80&w=800",
-        channelName: "Black Music Archive",
-        channelAvatar: "",
-        views: "89K",
-        postedAt: "1 month ago",
-        duration: "1:12:00",
-        videoUrl: "https://archive.org/download/hi_de_ho/Hi-De-Ho.mp4",
-        category: "Music",
-        state: "GA"
-    },
-    {
-        id: "dr-opal-lee",
-        title: "Dr. Opal Lee: The Grandmother of Juneteenth",
-        thumbnail: "https://images.unsplash.com/photo-1589578228447-e1e4cb8fece7?q=80&w=800",
-        channelName: "Civil Rights Now",
-        channelAvatar: "",
-        views: "214K",
-        postedAt: "3 days ago",
-        duration: "27:00",
-        videoUrl: "https://archive.org/download/blackhistoryloststolenorstrayed/blackhistoryloststolenorstrayedreel1.mp4",
-        category: "History",
-        state: "TX"
-    },
-    {
-        id: "galveston-celebration",
-        title: "Galveston Island Celebration: Where It All Began",
-        thumbnail: "https://images.unsplash.com/photo-1623849313386-b408137cdcf1?q=80&w=800",
-        channelName: "Lone Star Stories",
-        channelAvatar: "",
-        views: "67K",
-        postedAt: "5 days ago",
-        duration: "1:19:00",
-        videoUrl: "https://archive.org/download/WithinOurGates/WithinOurGates_512kb.mp4",
-        category: "History",
-        state: "TX"
-    },
-    {
-        id: "juneteenth-foods",
-        title: "Traditional Juneteenth Foods & Their African Roots",
-        thumbnail: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=800",
-        channelName: "Soul Food Stories",
-        channelAvatar: "",
-        views: "103K",
-        postedAt: "1 week ago",
-        duration: "12:00",
-        videoUrl: "https://archive.org/download/HM_African_American_Family_Detroit/HM_African_American_Family_Detroit.mp4",
-        category: "Food",
-        state: "GLOBAL"
-    },
-    {
-        id: "atlanta-freedom-fest",
-        title: "Atlanta Freedom Fest: Full Keynote Address",
-        thumbnail: "https://images.unsplash.com/photo-1551829142-d9b8e66e0454?q=80&w=800",
-        channelName: "Georgia United",
-        channelAvatar: "",
-        views: "55K",
-        postedAt: "2 days ago",
-        duration: "40:00",
-        videoUrl: "https://archive.org/download/negrosoldier/negrosoldier.mp4",
-        category: "Speeches",
-        state: "GA"
-    },
-    {
-        id: "chicago-block-party",
-        title: "Chicago South Side Block Party 2024",
-        thumbnail: "https://images.unsplash.com/photo-1472653431158-6364773b2a56?q=80&w=800",
-        channelName: "Chi-Town Culture",
-        channelAvatar: "",
-        views: "78K",
-        postedAt: "3 weeks ago",
-        duration: "58:00",
-        videoUrl: "https://archive.org/download/bronze_buckaroo/the_bronze_buckaroo.mp4",
-        category: "Parade",
-        state: "IL"
-    },
-    {
-        id: "spoken-word-freedom",
-        title: "Spoken Word: Letters to Freedom",
-        thumbnail: "https://images.unsplash.com/photo-1520006403909-838d6b92c22e?q=80&w=800",
-        channelName: "The Black Poets Collective",
-        channelAvatar: "",
-        views: "41K",
-        postedAt: "6 days ago",
-        duration: "18:00",
-        videoUrl: "https://archive.org/download/StudyOfNegroArtists/StudyOfNegroArtists_512kb.mp4",
-        category: "Music",
-        state: "GLOBAL"
-    },
-    {
-        id: "emancipation-proclamation",
-        title: "The Emancipation Proclamation: History Explained",
-        thumbnail: "https://images.unsplash.com/photo-1588145226759-dd6082ddaa76?q=80&w=800",
-        channelName: "Black History 365",
-        channelAvatar: "",
-        views: "189K",
-        postedAt: "2 months ago",
-        duration: "1:08:00",
-        videoUrl: "https://archive.org/download/TheSymbolOfTheUnconquered1920/The%20Symbol%20Of%20the%20Unconquered%20%281920%29.mp4",
-        category: "History",
-        state: "GLOBAL"
-    },
-    // ── Archive.org Playable Content ─────────────────────────────────────
-    {
-        id: "within-our-gates",
-        title: "Within Our Gates",
-        thumbnail: "https://images.unsplash.com/photo-1590073844006-33379778ae09?q=80&w=800",
-        channelName: "Maverick Black Cinema",
-        channelAvatar: "",
-        views: "1.2M",
-        postedAt: "1920",
-        duration: "1:19:00",
-        videoUrl: "https://archive.org/download/WithinOurGates/WithinOurGates_512kb.mp4",
-        category: "History",
-        state: "GLOBAL"
-    },
-    {
-        id: "symbol-of-the-unconquered",
-        title: "The Symbol of the Unconquered",
-        thumbnail: "https://images.unsplash.com/photo-1579541814924-49fef17c5be5?q=80&w=800",
-        channelName: "Maverick Black Cinema",
-        channelAvatar: "",
-        views: "850K",
-        postedAt: "1920",
-        duration: "1:08:00",
-        videoUrl: "https://archive.org/download/TheSymbolOfTheUnconquered1920/The%20Symbol%20Of%20the%20Unconquered%20%281920%29.mp4",
-        category: "History",
-        state: "GLOBAL"
-    },
-    {
-        id: "body-and-soul",
-        title: "Body and Soul",
-        thumbnail: "/placeholder.svg",
-        channelName: "Maverick Black Cinema",
-        channelAvatar: "",
-        views: "2.1M",
-        postedAt: "1925",
-        duration: "1:42:00",
-        videoUrl: "https://archive.org/download/body-and-soul_202107/Body%20and%20Soul.mp4",
-        category: "History",
-        state: "GLOBAL"
-    },
-    {
-        id: "bronze-buckaroo",
-        title: "The Bronze Buckaroo",
-        thumbnail: "https://images.unsplash.com/photo-1526857240824-92be52581d9f?q=80&w=800",
-        channelName: "Black Westerns",
-        channelAvatar: "",
-        views: "940K",
-        postedAt: "1939",
-        duration: "58:00",
-        videoUrl: "https://archive.org/download/bronze_buckaroo/the_bronze_buckaroo.mp4",
-        category: "Music",
-        state: "GLOBAL"
-    },
-    {
-        id: "hi-de-ho",
-        title: "Hi-De-Ho",
-        thumbnail: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=800",
-        channelName: "Soul Stage",
-        channelAvatar: "",
-        views: "3.5M",
-        postedAt: "1947",
-        duration: "1:12:00",
-        videoUrl: "https://archive.org/download/hi_de_ho/Hi-De-Ho.mp4",
-        category: "Music",
-        state: "GLOBAL"
-    },
-    {
-        id: "negro-soldier",
-        title: "The Negro Soldier",
-        thumbnail: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?q=80&w=800",
-        channelName: "Freedom Reels",
-        channelAvatar: "",
-        views: "5.2M",
-        postedAt: "1944",
-        duration: "40:00",
-        videoUrl: "https://archive.org/download/negrosoldier/negrosoldier.mp4",
-        category: "History",
-        state: "GLOBAL"
-    },
-    {
-        id: "black-history-lost-stolen-pt1",
-        title: "Black History: Lost, Stolen, or Strayed (Pt 1)",
-        thumbnail: "https://images.unsplash.com/photo-1569025743873-ea3a9ber?q=80&w=800",
-        channelName: "Freedom Reels",
-        channelAvatar: "",
-        views: "1.8M",
-        postedAt: "1968",
-        duration: "27:00",
-        videoUrl: "https://archive.org/download/blackhistoryloststolenorstrayed/blackhistoryloststolenorstrayedreel1.mp4",
-        category: "Speeches",
-        state: "GLOBAL"
-    },
-    {
-        id: "1950s-home-movies-detroit",
-        title: "African American Family Life (Detroit)",
-        thumbnail: "/placeholder.svg",
-        channelName: "Home & Heritage",
-        channelAvatar: "",
-        views: "420K",
-        postedAt: "1950",
-        duration: "12:00",
-        videoUrl: "https://archive.org/download/HM_African_American_Family_Detroit/HM_African_American_Family_Detroit.mp4",
-        category: "History",
-        state: "GLOBAL"
-    },
-    {
-        id: "scar-of-shame",
-        title: "The Scar of Shame",
-        thumbnail: "/placeholder.svg",
-        channelName: "Maverick Black Cinema",
-        channelAvatar: "",
-        views: "600K",
-        postedAt: "1927",
-        duration: "1:26:00",
-        videoUrl: "https://archive.org/download/the-scar-of-shame_1927/the-scar-of-shame_1927.ia.mp4",
-        category: "History",
-        state: "GLOBAL"
-    },
-    {
-        id: "study-negro-artists",
-        title: "A Study of Negro Artists",
-        thumbnail: "https://images.unsplash.com/photo-1579541814924-49fef17c5be5?q=80&w=800",
-        channelName: "Soul Stage",
-        channelAvatar: "",
-        views: "300K",
-        postedAt: "1933",
-        duration: "18:00",
-        videoUrl: "https://archive.org/download/StudyOfNegroArtists/StudyOfNegroArtists_512kb.mp4",
-        category: "History",
-        state: "GLOBAL"
-    }
-];
+const MOCK_VIDEOS: VideoProps[] = [];
 
 interface VideoContextType {
     videos: VideoProps[];
@@ -298,6 +54,16 @@ interface VideoContextType {
     getSubscription: (channelName: string) => Promise<boolean>;
     toggleSubscription: (channelName: string) => Promise<boolean>;
     isLoading: boolean;
+    watchHistory: VideoProps[];
+    addToHistory: (video: VideoProps) => void;
+    clearHistory: () => void;
+    watchLater: string[];
+    addToWatchLater: (videoId: string) => void;
+    removeFromWatchLater: (videoId: string) => void;
+    isInWatchLater: (videoId: string) => boolean;
+    toggleVideoFeatured: (id: string, currentFeatured: boolean) => Promise<void>;
+    toggleVideoTrending: (id: string, currentTrending: boolean) => Promise<void>;
+    updateVideoFeaturedText: (id: string, featuredTitle: string, featuredCategory: string) => Promise<void>;
 }
 
 interface DBVideo {
@@ -316,12 +82,16 @@ interface DBVideo {
     video_url_h264?: string;
     transcode_status?: 'pending' | 'processing' | 'completed' | 'failed' | null;
     owner_id?: string;
+    is_featured?: boolean;
+    is_trending?: boolean;
+    featured_title?: string;
+    featured_category?: string;
 }
 
 const VideoContext = createContext<VideoContextType | undefined>(undefined);
 
-const getMockChannelData = (title: string) => {
-    const t = title.toLowerCase();
+const getMockChannelData = (title: string | null | undefined) => {
+    const t = (title || "").toLowerCase();
     if (t.includes('parade') || t.includes('juneteenth')) return { name: 'Juneteenth ATL', avatar: '', views: '14K', duration: '12:30' };
     if (t.includes('food') || t.includes('bbq') || t.includes('vegan')) return { name: 'ATL Eats', avatar: '', views: '5K', duration: '8:15' };
     if (t.includes('music') || t.includes('jazz') || t.includes('drum')) return { name: 'Music City', avatar: '', views: '22K', duration: '4:20' };
@@ -330,13 +100,108 @@ const getMockChannelData = (title: string) => {
     return { name: 'Community User', avatar: '', views: '1.5K', duration: '3:00' };
 };
 
+// View logic is now centralized in @/lib/viewHelpers
+
+export const extractVideoDuration = (file: File): Promise<string> => {
+    if (typeof window === 'undefined') return Promise.resolve("0:00");
+    return new Promise((resolve) => {
+        const video = document.createElement('video');
+        video.preload = 'metadata';
+        const url = URL.createObjectURL(file);
+        video.onloadedmetadata = () => {
+            URL.revokeObjectURL(url);
+            const seconds = video.duration;
+            if (!isFinite(seconds) || isNaN(seconds)) {
+                resolve("0:00");
+                return;
+            }
+            const h = Math.floor(seconds / 3600);
+            const m = Math.floor((seconds % 3600) / 60);
+            const s = Math.floor(seconds % 60);
+            if (h > 0) {
+                resolve(`${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`);
+            } else {
+                resolve(`${m}:${s.toString().padStart(2, '0')}`);
+            }
+        };
+        video.onerror = () => {
+            URL.revokeObjectURL(url);
+            resolve("0:00");
+        };
+        video.src = url;
+    });
+};
+
+
 export function VideoProvider({ children }: { children: ReactNode }) {
-    const { user } = useAuth();
+    const { user, session } = useAuth();
     const [videos, setVideos] = useState<VideoProps[]>([]);
+
+    // Helper to generate authenticated request headers
+    const getAuthHeaders = useCallback((additionalHeaders: Record<string, string> = {}) => {
+        const headers: Record<string, string> = { ...additionalHeaders };
+        if (session?.access_token) {
+            headers['Authorization'] = `Bearer ${session.access_token}`;
+        }
+        return headers;
+    }, [session]);
     const [isLoading, setIsLoading] = useState(true);
     const [isUploading, setIsUploading] = useState(false);
     const [uploadProgress, setUploadProgress] = useState(0);
     const abortControllerRef = useRef<AbortController | null>(null);
+
+    // Watch History — persisted to localStorage
+    const [watchHistory, setWatchHistory] = useState<VideoProps[]>(() => {
+        if (typeof window === 'undefined') return [];
+        try {
+            const stored = localStorage.getItem('jt_watch_history');
+            return stored ? JSON.parse(stored) : [];
+        } catch { return []; }
+    });
+
+    const addToHistory = useCallback((video: VideoProps) => {
+        setWatchHistory(prev => {
+            const filtered = prev.filter(v => v.id !== video.id);
+            const updated = [video, ...filtered].slice(0, 50);
+            try { localStorage.setItem('jt_watch_history', JSON.stringify(updated)); } catch { /* noop */ }
+            return updated;
+        });
+    }, []);
+
+    const clearHistory = useCallback(() => {
+        setWatchHistory([]);
+        try { localStorage.removeItem('jt_watch_history'); } catch { /* noop */ }
+    }, []);
+
+    // Watch Later — persisted to localStorage (stores video IDs)
+    const [watchLater, setWatchLater] = useState<string[]>(() => {
+        if (typeof window === 'undefined') return [];
+        try {
+            const stored = localStorage.getItem('jt_watch_later');
+            return stored ? JSON.parse(stored) : [];
+        } catch { return []; }
+    });
+
+    const addToWatchLater = useCallback((videoId: string) => {
+        setWatchLater(prev => {
+            if (prev.includes(videoId)) return prev;
+            const updated = [videoId, ...prev];
+            try { localStorage.setItem('jt_watch_later', JSON.stringify(updated)); } catch { /* noop */ }
+            return updated;
+        });
+    }, []);
+
+    const removeFromWatchLater = useCallback((videoId: string) => {
+        setWatchLater(prev => {
+            const updated = prev.filter(id => id !== videoId);
+            try { localStorage.setItem('jt_watch_later', JSON.stringify(updated)); } catch { /* noop */ }
+            return updated;
+        });
+    }, []);
+
+    const isInWatchLater = useCallback((videoId: string) => {
+        return watchLater.includes(videoId);
+    }, [watchLater]);
 
     // Helper to fetch videos
     const fetchVideos = useCallback(async () => {
@@ -344,7 +209,8 @@ export function VideoProvider({ children }: { children: ReactNode }) {
             const { data, error } = await supabase
                 .from('videos')
                 .select('*')
-                .order('created_at', { ascending: false });
+                .order('created_at', { ascending: false })
+                .limit(120); // Scale-safe boundary for catalog queries
 
             if (error) {
                 console.error('Error fetching videos:', {
@@ -353,7 +219,7 @@ export function VideoProvider({ children }: { children: ReactNode }) {
                     hint: error.hint,
                     error
                 });
-                setVideos(MOCK_VIDEOS);
+                setVideos([]);
                 return;
             }
 
@@ -368,37 +234,66 @@ export function VideoProvider({ children }: { children: ReactNode }) {
                         h264Url = `${s3Domain}/${h264Url}`;
                     }
 
+                    // Normalize original video URL (relative R2 paths)
+                    let videoUrl = video.video_url;
+                    if (videoUrl && !videoUrl.startsWith('http')) {
+                        const s3Domain = "https://pub-efcc4aa0b3b24e3d97760577b0ec20bd.r2.dev";
+                        if (videoUrl.startsWith('pub-efcc4aa0b3b24e3d97760577b0ec20bd/')) {
+                            videoUrl = `${s3Domain}/${videoUrl.substring('pub-efcc4aa0b3b24e3d97760577b0ec20bd/'.length)}`;
+                        } else {
+                            videoUrl = `${s3Domain}/${videoUrl}`;
+                        }
+                    }
+
+                    let thumbnail = video.thumbnail_url || "";
+                    if (thumbnail) {
+                        if (!thumbnail.startsWith('http') && !thumbnail.startsWith('/uploads/')) {
+                            const s3Domain = "https://pub-efcc4aa0b3b24e3d97760577b0ec20bd.r2.dev";
+                            thumbnail = `${s3Domain}/${thumbnail.startsWith('/') ? thumbnail.slice(1) : thumbnail}`;
+                        }
+                        if (thumbnail.includes('media.culturequest.vip')) {
+                            thumbnail = thumbnail.replace('media.culturequest.vip', 'pub-efcc4aa0b3b24e3d97760577b0ec20bd.r2.dev');
+                        }
+                    }
+                    const duration = video.duration || mockChannel.duration || "5:00";
+
                     return {
                         id: video.id,
                         title: video.title,
-                        thumbnail: video.thumbnail_url || "",
+                        thumbnail: thumbnail,
                         channelName: video.channel_name || (video.category === 'Food' ? 'ATL Foodie' : (mockChannel.name || "CultureQuestTV")),
                         channelAvatar: video.channel_avatar || mockChannel.avatar || "",
-                        views: video.views?.toString() || mockChannel.views || "1.2K",
+                        views: getDisplayViews(
+                            video.id,
+                            Number(video.views) || 0,
+                            0,
+                            !!(user?.id && video.owner_id === user.id)
+                        ).toString(),
                         postedAt: video.posted_at || (video.created_at ? new Date(video.created_at).toLocaleDateString() : "Recently"),
-                        duration: video.duration || mockChannel.duration || "5:00",
-                        videoUrl: video.video_url,
+                        duration: duration,
+                        videoUrl: videoUrl,
                         category: video.category || "All",
                         createdAt: video.created_at,
                         state: video.state || "GLOBAL",
                         videoUrlH264: h264Url,
                         transcodeStatus: video.transcode_status,
-                        ownerId: video.owner_id
+                        ownerId: video.owner_id,
+                        isFeatured: video.is_featured || false,
+                        isTrending: video.is_trending || false,
+                        featuredTitle: video.featured_title || "",
+                        featuredCategory: video.featured_category || ""
                     };
                 });
-                // Always merge mock content with DB videos (DB first, then mock)
-                const dbIds = new Set(dbVideos.map(v => v.id));
-                const uniqueMocks = MOCK_VIDEOS.filter(m => !dbIds.has(m.id));
-                setVideos([...dbVideos, ...uniqueMocks]);
+                setVideos(dbVideos);
             } else {
-                setVideos(MOCK_VIDEOS);
+                setVideos([]);
             }
         } catch (err) {
             console.error("Unexpected error fetching videos:", err);
         } finally {
             setIsLoading(false);
         }
-    }, []);
+    }, [user?.id]);
 
     // Initial Fetch & Realtime
     useEffect(() => {
@@ -418,11 +313,30 @@ export function VideoProvider({ children }: { children: ReactNode }) {
                         h264Url = `${s3Domain}/${h264Url}`;
                     }
 
+                    // Normalize thumbnail URL
+                    let thumbnail = video.thumbnail_url || "";
+                    if (thumbnail) {
+                        if (!thumbnail.startsWith('http') && !thumbnail.startsWith('/uploads/')) {
+                            thumbnail = `${s3Domain}/${thumbnail.startsWith('/') ? thumbnail.slice(1) : thumbnail}`;
+                        }
+                        if (thumbnail.includes('media.culturequest.vip')) {
+                            thumbnail = thumbnail.replace('media.culturequest.vip', 'pub-efcc4aa0b3b24e3d97760577b0ec20bd.r2.dev');
+                        }
+                    }
+
+                    const isMyVideo = !!(user?.id && video.owner_id === user.id);
+                    const dbViewsCount = Number(video.views) || 0;
+                    const viewsStr = getDisplayViews(video.id, dbViewsCount, 0, isMyVideo).toString();
+
                     setVideos(prev => prev.map(v => v.id === video.id ? {
                         ...v,
                         videoUrlH264: h264Url,
                         transcodeStatus: video.transcode_status,
-                        thumbnail: video.thumbnail_url || v.thumbnail
+                        thumbnail: thumbnail || v.thumbnail,
+                        views: viewsStr || v.views,
+                        title: video.title || v.title,
+                        isFeatured: video.is_featured !== undefined ? video.is_featured : v.isFeatured,
+                        isTrending: video.is_trending !== undefined ? video.is_trending : v.isTrending
                     } : v));
                 }
             )
@@ -431,7 +345,7 @@ export function VideoProvider({ children }: { children: ReactNode }) {
         return () => {
             supabase.removeChannel(channel).catch(() => { });
         };
-    }, [fetchVideos]);
+    }, [fetchVideos, user?.id]);
 
     const cancelUpload = useCallback(() => {
         if (abortControllerRef.current) {
@@ -446,7 +360,7 @@ export function VideoProvider({ children }: { children: ReactNode }) {
         if (typeof window === 'undefined') return "";
         let guestId = localStorage.getItem("jtube_guest_id");
         if (!guestId) {
-            guestId = crypto.randomUUID();
+            guestId = safeUUID();
             localStorage.setItem("jtube_guest_id", guestId);
         }
         return guestId;
@@ -461,52 +375,90 @@ export function VideoProvider({ children }: { children: ReactNode }) {
 
     const postComment = useCallback(async (videoId: string, text: string, userName: string) => {
         const guestId = getGuestId();
+        const headers: Record<string, string> = {
+            'Content-Type': 'application/json',
+            'x-guest-id': guestId
+        };
+        if (user?.id) {
+            headers['x-user-id'] = user.id;
+        }
+
         const res = await fetch('/api/comments', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'x-guest-id': guestId },
-            body: JSON.stringify({ videoId, text, userName })
+            headers,
+            body: JSON.stringify({ videoId, text, userName, userId: user?.id })
         });
         if (!res.ok) throw new Error("Failed to post comment");
         return await res.json();
-    }, []);
+    }, [user]);
 
     const getLikes = useCallback(async (videoId: string) => {
         const guestId = getGuestId();
-        const res = await fetch(`/api/likes?videoId=${videoId}`, { headers: { 'x-guest-id': guestId } });
+        const headers: Record<string, string> = {
+            'x-guest-id': guestId
+        };
+        if (user?.id) {
+            headers['x-user-id'] = user.id;
+        }
+
+        const res = await fetch(`/api/likes?videoId=${videoId}`, { headers });
         if (!res.ok) return { likes: 0, userStatus: null };
         return await res.json();
-    }, []);
+    }, [user]);
 
     const toggleLike = useCallback(async (videoId: string, type: 'like' | 'dislike') => {
         const guestId = getGuestId();
+        const headers: Record<string, string> = {
+            'Content-Type': 'application/json',
+            'x-guest-id': guestId
+        };
+        if (user?.id) {
+            headers['x-user-id'] = user.id;
+        }
+
         const res = await fetch('/api/likes', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'x-guest-id': guestId },
-            body: JSON.stringify({ videoId, type })
+            headers,
+            body: JSON.stringify({ videoId, type, userId: user?.id })
         });
         if (!res.ok) throw new Error("Failed to toggle like");
         return await res.json();
-    }, []);
+    }, [user]);
 
     const getSubscription = useCallback(async (channelName: string) => {
         const guestId = getGuestId();
-        const res = await fetch(`/api/subscribe?channelName=${encodeURIComponent(channelName)}`, { headers: { 'x-guest-id': guestId } });
+        const headers: Record<string, string> = {
+            'x-guest-id': guestId
+        };
+        if (user?.id) {
+            headers['x-user-id'] = user.id;
+        }
+
+        const res = await fetch(`/api/subscribe?channelName=${encodeURIComponent(channelName)}`, { headers });
         if (!res.ok) return false;
         const { subscribed } = await res.json();
         return subscribed;
-    }, []);
+    }, [user]);
 
     const toggleSubscription = useCallback(async (channelName: string) => {
         const guestId = getGuestId();
+        const headers: Record<string, string> = {
+            'Content-Type': 'application/json',
+            'x-guest-id': guestId
+        };
+        if (user?.id) {
+            headers['x-user-id'] = user.id;
+        }
+
         const res = await fetch('/api/subscribe', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'x-guest-id': guestId },
-            body: JSON.stringify({ channelName })
+            headers,
+            body: JSON.stringify({ channelName, userId: user?.id })
         });
         if (!res.ok) throw new Error("Failed to toggle subscription");
         const { subscribed } = await res.json();
         return subscribed;
-    }, []);
+    }, [user]);
 
     // --- UPLOAD LOGIC ---
     const uploadMultipart = useCallback(async (file: File, _category: string): Promise<string> => {
@@ -519,6 +471,7 @@ export function VideoProvider({ children }: { children: ReactNode }) {
         if (signal?.aborted) throw new Error("Upload cancelled");
         const initRes = await fetch("/api/upload-multipart", {
             method: "POST",
+            headers: getAuthHeaders({ "Content-Type": "application/json" }),
             body: JSON.stringify({ action: "create", filename: file.name, contentType: file.type || "video/mp4" }),
             signal
         });
@@ -532,6 +485,7 @@ export function VideoProvider({ children }: { children: ReactNode }) {
                 const partNumber = i + 1;
                 const signRes = await fetch("/api/upload-multipart", {
                     method: "POST",
+                    headers: getAuthHeaders({ "Content-Type": "application/json" }),
                     body: JSON.stringify({ action: "sign-part", key, uploadId, partNumber }),
                     signal
                 });
@@ -558,17 +512,21 @@ export function VideoProvider({ children }: { children: ReactNode }) {
         const parts = await Promise.all(uploadPromises);
         const completeRes = await fetch("/api/upload-multipart", {
             method: "POST",
+            headers: getAuthHeaders({ "Content-Type": "application/json" }),
             body: JSON.stringify({ action: "complete", key, uploadId, parts: parts.sort((a, b) => a.PartNumber - b.PartNumber) }),
             signal
         });
         if (!completeRes.ok) throw new Error("Failed to complete multipart upload");
         const { publicUrl } = await completeRes.json();
         return publicUrl;
-    }, []);
+    }, [getAuthHeaders]);
 
     const deleteVideo = useCallback(async (id: string) => {
         try {
-            const response = await fetch(`/api/videos?id=${id}`, { method: 'DELETE' });
+            const response = await fetch(`/api/videos?id=${id}`, {
+                method: 'DELETE',
+                headers: getAuthHeaders()
+            });
             if (!response.ok) {
                 const { error } = await response.json();
                 throw new Error(error || 'Delete failed');
@@ -578,13 +536,13 @@ export function VideoProvider({ children }: { children: ReactNode }) {
             console.error("Error deleting video:", error);
             throw error;
         }
-    }, []);
+    }, [getAuthHeaders]);
 
     const updateVideoTitle = useCallback(async (id: string, newTitle: string) => {
         try {
             const response = await fetch('/api/videos/update', {
                 method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
+                headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
                 body: JSON.stringify({ id, title: newTitle })
             });
             if (!response.ok) throw new Error('Failed to update title');
@@ -593,13 +551,69 @@ export function VideoProvider({ children }: { children: ReactNode }) {
             console.error("Error updating title:", error);
             throw error;
         }
-    }, []);
+    }, [getAuthHeaders]);
+
+    const toggleVideoFeatured = useCallback(async (id: string, currentFeatured: boolean) => {
+        const newFeatured = !currentFeatured;
+        // Optimistically update local state for a fast, responsive UI
+        setVideos(prev => prev.map(v => v.id === id ? { ...v, isFeatured: newFeatured } : v));
+
+        try {
+            const response = await fetch('/api/videos/update', {
+                method: 'PATCH',
+                headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
+                body: JSON.stringify({ id, is_featured: newFeatured })
+            });
+            if (!response.ok) {
+                console.warn("[VideoContext] Central database update failed. Toggled locally as fallback. Please make sure you executed 'add_featured_column.sql' in your Supabase console SQL editor to enable global sync.");
+            }
+        } catch (error) {
+            console.warn("[VideoContext] Central database update failed. Setting locally as fallback.", error);
+        }
+    }, [getAuthHeaders]);
+
+    const toggleVideoTrending = useCallback(async (id: string, currentTrending: boolean) => {
+        const newTrending = !currentTrending;
+        // Optimistically update local state for a fast, responsive UI
+        setVideos(prev => prev.map(v => v.id === id ? { ...v, isTrending: newTrending } : v));
+
+        try {
+            const response = await fetch('/api/videos/update', {
+                method: 'PATCH',
+                headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
+                body: JSON.stringify({ id, is_trending: newTrending })
+            });
+            if (!response.ok) {
+                console.warn("[VideoContext] Central database update failed. Toggled locally as fallback.");
+            }
+        } catch (error) {
+            console.warn("[VideoContext] Central database update failed. Setting locally as fallback.", error);
+        }
+    }, [getAuthHeaders]);
+
+    const updateVideoFeaturedText = useCallback(async (id: string, featuredTitle: string, featuredCategory: string) => {
+        // Optimistically update local state for a fast, responsive UI
+        setVideos(prev => prev.map(v => v.id === id ? { ...v, featuredTitle, featuredCategory } : v));
+
+        try {
+            const response = await fetch('/api/videos/update', {
+                method: 'PATCH',
+                headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
+                body: JSON.stringify({ id, featured_title: featuredTitle, featured_category: featuredCategory })
+            });
+            if (!response.ok) {
+                console.warn("[VideoContext] Central database update failed. Toggled locally as fallback.");
+            }
+        } catch (error) {
+            console.warn("[VideoContext] Central database update failed. Setting locally as fallback.", error);
+        }
+    }, [getAuthHeaders]);
 
     const updateVideoThumbnail = useCallback(async (id: string, file: File) => {
         try {
             const response = await fetch("/api/upload", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: getAuthHeaders({ "Content-Type": "application/json" }),
                 body: JSON.stringify({ filename: `thumb_${id}_${file.name}`, contentType: file.type || "image/jpeg" }),
             });
             if (!response.ok) throw new Error("Failed to sign thumbnail upload");
@@ -614,7 +628,7 @@ export function VideoProvider({ children }: { children: ReactNode }) {
             });
             await fetch('/api/videos/update', {
                 method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
+                headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
                 body: JSON.stringify({ id, thumbnail_url: publicUrl })
             });
             setVideos(prev => prev.map(v => v.id === id ? { ...v, thumbnail: publicUrl } : v));
@@ -622,7 +636,7 @@ export function VideoProvider({ children }: { children: ReactNode }) {
             console.error("Error updating thumbnail:", error);
             throw error;
         }
-    }, []);
+    }, [getAuthHeaders]);
 
     const updateVideoFile = useCallback(async (id: string, file: File) => {
         try {
@@ -632,7 +646,7 @@ export function VideoProvider({ children }: { children: ReactNode }) {
             if (!publicUrl) {
                 const response = await fetch("/api/upload", {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
+                    headers: getAuthHeaders({ "Content-Type": "application/json" }),
                     body: JSON.stringify({ filename: `video_${id}_${Date.now()}_${file.name}`, contentType: file.type || "video/mp4" }),
                 });
                 const { signedUrl, publicUrl: url } = await response.json();
@@ -646,47 +660,51 @@ export function VideoProvider({ children }: { children: ReactNode }) {
                     xhr.send(file);
                 });
             }
-            const duration = "0:00";
-            await fetch('/api/videos/update', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, video_url: publicUrl, duration }) });
+            const duration = await extractVideoDuration(file);
+            await fetch('/api/videos/update', {
+                method: 'PATCH',
+                headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
+                body: JSON.stringify({ id, video_url: publicUrl, duration })
+            });
             setVideos(prev => prev.map(v => v.id === id ? { ...v, videoUrl: publicUrl, duration } : v));
         } finally { setIsUploading(false); setUploadProgress(0); }
-    }, [uploadMultipart]);
+    }, [uploadMultipart, getAuthHeaders]);
 
     const incrementView = useCallback(async (id: string) => {
         setVideos(prev => prev.map(v => {
             if (v.id === id) {
-                const current = parseInt(v.views.replace(/,/g, '') || "0");
+                const current = parseInt(v.views?.toString()?.replace(/,/g, '') || "0");
                 return { ...v, views: (current + 1).toString() };
             }
             return v;
         }));
-        const { data } = await supabase.from('videos').select('views').eq('id', id).single();
-        if (data) {
-            await fetch('/api/videos/update', {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id, views: (data.views || 0) + 1 })
-            });
-        }
-    }, []);
+        await fetch('/api/videos/update', {
+            method: 'PATCH',
+            headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
+            body: JSON.stringify({ id, increment_views: true })
+        });
+    }, [getAuthHeaders]);
 
     const updateUserAvatar = useCallback(async (publicUrl: string) => {
         await fetch('/api/user/metadata', {
             method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
+            headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
             body: JSON.stringify({ avatar_url: publicUrl })
         });
-    }, []);
+    }, [getAuthHeaders]);
 
     const deletePhoto = useCallback(async (id: string) => {
-        await fetch(`/api/photos?id=${id}`, { method: 'DELETE' });
-    }, []);
+        await fetch(`/api/photos?id=${id}`, {
+            method: 'DELETE',
+            headers: getAuthHeaders()
+        });
+    }, [getAuthHeaders]);
 
     const updatePhotoImage = useCallback(async (id: string, file: File) => {
         setIsUploading(true);
         const response = await fetch("/api/upload", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: getAuthHeaders({ "Content-Type": "application/json" }),
             body: JSON.stringify({ filename: `photo_${id}_${Date.now()}_${file.name}`, contentType: file.type || "image/jpeg" })
         });
         const { signedUrl, publicUrl } = await response.json();
@@ -698,11 +716,56 @@ export function VideoProvider({ children }: { children: ReactNode }) {
         });
         await fetch('/api/photos/update', {
             method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
+            headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
             body: JSON.stringify({ id, photo_url: publicUrl })
         });
         setIsUploading(false);
-    }, []);
+    }, [getAuthHeaders]);
+
+
+
+    const generateVideoThumbnail = async (file: File): Promise<File> => {
+        return new Promise((resolve, reject) => {
+            const video = document.createElement('video');
+            const canvas = document.createElement('canvas');
+            const url = URL.createObjectURL(file);
+            
+            video.autoplay = false;
+            video.muted = true;
+            video.playsInline = true;
+            
+            video.onloadedmetadata = () => {
+                video.currentTime = Math.min(1, video.duration * 0.1);
+            };
+            
+            video.onseeked = () => {
+                canvas.width = video.videoWidth || 1280;
+                canvas.height = video.videoHeight || 720;
+                const ctx = canvas.getContext('2d');
+                if (!ctx) {
+                    reject(new Error("Canvas context is null"));
+                    return;
+                }
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                canvas.toBlob((blob) => {
+                    URL.revokeObjectURL(url);
+                    if (blob) {
+                        const thumbFile = new File([blob], `generated_thumb_${Date.now()}.jpg`, { type: 'image/jpeg' });
+                        resolve(thumbFile);
+                    } else {
+                        reject(new Error("Failed to generate blob"));
+                    }
+                }, 'image/jpeg', 0.8);
+            };
+            
+            video.onerror = (e) => {
+                URL.revokeObjectURL(url);
+                reject(e);
+            };
+            
+            video.src = url;
+        });
+    };
 
     const uploadVideo = useCallback(async (file: File, thumbnailFile: File | null = null, category: string = "All", state: string = "GLOBAL") => {
         setIsUploading(true);
@@ -710,7 +773,11 @@ export function VideoProvider({ children }: { children: ReactNode }) {
         abortControllerRef.current = new AbortController();
         try {
             const publicUrl = file.size > 50 * 1024 * 1024 ? await uploadMultipart(file, category) : (await (async () => {
-                const res = await fetch("/api/upload", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ filename: file.name, contentType: file.type || "video/mp4" }) });
+                const res = await fetch("/api/upload", {
+                    method: "POST",
+                    headers: getAuthHeaders({ "Content-Type": "application/json" }),
+                    body: JSON.stringify({ filename: file.name, contentType: file.type || "video/mp4" })
+                });
                 const { signedUrl, publicUrl: url } = await res.json();
                 await new Promise<void>((resolve) => {
                     const xhr = new XMLHttpRequest();
@@ -722,29 +789,51 @@ export function VideoProvider({ children }: { children: ReactNode }) {
                 return url;
             })());
 
-            const thumbUrl = thumbnailFile ? (await (async () => {
-                const res = await fetch("/api/upload", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ filename: `thumb_${Date.now()}_${thumbnailFile.name}`, contentType: thumbnailFile.type || "image/jpeg" }) });
+            let activeThumbnail = thumbnailFile;
+            if (!activeThumbnail) {
+                try {
+                    activeThumbnail = await generateVideoThumbnail(file);
+                } catch (e) {
+                    console.error("Failed to generate thumbnail, proceeding without it", e);
+                }
+            }
+
+            const thumbUrl = activeThumbnail ? (await (async () => {
+                const res = await fetch("/api/upload", {
+                    method: "POST",
+                    headers: getAuthHeaders({ "Content-Type": "application/json" }),
+                    body: JSON.stringify({ filename: `thumb_${Date.now()}_${activeThumbnail.name}`, contentType: activeThumbnail.type || "image/jpeg" })
+                });
                 const { signedUrl, publicUrl: url } = await res.json();
                 await new Promise<void>((resolve) => {
                     const xhr = new XMLHttpRequest();
                     xhr.open("PUT", signedUrl);
                     xhr.onload = () => resolve();
-                    xhr.send(thumbnailFile);
+                    xhr.send(activeThumbnail);
                 });
                 return url;
             })()) : "";
 
-            const res = await fetch('/api/videos/create', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: file.name.replace(/\.[^/.]+$/, ""), video_url: publicUrl, thumbnail_url: thumbUrl, category, duration: "0:00", state, transcode_status: 'pending', owner_id: user?.id }) });
+            const duration = await extractVideoDuration(file);
+            const res = await fetch('/api/videos/create', {
+                method: 'POST',
+                headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
+                body: JSON.stringify({ title: file.name.replace(/\.[^/.]+$/, ""), video_url: publicUrl, thumbnail_url: thumbUrl, category, duration, state, transcode_status: 'pending', owner_id: user?.id })
+            });
             await res.json();
             fetchVideos();
         } finally { setIsUploading(false); abortControllerRef.current = null; }
-    }, [user?.id, uploadMultipart, fetchVideos]);
+    }, [user?.id, uploadMultipart, fetchVideos, getAuthHeaders]);
 
     const uploadPhoto = useCallback(async (file: File, caption: string = "", state: string = "GLOBAL") => {
         setIsUploading(true);
         abortControllerRef.current = new AbortController();
         try {
-            const res = await fetch("/api/upload", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ filename: file.name, contentType: file.type || "image/jpeg" }) });
+            const res = await fetch("/api/upload", {
+                method: "POST",
+                headers: getAuthHeaders({ "Content-Type": "application/json" }),
+                body: JSON.stringify({ filename: file.name, contentType: file.type || "image/jpeg" })
+            });
             const { signedUrl, publicUrl } = await res.json();
             await new Promise<void>((resolve) => {
                 const xhr = new XMLHttpRequest();
@@ -754,7 +843,7 @@ export function VideoProvider({ children }: { children: ReactNode }) {
             });
             await supabase.from('photos').insert([{ title: file.name.replace(/\.[^/.]+$/, ""), photo_url: publicUrl, caption: caption || "", state, owner_id: user?.id }]);
         } finally { setIsUploading(false); abortControllerRef.current = null; }
-    }, [user?.id]);
+    }, [user?.id, getAuthHeaders]);
 
     const getVideoById = useCallback((id: string) => videos.find(v => v.id === id), [videos]);
 
@@ -762,8 +851,11 @@ export function VideoProvider({ children }: { children: ReactNode }) {
         videos, uploadVideo, uploadPhoto, getVideoById, isUploading, uploadProgress, cancelUpload,
         deleteVideo, updateVideoTitle, updateVideoThumbnail, updateVideoFile, incrementView,
         deletePhoto, updatePhotoImage, updateUserAvatar,
-        getVideoComments, postComment, getLikes, toggleLike, getSubscription, toggleSubscription, isLoading
-    }), [videos, isUploading, uploadProgress, isLoading, uploadVideo, uploadPhoto, getVideoById, cancelUpload, deleteVideo, updateVideoTitle, updateVideoThumbnail, updateVideoFile, incrementView, deletePhoto, updatePhotoImage, updateUserAvatar, getVideoComments, postComment, getLikes, toggleLike, getSubscription, toggleSubscription]);
+        getVideoComments, postComment, getLikes, toggleLike, getSubscription, toggleSubscription, isLoading,
+        watchHistory, addToHistory, clearHistory,
+        watchLater, addToWatchLater, removeFromWatchLater, isInWatchLater, toggleVideoFeatured, toggleVideoTrending, updateVideoFeaturedText
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }), [videos, isUploading, uploadProgress, isLoading, uploadVideo, uploadPhoto, getVideoById, cancelUpload, deleteVideo, updateVideoTitle, updateVideoThumbnail, updateVideoFile, incrementView, deletePhoto, updatePhotoImage, updateUserAvatar, getVideoComments, postComment, getLikes, toggleLike, getSubscription, toggleSubscription, watchHistory, addToHistory, clearHistory, watchLater, addToWatchLater, removeFromWatchLater, isInWatchLater, toggleVideoFeatured, toggleVideoTrending, updateVideoFeaturedText, getAuthHeaders]);
 
     return (<VideoContext.Provider value={contextValue}>{children}</VideoContext.Provider>);
 }
