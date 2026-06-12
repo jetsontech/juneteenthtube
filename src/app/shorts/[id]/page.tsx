@@ -360,8 +360,8 @@ export default function ShortsPlayerPage({
                                 const currentSrc = videoRef.current?.src || "";
                                 let nextSrc = currentSrc;
                                 
-                                if (currentSrc.includes('media.juneteenthtube.com')) {
-                                    nextSrc = currentSrc.replace('media.juneteenthtube.com', 'pub-efcc4aa0b3b24e3d97760577b0ec20bd.r2.dev');
+                                if (currentSrc.includes('media.culturequest.vip')) {
+                                    nextSrc = currentSrc.replace('media.culturequest.vip', 'pub-efcc4aa0b3b24e3d97760577b0ec20bd.r2.dev');
                                 }
 
                                 if (retryCountRef.current < MAX_RETRIES) {

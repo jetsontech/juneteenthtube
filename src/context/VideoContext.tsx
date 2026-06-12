@@ -251,8 +251,8 @@ export function VideoProvider({ children }: { children: ReactNode }) {
                             const s3Domain = "https://pub-efcc4aa0b3b24e3d97760577b0ec20bd.r2.dev";
                             thumbnail = `${s3Domain}/${thumbnail.startsWith('/') ? thumbnail.slice(1) : thumbnail}`;
                         }
-                        if (thumbnail.includes('media.juneteenthtube.com')) {
-                            thumbnail = thumbnail.replace('media.juneteenthtube.com', 'pub-efcc4aa0b3b24e3d97760577b0ec20bd.r2.dev');
+                        if (thumbnail.includes('media.culturequest.vip')) {
+                            thumbnail = thumbnail.replace('media.culturequest.vip', 'pub-efcc4aa0b3b24e3d97760577b0ec20bd.r2.dev');
                         }
                     }
                     const duration = video.duration || mockChannel.duration || "5:00";
@@ -261,7 +261,7 @@ export function VideoProvider({ children }: { children: ReactNode }) {
                         id: video.id,
                         title: video.title,
                         thumbnail: thumbnail,
-                        channelName: video.channel_name || (video.category === 'Food' ? 'ATL Foodie' : (mockChannel.name || "JuneteenthTV")),
+                        channelName: video.channel_name || (video.category === 'Food' ? 'ATL Foodie' : (mockChannel.name || "CultureQuestTV")),
                         channelAvatar: video.channel_avatar || mockChannel.avatar || "",
                         views: getDisplayViews(
                             video.id,
@@ -319,8 +319,8 @@ export function VideoProvider({ children }: { children: ReactNode }) {
                         if (!thumbnail.startsWith('http') && !thumbnail.startsWith('/uploads/')) {
                             thumbnail = `${s3Domain}/${thumbnail.startsWith('/') ? thumbnail.slice(1) : thumbnail}`;
                         }
-                        if (thumbnail.includes('media.juneteenthtube.com')) {
-                            thumbnail = thumbnail.replace('media.juneteenthtube.com', 'pub-efcc4aa0b3b24e3d97760577b0ec20bd.r2.dev');
+                        if (thumbnail.includes('media.culturequest.vip')) {
+                            thumbnail = thumbnail.replace('media.culturequest.vip', 'pub-efcc4aa0b3b24e3d97760577b0ec20bd.r2.dev');
                         }
                     }
 

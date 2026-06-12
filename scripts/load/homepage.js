@@ -35,7 +35,7 @@ export default function () {
     const homeRes = http.get(`${BASE_URL}/`, params);
     check(homeRes, {
         'homepage status is 200': (r) => r.status === 200,
-        'homepage contains brand': (r) => r.body.includes('JuneteenthTube') || r.body.includes('juneteenth'),
+        'homepage contains brand': (r) => r.body.includes('CultureQuest') || r.body.includes('culturequest'),
     });
 
     sleep(1);

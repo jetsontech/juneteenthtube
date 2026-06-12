@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
     if (data?.id && process.env.GITHUB_DISPATCH_TOKEN) {
       try {
         await fetch(
-          'https://api.github.com/repos/jetsontech/juneteenthtube-gh-transcoder/dispatches',
+          'https://api.github.com/repos/jetsontech/culturequest-gh-transcoder/dispatches',
           {
             method: 'POST',
             headers: {

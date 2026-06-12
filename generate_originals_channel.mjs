@@ -8,26 +8,26 @@ const supabase = createClient(
 );
 
 async function generateOriginalsLive() {
-    console.log("Generating 'J-Tube Originals' Continuous Broadcast Schedule...");
+    console.log("Generating 'CultureQuest Originals' Continuous Broadcast Schedule...");
 
     try {
         // 1. Ensure the channel exists
         let { data: channelData, error: channelError } = await supabase
             .from('channels')
             .select('*')
-            .eq('name', 'J-Tube Originals')
+            .eq('name', 'CultureQuest Originals')
             .single();
 
         let channelId;
 
         if (!channelData) {
-            console.log("Creating new J-Tube Originals Channel...");
+            console.log("Creating new CultureQuest Originals Channel...");
             const { data: newChannel, error: newError } = await supabase
                 .from('channels')
                 .insert({
-                    name: "J-Tube Originals",
-                    description: "24/7 Continuous broadcast of JuneteenthTube's finest original uploads.",
-                    logo_url: "https://ui-avatars.com/api/?name=J+Tube&background=b91c1c&color=fff&size=128",
+                    name: "CultureQuest Originals",
+                    description: "24/7 Continuous broadcast of CultureQuest's finest original uploads.",
+                    logo_url: "https://ui-avatars.com/api/?name=CQ&background=b91c1c&color=fff&size=128",
                     is_internal_vod: true, // Flag this to tell the frontend player to act differently
                     status: 'active',
                     order_index: 1 // Put it at the very top of the guide
@@ -89,7 +89,7 @@ async function generateOriginalsLive() {
                 channel_id: channelId,
                 video_id: currentVideo.id,
                 title: currentVideo.title,
-                description: currentVideo.description || "JuneteenthTube Original Broadcast",
+                description: currentVideo.description || "CultureQuest Original Broadcast",
                 thumbnail_url: currentVideo.thumbnail_url,
                 start_time: currentTime.toISOString(),
                 end_time: endTime.toISOString()

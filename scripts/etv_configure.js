@@ -16,10 +16,10 @@ try {
         process.exit(1);
     }
 
-    // 2. Create a Collection named "JuneteenthTube All"
+    // 2. Create a Collection named "CultureQuest All"
     console.log("\n=== Creating Collection ===");
     const insertCollection = db.prepare("INSERT INTO Collection (Name, UseCustomPlaybackOrder) VALUES (?, 0)");
-    const collResult = insertCollection.run("JuneteenthTube All");
+    const collResult = insertCollection.run("CultureQuest All");
     const collectionId = collResult.lastInsertRowid;
     console.log(`  Created Collection ID: ${collectionId}`);
 
@@ -39,8 +39,8 @@ try {
     if (!schedule) {
         console.log("\n=== Creating ProgramSchedule ===");
         const insertSchedule = db.prepare("INSERT INTO ProgramSchedule (Name, RandomStartPoint, ShuffleScheduleItems, KeepMultiPartEpisodesTogether, TreatCollectionsAsShows, FixedStartTimeBehavior) VALUES (?, 0, 1, 0, 0, 0)");
-        const schedResult = insertSchedule.run("JuneteenthTube 24/7");
-        schedule = { Id: schedResult.lastInsertRowid, Name: "JuneteenthTube 24/7" };
+        const schedResult = insertSchedule.run("CultureQuest 24/7");
+        schedule = { Id: schedResult.lastInsertRowid, Name: "CultureQuest 24/7" };
     }
     console.log(`\n=== Using Schedule: "${schedule.Name}" (ID: ${schedule.Id}) ===`);
 

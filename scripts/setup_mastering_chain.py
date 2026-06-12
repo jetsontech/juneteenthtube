@@ -1,5 +1,5 @@
 # ============================================
-# JUNETEENTHTUBE MASTERING CHAIN SETUP
+# CULTUREQUEST MASTERING CHAIN SETUP
 # ============================================
 # 
 # HOW TO USE:
@@ -18,7 +18,7 @@ if not project:
     print("❌ ERROR: No project open!")
 else:
     print("="*50)
-    print("JUNETEENTHTUBE MASTERING SETUP")
+    print("CULTUREQUEST MASTERING SETUP")
     print("="*50)
     print("")
     print("Setting up project: " + project.GetName())

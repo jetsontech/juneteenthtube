@@ -12,7 +12,7 @@ const supabase = createClient(
 );
 
 const GITHUB_TOKEN = process.env.GITHUB_DISPATCH_TOKEN;
-const REPO = 'jetsontech/juneteenthtube-gh-transcoder';
+const REPO = 'jetsontech/culturequest-gh-transcoder';
 const DELAY_MS = 3000; // 3s between dispatches to avoid rate limits
 
 async function main() {

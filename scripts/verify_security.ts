@@ -8,7 +8,7 @@ const BASE_URL = process.env.TEST_URL || 'http://localhost:3000';
 
 async function runSecurityTests() {
     console.log("====================================================");
-    console.log("JUNETEENTHTUBE SECURITY PENETRATION VERIFICATION SPRINT 3");
+    console.log("CULTUREQUEST SECURITY PENETRATION VERIFICATION SPRINT 3");
     console.log("====================================================");
     console.log(`Target Host: ${BASE_URL}\n`);
 

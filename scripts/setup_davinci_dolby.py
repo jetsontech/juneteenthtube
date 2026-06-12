@@ -1,5 +1,5 @@
 # ============================================
-# JUNETEENTHTUBE - DAVINCI RESOLVE SETUP
+# CULTUREQUEST - DAVINCI RESOLVE SETUP
 # ============================================
 # 
 # HOW TO USE:
@@ -43,6 +43,6 @@ else:
     
     print("")
     print("========================================")
-    print("✅ JUNETEENTHTUBE PRESET CONFIGURED!")
+    print("✅ CULTUREQUEST PRESET CONFIGURED!")
     print("========================================")
     print("Now go to Deliver and save as preset")

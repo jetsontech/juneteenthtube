@@ -32,7 +32,7 @@ try {
     console.log("\n═══════════════════════════════════════");
     console.log("✅ ErsatzTV fully configured!");
     console.log("═══════════════════════════════════════");
-    console.log("\n18 videos in the 'JuneteenthTube All' collection");
+    console.log("\n18 videos in the 'CultureQuest All' collection");
     console.log("Flood schedule will loop them 24/7 on Channel 1");
     console.log("\nRestart ErsatzTV now to start broadcasting!");
 

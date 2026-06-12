@@ -149,7 +149,7 @@ export function StateSelector({ selectedState, onStateChange }: StateSelectorPro
                     {/* Footer */}
                     <div className="px-3 py-2 border-t border-white/10 bg-black/20">
                         <p className="text-xs text-gray-500 text-center">
-                            Filter Juneteenth content by state
+                            Filter CultureQuest content by state
                         </p>
                     </div>
                 </div>

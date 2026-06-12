@@ -11,7 +11,7 @@ import { US_STATES, DEFAULT_STATE, USState } from "@/lib/states";
 import { StateSelector } from "./StateSelector";
 
 const translations = new Map<string, string>([
-    ["juneteenthTube", "CultureQuest"],
+    ["cultureQuest", "CultureQuest"],
     ["signIn", "Sign In"],
     ["dragDrop", "Drag & drop your file here"],
     ["uploadPrivacyHint", "Photos and videos • Stays private until you publish"],
@@ -211,7 +211,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                             />
                         </div>
                         <span className="logo-text pazzaz-text relative">
-                            {t("juneteenthTube")}
+                            {t("cultureQuest")}
                             <span className="text-[8px] text-white/40 absolute -bottom-1 -right-4 font-mono select-none">v1.1</span>
                         </span>
                     </Link>

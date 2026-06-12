@@ -217,7 +217,7 @@ async function pollQueue() {
 
 async function startWorker() {
     console.log("==================================================");
-    console.log("    JUNETEENTHTUBE HLS TRANSCODING WORKER ACTIVED ");
+    console.log("    CULTUREQUEST HLS TRANSCODING WORKER ACTIVED ");
     console.log("==================================================");
     console.log(`Polling Supabase for "pending" transcode jobs every ${POLL_DELAY_MS / 1000}s...`);
 

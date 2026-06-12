@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
  * Heritage Gateway Proxy v.05
  * Server-side proxy that fetches external archive sites and serves them
  * from our own domain, stripping X-Frame-Options and CSP headers so they
- * can be embedded in iframes within JuneteenthTube.
+ * can be embedded in iframes within CultureQuest.
  * 
  * Profile order tested and verified:
  *   1. Googlebot - works for si.edu, nmaahc.si.edu, sova.si.edu, loc.gov/pictures

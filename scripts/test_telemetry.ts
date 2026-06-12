@@ -8,7 +8,7 @@ const BASE_URL = process.env.TEST_URL || 'http://localhost:3000';
 
 async function runTelemetrySecurityTests() {
     console.log("====================================================");
-    console.log("JUNETEENTHTUBE TELEMETRY CONTROLS SECURITY VALIDATION");
+    console.log("CULTUREQUEST TELEMETRY CONTROLS SECURITY VALIDATION");
     console.log("====================================================");
     console.log(`Target Endpoint: ${BASE_URL}/api/telemetry\n`);
 

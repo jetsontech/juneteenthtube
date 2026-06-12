@@ -2,7 +2,7 @@
  * Premium IPTV Sync Script
  * 
  * Fetches premium FAST (Free Ad-supported Streaming TV) channels from the iptv-org API
- * and aligns them with working stream URLs, then imports them into JuneteenthTube's Supabase database.
+ * and aligns them with working stream URLs, then imports them into CultureQuest's Supabase database.
  * 
  * Usage: node scripts/premium-iptv-sync.mjs
  */

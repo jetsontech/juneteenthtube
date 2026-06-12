@@ -577,8 +577,8 @@ export function CustomPlayer({ src, srcH264, poster, videoId, onPlayStart }: Cus
                         
                         const currentSrc = videoRef.current?.src || resolvedSrc;
                         let nextSrc = currentSrc;
-                        if (currentSrc.includes('media.juneteenthtube.com')) {
-                            nextSrc = currentSrc.replace('media.juneteenthtube.com', 'pub-efcc4aa0b3b24e3d97760577b0ec20bd.r2.dev');
+                        if (currentSrc.includes('media.culturequest.vip')) {
+                            nextSrc = currentSrc.replace('media.culturequest.vip', 'pub-efcc4aa0b3b24e3d97760577b0ec20bd.r2.dev');
                         }
 
                         sendTelemetry('playback_error', {

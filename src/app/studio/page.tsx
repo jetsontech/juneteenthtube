@@ -22,7 +22,7 @@ const translations = new Map<string, string>([
     ["signInPrompt", "Please sign in to manage your uploaded videos and content."],
     ["signInToContinue", "Sign In to Continue"],
     ["channelContent", "Channel Content"],
-    ["juneteenthStudio", "Juneteenth Studio"],
+    ["cultureQuestStudio", "CultureQuest Studio"],
     ["noVideosFound", "No videos found"],
     ["uploadContent", "Upload Content"],
     ["video", "Video"],
@@ -84,7 +84,7 @@ export default function StudioPage() {
                         <Video className="w-5 h-5" />
                         <span className="text-[10px] font-black uppercase tracking-[0.3em]">{t("channelContent")}</span>
                     </div>
-                    <h1 className="text-5xl font-black text-white tracking-tighter">{t("juneteenthStudio")}</h1>
+                    <h1 className="text-5xl font-black text-white tracking-tighter">{t("cultureQuestStudio")}</h1>
                 </div>
 
                 <div className="flex items-center gap-4">
@@ -112,7 +112,7 @@ export default function StudioPage() {
                     </div>
                     <h2 className="text-2xl font-black text-white mb-2 uppercase tracking-tight">{t("noVideosFound")}</h2>
                     <p className="text-gray-500 mb-8 max-w-sm">
-                        {searchQuery ? "No videos match your search criteria." : "You haven't uploaded any videos yet. Start sharing your Juneteenth moments today!"}
+                        {searchQuery ? "No videos match your search criteria." : "You haven't uploaded any videos yet. Start sharing your CultureQuest moments today!"}
                     </p>
                     <button
                         onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} // Assuming Nav has the upload button

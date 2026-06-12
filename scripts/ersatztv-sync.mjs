@@ -1,5 +1,5 @@
 /**
- * ErsatzTV → JuneteenthTube Sync Script
+ * ErsatzTV → CultureQuest Sync Script
  * 
  * Reads channels from ErsatzTV's IPTV endpoints and syncs them
  * into the Supabase `channels` table so they appear on the Live TV page.
@@ -159,7 +159,7 @@ function parseXMLTV(xmlContent, channelIdMap) {
 }
 
 async function syncErsatzTV() {
-    console.log('🔄 Syncing ErsatzTV channels to JuneteenthTube...\n');
+    console.log('🔄 Syncing ErsatzTV channels to CultureQuest...\n');
 
     try {
         // 1. Fetch ErsatzTV channel data

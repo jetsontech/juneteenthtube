@@ -2,7 +2,7 @@
 const https = require('https');
 
 const options = {
-    hostname: 'juneteenthtube.vercel.app',
+    hostname: 'culturequest.vip',
     port: 443,
     path: '/api/transcode-batch',
     method: 'POST',

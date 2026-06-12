@@ -103,8 +103,8 @@ export async function GET(req: NextRequest) {
                 if (!thumbnail.startsWith('http') && !thumbnail.startsWith('/uploads/')) {
                     thumbnail = `${s3Domain}/${thumbnail.startsWith('/') ? thumbnail.slice(1) : thumbnail}`;
                 }
-                if (thumbnail.includes('media.juneteenthtube.com')) {
-                    thumbnail = thumbnail.replace('media.juneteenthtube.com', 'pub-efcc4aa0b3b24e3d97760577b0ec20bd.r2.dev');
+                if (thumbnail.includes('media.culturequest.vip')) {
+                    thumbnail = thumbnail.replace('media.culturequest.vip', 'pub-efcc4aa0b3b24e3d97760577b0ec20bd.r2.dev');
                 }
             }
 
@@ -112,7 +112,7 @@ export async function GET(req: NextRequest) {
                 id: video.id,
                 title: video.title,
                 thumbnail: thumbnail,
-                channelName: video.channel_name || (video.category === 'Food' ? 'ATL Foodie' : 'JuneteenthTV'),
+                channelName: video.channel_name || (video.category === 'Food' ? 'ATL Foodie' : 'CultureQuestTV'),
                 channelAvatar: video.channel_avatar || "",
                 views: getDisplayViews(video.id, Number(video.views) || 0).toString(),
                 postedAt: video.created_at ? new Date(video.created_at).toLocaleDateString() : "Recently",
