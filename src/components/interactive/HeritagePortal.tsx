@@ -295,7 +295,7 @@ export function HeritagePortal() {
                         </div>
                         <div className="flex items-center space-x-2 text-[9px] font-bold text-gray-600 uppercase tracking-widest">
                             <ShieldCheck className="w-3 h-3 text-yellow-600" />
-                            <span>JuneteenthTube Secure Gateway Proxy v.02</span>
+                            <span>CultureQuest Secure Gateway Proxy v.02</span>
                         </div>
                     </div>
                 </div>

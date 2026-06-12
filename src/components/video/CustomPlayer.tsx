@@ -387,7 +387,7 @@ export function CustomPlayer({ src, srcH264, poster }: CustomPlayerProps) {
                             step="0.1"
                             value={currentTime}
                             onChange={handleSeek}
-                            onInput={handleSeek}
+                            onInput={(e: any) => handleSeek(e)}
                             onPointerDown={() => { setIsDragging(true); resetControls(); }}
                             onPointerUp={(e) => {
                                 setIsDragging(false);

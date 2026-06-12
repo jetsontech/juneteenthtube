@@ -87,7 +87,7 @@ export default function AdminDashboard() {
                             href="/studio"
                             className="flex items-center gap-2 px-6 py-3 bg-white/5 hover:bg-white/10 text-white rounded-2xl border border-white/10 transition-all font-bold text-sm"
                         >
-                            Juneteenth Studio <ChevronRight className="w-4 h-4" />
+                            CultureQuest Studio <ChevronRight className="w-4 h-4" />
                         </Link>
                     </div>
                 </header>

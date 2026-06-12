@@ -21,20 +21,20 @@
         </filter>
     </defs>
 
-    <!-- Icon: Monolith 'J' - Clean, geometric, powerful -->
+    <!-- Icon: Monolith 'C' - Clean, geometric, powerful -->
     <path d="M50 15 H85 V70 C85 85 75 90 60 90 H35 L35 75 H55 C60 75 65 72 65 65 V35 H50 V15 Z" fill="url(#gold-gradient)" filter="url(#glow)" />
     
     <!-- Accent Line -->
     <rect x="35" y="15" width="10" height="20" fill="url(#gold-gradient)" opacity="0.8" />
 
-    <!-- Text: JUNETEENTH -->
+    <!-- Text: CULTURE -->
     <text x="100" y="65" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="52" letter-spacing="-1" fill="white">
-        JUNETEENTH
+        CULTURE
     </text>
 
-    <!-- Text: TUBE (Gold) -->
-    <text x="430" y="65" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="52" letter-spacing="-1" fill="url(#text-gold)">
-        TUBE
+    <!-- Text: QUEST (Gold) -->
+    <text x="390" y="65" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="52" letter-spacing="-1" fill="url(#text-gold)">
+        QUEST
     </text>
     
     <!-- Subtitle -->

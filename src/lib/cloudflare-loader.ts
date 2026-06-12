@@ -25,7 +25,7 @@ export default function cloudflareLoader({
     }
 
     // R2 Domain Handling
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://juneteenthtube.com';
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://culturequest.vip';
 
     if (src.includes('r2.dev') || src.includes('pub-efcc4aa0b3b24e3d97760577b0ec20bd.r2.dev')) {
         const paramsString = params.join(',');

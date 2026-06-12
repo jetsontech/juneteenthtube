@@ -61,7 +61,7 @@ export default function StudioPage() {
                         <Video className="w-5 h-5" />
                         <span className="text-[10px] font-black uppercase tracking-[0.3em]">Channel Content</span>
                     </div>
-                    <h1 className="text-5xl font-black text-white tracking-tighter">Juneteenth Studio</h1>
+                    <h1 className="text-5xl font-black text-white tracking-tighter">CultureQuest Studio</h1>
                 </div>
 
                 <div className="flex items-center gap-4">
@@ -89,7 +89,7 @@ export default function StudioPage() {
                     </div>
                     <h2 className="text-2xl font-black text-white mb-2 uppercase tracking-tight">No videos found</h2>
                     <p className="text-gray-500 mb-8 max-w-sm">
-                        {searchQuery ? "No videos match your search criteria." : "You haven't uploaded any videos yet. Start sharing your Juneteenth moments today!"}
+                        {searchQuery ? "No videos match your search criteria." : "You haven't uploaded any videos yet. Start sharing your CultureQuest moments today!"}
                     </p>
                     <button
                         onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} // Assuming Nav has the upload button

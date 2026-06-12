@@ -1,13 +1,13 @@
-# JuneteenthTube 🎥
+# CultureQuest 🎥
 
-A cinematic, premium video streaming platform dedicated to Juneteenth content. JuneteenthTube provides a high-end media gateway with a secure access system, designed for high-performance and seamless mobile viewing.
+A cinematic, premium video streaming platform dedicated to heritage and cultural content. CultureQuest provides a high-end media gateway with a secure access system, designed for high-performance and seamless mobile viewing.
 
 ## 🌟 Key Features
 
 - **Exclusive Media Gateway**: Secure access via the cinematic "2026 Media Gateway".
 - **Shorts Experience**: Fully optimized shorts player with loop and autoplay functionality.
 - **Premium Playback**: Custom video players with `Plyr` integration for a consistent experience across all devices.
-- **Mobile First**: Guranteed inline video playback on iOS and Android to prevent native fullscreen interruption.
+- **Mobile First**: Guaranteed inline video playback on iOS and Android to prevent native fullscreen interruption.
 - **Modern Tech Stack**: Built with Next.js 15, Tailwind CSS 4, and Supabase.
 
 ## 🛠️ Technology Stack
@@ -31,8 +31,8 @@ A cinematic, premium video streaming platform dedicated to Juneteenth content. J
 1. **Clone the repository**:
 
    ```bash
-   git clone https://github.com/jetsontech/juneteenthtube.git
-   cd juneteenthtube
+   git clone https://github.com/jetsontech/culturequest.git
+   cd culturequest
    ```
 
 2. **Install dependencies**:
@@ -61,4 +61,4 @@ Access to the main platform is restricted via the Media Gateway. For official ac
 
 ## 📄 License
 
-© 2026 JuneteenthTube. All rights reserved. Code provided under MIT License where applicable.
+© 2026 CultureQuest. All rights reserved. Code provided under MIT License where applicable.

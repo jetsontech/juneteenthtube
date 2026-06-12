@@ -68,7 +68,7 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
                             {mode === 'login' ? 'Welcome Back' : 'Create Account'}
                         </h2>
                         <p className="text-gray-400 text-sm mt-1">
-                            {mode === 'login' ? 'Sign in to your Juneteenth Tube account' : 'Join the celebration of freedom'}
+                            {mode === 'login' ? 'Sign in to your CultureQuest account' : 'Join the celebration of freedom'}
                         </p>
                     </div>
                     <button

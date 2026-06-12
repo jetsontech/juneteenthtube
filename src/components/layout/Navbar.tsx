@@ -178,7 +178,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                             />
                         </div>
                         <span className="logo-text pazzaz-text relative">
-                            Juneteenth Tube
+                            CultureQuest
                             <span className="text-[8px] text-white/40 absolute -bottom-1 -right-4 font-mono select-none">v1.1</span>
                         </span>
                     </Link>
@@ -210,7 +210,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                     >
                         <input
                             type="text"
-                            placeholder="Search JuneteenthTube..."
+                            placeholder="Search CultureQuest..."
                             className="search-input"
                             aria-label="Search"
                             onChange={(e) => {
@@ -304,7 +304,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                                         onClick={() => { setIsUserMenuOpen(false); window.location.href = '/studio'; }}
                                         className="user-menu-item"
                                     >
-                                        <span>🎬</span> Juneteenth Studio
+                                        <span>🎬</span> CultureQuest Studio
                                     </button>
                                     <button
                                         onClick={() => { setIsUserMenuOpen(false); window.location.href = '/settings'; }}

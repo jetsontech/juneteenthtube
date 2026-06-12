@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Juneteenth TV — 24/7 Black Cinema FAST Channel</title>
+    <title>CultureQuest TV — 24/7 Black Cinema FAST Channel</title>
     <meta name="description"
         content="Free 24/7 Black Cinema. Stream classic films from the Golden Age of Black filmmaking — public domain, ad-free, always on.">
 
@@ -554,7 +554,7 @@
                 <polyline points="17 2 12 7 7 2" />
             </svg>
         </div>
-        <div class="tune-in-ch">JUNETEENTH TV</div>
+        <div class="tune-in-ch">CULTUREQUEST TV</div>
         <div class="tune-in-name">Black Cinema Classics</div>
         <div class="tune-in-tagline">24/7 Free Streaming — Public Domain</div>
         <div class="tune-in-fast">
@@ -570,7 +570,7 @@
                 <rect x="2" y="7" width="20" height="15" rx="2" ry="2" />
                 <polyline points="17 2 12 7 7 2" />
             </svg>
-            <div class="header-title"><span>Juneteenth</span> TV</div>
+            <div class="header-title"><span>Culture</span>Quest TV</div>
         </div>
         <div class="fast-badge">
             <div class="dot"></div>
@@ -596,7 +596,7 @@
             <div class="now-playing-desc" id="npDesc"></div>
         </div>
 
-        <video-js id="juneteenthPlayer" class="vjs-default-skin vjs-fluid" controls preload="auto" playsinline>
+        <video-js id="cqPlayer" class="vjs-default-skin vjs-fluid" controls preload="auto" playsinline>
         </video-js>
     </div>
 
@@ -622,7 +622,7 @@
 
     <!-- FOOTER -->
     <footer class="footer">
-        <p>Juneteenth TV — Free Ad-Supported Streaming Television</p>
+        <p>CultureQuest TV — Free Ad-Supported Streaming Television</p>
         <div class="sources">
             <span>Archive.org</span>
             <span>Public Domain</span>
@@ -688,7 +688,7 @@
                INITIALIZE VIDEO.JS + PLAYLIST
                ═══════════════════════════════════════════ */
 
-            const player = videojs('juneteenthPlayer', {
+            const player = videojs('cqPlayer', {
                 autoplay: true,
                 controls: true,
                 fluid: true,
@@ -800,7 +800,7 @@
                ═══════════════════════════════════════════ */
 
             player.on('error', () => {
-                console.warn('Juneteenth TV: Skipping broken source, advancing to next...');
+                console.warn('CultureQuest TV: Skipping broken source, advancing to next...');
                 const nextIdx = (player.playlist.currentIndex() + 1) % playlistData.length;
                 player.playlist.currentItem(nextIdx);
                 player.play();

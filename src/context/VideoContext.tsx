@@ -372,7 +372,7 @@ export function VideoProvider({ children }: { children: ReactNode }) {
                         id: video.id,
                         title: video.title,
                         thumbnail: video.thumbnail_url || "",
-                        channelName: video.channel_name || (video.category === 'Food' ? 'ATL Foodie' : (mockChannel.name || "JuneteenthTV")),
+                        channelName: video.channel_name || (video.category === 'Food' ? 'ATL Foodie' : (mockChannel.name || "CultureQuestTV")),
                         channelAvatar: video.channel_avatar || mockChannel.avatar || "",
                         views: video.views?.toString() || mockChannel.views || "1.2K",
                         postedAt: video.posted_at || (video.created_at ? new Date(video.created_at).toLocaleDateString() : "Recently"),

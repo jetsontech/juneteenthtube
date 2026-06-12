@@ -4,23 +4,20 @@ import ClientShell from '../components/layout/ClientShell';
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Viewport } from 'next';
 
-// Edge-to-edge display: viewport-fit=cover tells Safari to extend into the notch
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
   viewportFit: 'cover',
   themeColor: '#0f0f0f',
 };
 
 export const metadata = {
-  title: 'JuneteenthTube',
+  title: 'CultureQuest',
   description: 'Video platform',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
-    title: 'JuneteenthTube',
+    title: 'CultureQuest',
   },
   other: {
     'mobile-web-app-capable': 'yes',

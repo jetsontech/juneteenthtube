@@ -144,9 +144,9 @@ function HomeContent() {
             {/* Remaining Videos */}
             {filteredVideos.length > 3 && (
               <>
-                {/* Juneteenth Originals Hero */}
+                {/* CultureQuest Originals Hero */}
                 <div className="section-header mt-8">
-                  <h2 className="section-title">Juneteenth Originals</h2>
+                  <h2 className="section-title">CultureQuest Originals</h2>
                 </div>
                 <div className="video-grid">
                   {filteredVideos.slice(3).map((v, i) => (

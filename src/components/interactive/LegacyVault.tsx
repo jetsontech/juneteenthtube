@@ -276,7 +276,7 @@ export function LegacyVault() {
                             </div>
                             <h2 className="text-3xl md:text-4xl font-black mb-4 leading-tight">{activeItem.title}</h2>
                             <p className="text-gray-400 leading-relaxed mb-8">
-                                A curated selection from the {activeItem.source} collection. Restored and digitized for the JuneteenthTube archives. verified by community elders for historical accuracy.
+                                A curated selection from the {activeItem.source} collection. Restored and digitized for the CultureQuest archives. verified by community elders for historical accuracy.
                             </p>
 
                             <div className="flex items-center space-x-4 mb-8">

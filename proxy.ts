@@ -5,9 +5,9 @@ export function proxy(request: NextRequest) {
     const url = request.nextUrl.clone();
     const host = request.headers.get('host');
 
-    // Redirect juneteenthtube.vercel.app to juneteenthtube.com
+    // Redirect culturequest.vercel.app to culturequest.vip
     if (host && host.includes('vercel.app')) {
-        url.host = 'juneteenthtube.com';
+        url.host = 'culturequest.vip';
         return NextResponse.redirect(url, 301);
     }
 

@@ -98,7 +98,7 @@ export default function SettingsPage() {
             <div className="max-w-3xl mx-auto">
                 <header className="mb-8">
                     <h1 className="text-4xl font-black text-white mb-2 tracking-tight">Settings</h1>
-                    <p className="text-gray-400 font-medium">Manage your JuneteenthTube experience</p>
+                    <p className="text-gray-400 font-medium">Manage your CultureQuest experience</p>
                 </header>
 
                 <div className="grid grid-cols-1 gap-8">
@@ -131,7 +131,7 @@ export default function SettingsPage() {
                             </div>
 
                             <div className="flex-1 text-center md:text-left">
-                                <h3 className="text-white font-bold text-2xl tracking-tight">{user?.user_metadata?.full_name || user?.email?.split('@')[0] || "Juneteenth User"}</h3>
+                                <h3 className="text-white font-bold text-2xl tracking-tight">{user?.user_metadata?.full_name || user?.email?.split('@')[0] || "CultureQuest User"}</h3>
                                 <p className="text-gray-400 font-medium">{user?.email || "user@example.com"}</p>
 
                                 <div className="flex flex-wrap gap-2 mt-4 justify-center md:justify-start">
