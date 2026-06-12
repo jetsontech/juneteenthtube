@@ -21,7 +21,7 @@
 import sys
 
 try:
-    resolve = bmd.scriptapp("Resolve")
+    resolve = bmd.scriptapp("Resolve")  # type: ignore[name-defined]  # `bmd` is a DaVinci Resolve built-in
     project = resolve.GetProjectManager().GetCurrentProject()
 
     if not project:

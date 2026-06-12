@@ -51,3 +51,6 @@ next-env.d.ts
 !example_video.mp4
 .aider*
 venv/
+
+venv/
+
