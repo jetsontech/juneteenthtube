@@ -27,11 +27,7 @@ export const LoginSplash: React.FC<LoginSplashProps> = ({ onUnlock }) => {
         setTimeout(() => setIsLoaded(true), 6000);
     }, []);
 
-    useEffect(() => {
-        if (isLoaded && videoRef.current) {
-            videoRef.current.pause();
-        }
-    }, [isLoaded]);
+    // Removed the pause effect so the video loops continuously in the background
 
     const handleUnlock = (e?: React.FormEvent) => {
         e?.preventDefault();
