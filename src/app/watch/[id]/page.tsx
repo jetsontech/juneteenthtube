@@ -34,13 +34,34 @@ export default function WatchPage({
     const resolvedParams = use(params);
     const { getVideoById, videos, getVideoComments, postComment, getLikes, toggleLike, getSubscription, toggleSubscription, addToHistory } = useVideo();
     const [sidebarCategory, setSidebarCategory] = useState<string>("All");
+    const [aiRecommendedIds, setAiRecommendedIds] = useState<string[]>([]);
+    
+    // Fetch AI Recommendations
+    useEffect(() => {
+        if (!resolvedParams.id) return;
+        fetch(`/api/videos/recommend?videoId=${resolvedParams.id}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.recommendations && data.recommendations.length > 0) {
+                    setAiRecommendedIds(data.recommendations);
+                }
+            })
+            .catch(err => console.error("AI Recommendation fetch failed", err));
+    }, [resolvedParams.id]);
 
-    // Derived Recommendations logic
+    // Derived Recommendations logic (AI Vector Match first, then Category Fallback)
     const filteredSidebarVideos = useMemo(() => {
-        return videos
-            .filter(v => v.id !== resolvedParams.id)
-            .filter(v => sidebarCategory === "All" || v.category === sidebarCategory);
-    }, [videos, resolvedParams.id, sidebarCategory]);
+        let baseList = videos.filter(v => v.id !== resolvedParams.id);
+        
+        // If we have AI matches, surface them first if the category is "All"
+        if (sidebarCategory === "All" && aiRecommendedIds.length > 0) {
+            const aiMatches = baseList.filter(v => aiRecommendedIds.includes(v.id));
+            const others = baseList.filter(v => !aiRecommendedIds.includes(v.id));
+            return [...aiMatches, ...others];
+        }
+        
+        return baseList.filter(v => sidebarCategory === "All" || v.category === sidebarCategory);
+    }, [videos, resolvedParams.id, sidebarCategory, aiRecommendedIds]);
 
 
     // Derived State (No side effects)
@@ -165,6 +186,12 @@ export default function WatchPage({
                     onCategoryChange={setSidebarCategory}
                     className="bg-transparent border-none px-0"
                 />
+                {sidebarCategory === "All" && aiRecommendedIds.length > 0 && (
+                    <div className="flex items-center gap-1.5 text-j-gold text-[10px] uppercase font-black tracking-widest pl-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-j-gold animate-pulse" />
+                        AI Semantic Match Active
+                    </div>
+                )}
             </div>
 
             <div className="flex flex-col lg:flex-col grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4 lg:gap-4 sm:grid xl:flex">

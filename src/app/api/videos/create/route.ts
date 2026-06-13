@@ -35,7 +35,8 @@ export async function POST(req: NextRequest) {
           duration,
           state,
           transcode_status,
-          owner_id: finalOwnerId
+          owner_id: finalOwnerId,
+          hdr_supported: true
         }
       ])
       .select()
@@ -64,7 +65,9 @@ export async function POST(req: NextRequest) {
                 quality: 'master',
                 crf: 16,
                 preset: 'veryslow',
-                audio_bitrate: '320k'
+                audio_bitrate: '320k',
+                dolby_vision: true,
+                spatial_audio: true
               },
             }),
           }

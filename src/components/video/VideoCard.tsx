@@ -61,6 +61,19 @@ function VideoCardInner({ video }: { video: VideoProps }) {
         }
     }, [showPreview, previewSrc]);
 
+    // SMART EDGE PRE-FETCHING:
+    // When a user hovers over the card, preemptively fetch the manifest (.m3u8) 
+    // into the browser HTTP cache so when they click, playback starts in 0ms.
+    useEffect(() => {
+        if (isHovered && video.videoUrl) {
+            fetch(video.videoUrl, { mode: 'no-cors' }).catch(() => {});
+            // If there is an H264 fallback/preview, cache that too
+            if (video.videoUrlH264) {
+                fetch(video.videoUrlH264, { mode: 'no-cors' }).catch(() => {});
+            }
+        }
+    }, [isHovered, video.videoUrl, video.videoUrlH264]);
+
     // FIXED: Using setTimeout to move setState out of the synchronous effect body
     useEffect(() => {
         const hoverQuery = window.matchMedia("(hover: hover)");

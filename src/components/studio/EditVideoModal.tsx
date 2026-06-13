@@ -2,7 +2,7 @@
 
 import React, { useState, useRef } from "react";
 import Image from "next/image";
-import { X, Upload, Video, Check, Loader2 } from "lucide-react";
+import { X, Upload, Video, Check, Loader2, Sparkles } from "lucide-react";
 import { VideoProps, useVideo } from "@/context/VideoContext";
 import { cn } from "@/lib/utils";
 
@@ -18,10 +18,30 @@ export function EditVideoModal({ video, isOpen, onClose }: EditVideoModalProps) 
     const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
     const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(video.thumbnail);
     const [isSaving, setIsSaving] = useState(false);
+    const [isAutoFilling, setIsAutoFilling] = useState(false);
     const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     if (!isOpen) return null;
+
+    const handleAutoFill = async () => {
+        setIsAutoFilling(true);
+        try {
+            const res = await fetch('/api/videos/ai-metadata', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ contextTitle: title || video.title || video.filename })
+            });
+            const data = await res.json();
+            if (data.title) {
+                setTitle(data.title);
+            }
+        } catch (error) {
+            console.error("Auto-fill failed:", error);
+        } finally {
+            setIsAutoFilling(false);
+        }
+    };
 
     const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -120,7 +140,17 @@ export function EditVideoModal({ video, isOpen, onClose }: EditVideoModalProps) 
                         {/* Details Side */}
                         <div className="space-y-6">
                             <div>
-                                <label className="block text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-2">Video Title</label>
+                                <div className="flex items-center justify-between mb-2">
+                                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">Video Title</label>
+                                    <button 
+                                        onClick={handleAutoFill}
+                                        disabled={isAutoFilling}
+                                        className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-j-gold hover:text-white transition-colors disabled:opacity-50"
+                                    >
+                                        {isAutoFilling ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+                                        Smart Auto-Fill
+                                    </button>
+                                </div>
                                 <input
                                     type="text"
                                     value={title}
