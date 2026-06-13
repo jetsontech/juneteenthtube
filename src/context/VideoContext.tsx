@@ -151,13 +151,14 @@ export function VideoProvider({ children }: { children: ReactNode }) {
     const abortControllerRef = useRef<AbortController | null>(null);
 
     // Watch History — persisted to localStorage
-    const [watchHistory, setWatchHistory] = useState<VideoProps[]>(() => {
-        if (typeof window === 'undefined') return [];
+    const [watchHistory, setWatchHistory] = useState<VideoProps[]>([]);
+
+    useEffect(() => {
         try {
             const stored = localStorage.getItem('jt_watch_history');
-            return stored ? JSON.parse(stored) : [];
-        } catch { return []; }
-    });
+            if (stored) setWatchHistory(JSON.parse(stored));
+        } catch { /* noop */ }
+    }, []);
 
     const addToHistory = useCallback((video: VideoProps) => {
         setWatchHistory(prev => {
@@ -174,13 +175,14 @@ export function VideoProvider({ children }: { children: ReactNode }) {
     }, []);
 
     // Watch Later — persisted to localStorage (stores video IDs)
-    const [watchLater, setWatchLater] = useState<string[]>(() => {
-        if (typeof window === 'undefined') return [];
+    const [watchLater, setWatchLater] = useState<string[]>([]);
+
+    useEffect(() => {
         try {
             const stored = localStorage.getItem('jt_watch_later');
-            return stored ? JSON.parse(stored) : [];
-        } catch { return []; }
-    });
+            if (stored) setWatchLater(JSON.parse(stored));
+        } catch { /* noop */ }
+    }, []);
 
     const addToWatchLater = useCallback((videoId: string) => {
         setWatchLater(prev => {
