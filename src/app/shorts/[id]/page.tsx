@@ -63,7 +63,7 @@ export default function ShortsPlayerPage({
                 playerRef.current = null;
             }
         };
-    }, [video?.videoUrl, isMuted]);
+    }, [video?.videoUrl]); // DO NOT include isMuted here, it will destroy the player on toggle
 
     // Parse duration to seconds for filtering shorts
     const parseDurationToSeconds = (duration: string | undefined): number => {
