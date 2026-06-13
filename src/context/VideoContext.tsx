@@ -656,6 +656,7 @@ export function VideoProvider({ children }: { children: ReactNode }) {
                 await new Promise<void>((resolve, reject) => {
                     const xhr = new XMLHttpRequest();
                     xhr.open("PUT", signedUrl);
+                    xhr.setRequestHeader("Content-Type", file.type || "video/mp4");
                     xhr.upload.onprogress = (e) => { if (e.lengthComputable) setUploadProgress(Math.round((e.loaded / e.total) * 100)); };
                     xhr.onload = () => resolve();
                     xhr.onerror = () => reject(new Error("Video upload failed"));
@@ -710,10 +711,12 @@ export function VideoProvider({ children }: { children: ReactNode }) {
             body: JSON.stringify({ filename: `photo_${id}_${Date.now()}_${file.name}`, contentType: file.type || "image/jpeg" })
         });
         const { signedUrl, publicUrl } = await response.json();
-        await new Promise<void>((resolve) => {
+        await new Promise<void>((resolve, reject) => {
             const xhr = new XMLHttpRequest();
             xhr.open("PUT", signedUrl);
+            xhr.setRequestHeader("Content-Type", file.type || "image/jpeg");
             xhr.onload = () => resolve();
+            xhr.onerror = () => reject(new Error("Network Error"));
             xhr.send(file);
         });
         await fetch('/api/photos/update', {
@@ -781,11 +784,13 @@ export function VideoProvider({ children }: { children: ReactNode }) {
                     body: JSON.stringify({ filename: file.name, contentType: file.type || "video/mp4" })
                 });
                 const { signedUrl, publicUrl: url } = await res.json();
-                await new Promise<void>((resolve) => {
+                await new Promise<void>((resolve, reject) => {
                     const xhr = new XMLHttpRequest();
                     xhr.open("PUT", signedUrl);
+                    xhr.setRequestHeader("Content-Type", file.type || "video/mp4");
                     xhr.upload.onprogress = (e) => { if (e.lengthComputable) setUploadProgress(Math.round((e.loaded / e.total) * 100)); };
                     xhr.onload = () => resolve();
+                    xhr.onerror = () => reject(new Error("Network Error"));
                     xhr.send(file);
                 });
                 return url;
@@ -807,10 +812,12 @@ export function VideoProvider({ children }: { children: ReactNode }) {
                     body: JSON.stringify({ filename: `thumb_${Date.now()}_${activeThumbnail.name}`, contentType: activeThumbnail.type || "image/jpeg" })
                 });
                 const { signedUrl, publicUrl: url } = await res.json();
-                await new Promise<void>((resolve) => {
+                await new Promise<void>((resolve, reject) => {
                     const xhr = new XMLHttpRequest();
                     xhr.open("PUT", signedUrl);
+                    xhr.setRequestHeader("Content-Type", activeThumbnail.type || "image/jpeg");
                     xhr.onload = () => resolve();
+                    xhr.onerror = () => reject(new Error("Network Error"));
                     xhr.send(activeThumbnail);
                 });
                 return url;
@@ -837,10 +844,12 @@ export function VideoProvider({ children }: { children: ReactNode }) {
                 body: JSON.stringify({ filename: file.name, contentType: file.type || "image/jpeg" })
             });
             const { signedUrl, publicUrl } = await res.json();
-            await new Promise<void>((resolve) => {
+            await new Promise<void>((resolve, reject) => {
                 const xhr = new XMLHttpRequest();
                 xhr.open("PUT", signedUrl);
+                xhr.setRequestHeader("Content-Type", file.type || "image/jpeg");
                 xhr.onload = () => resolve();
+                xhr.onerror = () => reject(new Error("Network Error"));
                 xhr.send(file);
             });
             await supabase.from('photos').insert([{ title: file.name.replace(/\.[^/.]+$/, ""), photo_url: publicUrl, caption: caption || "", state, owner_id: user?.id }]);
