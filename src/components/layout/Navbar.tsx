@@ -38,6 +38,25 @@ export function Navbar({ onMenuClick }: NavbarProps) {
     const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
     const progressFillRef = useRef<HTMLDivElement>(null);
 
+    // Dynamic Island Scroll State
+    const [scrolled, setScrolled] = useState(false);
+
+    useEffect(() => {
+        let ticking = false;
+        const handleScroll = () => {
+            if (!ticking) {
+                window.requestAnimationFrame(() => {
+                    setScrolled(window.scrollY > 20);
+                    ticking = false;
+                });
+                ticking = true;
+            }
+        };
+        handleScroll();
+        window.addEventListener("scroll", handleScroll, { passive: true });
+        return () => window.removeEventListener("scroll", handleScroll);
+    }, []);
+
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -153,9 +172,14 @@ export function Navbar({ onMenuClick }: NavbarProps) {
 
     return (
         <>
-            <nav className="navbar glass-heavy">
+            <nav className={`fixed z-[100] transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] flex items-center justify-between gap-3 overflow-hidden ${
+                scrolled 
+                ? 'top-2 left-2 right-2 sm:top-4 sm:left-6 sm:right-6 rounded-full premium-card shadow-[0_20px_40px_rgba(0,0,0,0.7),0_0_30px_rgba(212,175,55,0.08)] border border-white/10 px-4 py-1.5 min-h-[60px]' 
+                : 'top-0 left-0 right-0 glass-heavy !border-x-0 !border-t-0 border-b border-white/5 px-4 py-2 min-h-[68px] !rounded-none'
+            }`}>
+                {scrolled && <div className="absolute inset-0 bg-gradient-to-r from-amber-500/10 via-transparent to-red-500/10 pointer-events-none" />}
                 <div className="gloss-overlay" />
-                <div className="navbar-left">
+                <div className="navbar-left relative z-10">
                     <button
                         onClick={onMenuClick}
                         className="menu-btn"

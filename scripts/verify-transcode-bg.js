@@ -3,7 +3,7 @@ const http = require('http');
 
 const data = JSON.stringify({
     sourceKey: 'example_video.mp4',
-    videoId: 'test-id'
+    videoId: '00000000-0000-0000-0000-000000000000'
 });
 
 const options = {

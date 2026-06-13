@@ -1,4 +1,4 @@
-// US States data for JuneteenthTube state selector
+// US States data for CultureQuest state selector
 
 export interface USState {
     code: string;

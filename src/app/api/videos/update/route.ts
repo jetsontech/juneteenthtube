@@ -11,8 +11,7 @@ export async function PATCH(req: NextRequest) {
 
     try {
         const body = await req.json();
-        const { id, title, thumbnail_url, views, video_url, duration, owner_id } = body;
-
+        const { id, title, thumbnail_url, views, video_url, duration, owner_id, is_featured, is_trending, featured_title, featured_category, increment_views } = body;
 
         if (!id) {
             return NextResponse.json({ error: 'Missing Video ID' }, { status: 400 });
@@ -25,8 +24,11 @@ export async function PATCH(req: NextRequest) {
             video_url?: string;
             duration?: string;
             owner_id?: string;
+            is_featured?: boolean;
+            is_trending?: boolean;
+            featured_title?: string;
+            featured_category?: string;
         }
-
 
         const updates: VideoUpdates = {};
         if (title !== undefined) updates.title = title;
@@ -44,10 +46,78 @@ export async function PATCH(req: NextRequest) {
             console.log(`[API] Updating duration for ${id} to ${duration}`);
         }
         if (owner_id !== undefined) updates.owner_id = owner_id;
+        if (is_featured !== undefined) {
+            updates.is_featured = is_featured;
+            console.log(`[API] Updating is_featured for ${id} to ${is_featured}`);
+        }
+        if (is_trending !== undefined) {
+            updates.is_trending = is_trending;
+            console.log(`[API] Updating is_trending for ${id} to ${is_trending}`);
+        }
+        if (featured_title !== undefined) {
+            updates.featured_title = featured_title;
+            console.log(`[API] Updating featured_title for ${id} to ${featured_title}`);
+        }
+        if (featured_category !== undefined) {
+            updates.featured_category = featured_category;
+            console.log(`[API] Updating featured_category for ${id} to ${featured_category}`);
+        }
 
+        if (increment_views === true) {
+            // Fetch current views using supabaseAdmin (bypassing RLS)
+            const { data: videoData, error: fetchError } = await supabaseAdmin
+                .from('videos')
+                .select('views')
+                .eq('id', id)
+                .maybeSingle();
+
+            if (fetchError || !videoData) {
+                return NextResponse.json({ error: 'Video not found or fetch failed' }, { status: 404 });
+            }
+            updates.views = (Number(videoData.views) || 0) + 1;
+        }
 
         if (Object.keys(updates).length === 0) {
             return NextResponse.json({ message: 'No updates provided' });
+        }
+
+        const isViewsIncrementOnly = increment_views === true || (Object.keys(updates).length === 1 && updates.views !== undefined);
+
+        if (!isViewsIncrementOnly) {
+            // Authenticate user
+            const token = req.headers.get("Authorization")?.split(' ')[1] || req.cookies.get('sb-fybxhwpkujbodlfoadem-auth-token')?.value || '';
+            if (!token) {
+                return NextResponse.json({ error: 'Unauthorized: Missing session token' }, { status: 401 });
+            }
+
+            const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
+            if (authError || !user) {
+                return NextResponse.json({ error: 'Unauthorized: Invalid session token' }, { status: 401 });
+            }
+
+            // Fetch video to check ownership
+            const { data: video, error: fetchError } = await supabaseAdmin
+                .from('videos')
+                .select('owner_id')
+                .eq('id', id)
+                .maybeSingle();
+
+            if (fetchError || !video) {
+                return NextResponse.json({ error: 'Video not found' }, { status: 404 });
+            }
+
+            const isAdmin = user.email === process.env.NEXT_PUBLIC_ADMIN_EMAIL || user.user_metadata?.role === 'admin' || user.role === 'admin';
+            const isOwner = video.owner_id === user.id;
+
+            if (!isAdmin && !isOwner) {
+                return NextResponse.json({ error: 'Forbidden: You do not own this video' }, { status: 403 });
+            }
+
+            // Restrict featured and trending states modification to administrator only
+            const modifiesFlags = updates.is_featured !== undefined || updates.is_trending !== undefined;
+            if (modifiesFlags && !isAdmin) {
+                return NextResponse.json({ error: 'Forbidden: Only administrators can toggle featured or trending states' }, { status: 403 });
+            }
         }
 
         const { data, error } = await supabaseAdmin

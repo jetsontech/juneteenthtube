@@ -120,10 +120,12 @@ export function ContentRail({
                         <Link
                             key={video.id}
                             href={`/watch/${video.id}`}
-                            className="group flex-shrink-0 w-[280px] sm:w-[320px] md:w-[340px] block snap-start"
+                            className="group flex-shrink-0 w-[280px] sm:w-[320px] md:w-[340px] block snap-start transition-all duration-500 hover:-translate-y-2 hover:scale-[1.02]"
                         >
                             {/* Thumbnail */}
-                            <div className="relative aspect-video rounded-xl overflow-hidden bg-zinc-900 border border-white/5 shadow-lg group-hover:shadow-[0_8px_30px_rgba(0,0,0,0.5)] transition-all duration-300">
+                            <div className="relative aspect-video rounded-2xl overflow-hidden premium-card border border-white/5 hover:border-j-gold/40 shadow-[0_8px_30px_rgba(0,0,0,0.6)] group-hover:shadow-[0_20px_50px_rgba(212,175,55,0.15)] transition-all duration-500">
+                                <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-transparent opacity-80 z-10" />
+                                <div className="gloss-overlay" />
                                 {video.thumbnail && video.thumbnail !== "/placeholder.svg" ? (
                                     <Image
                                         src={video.thumbnail}

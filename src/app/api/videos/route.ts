@@ -16,6 +16,35 @@ export async function DELETE(req: NextRequest) {
             return NextResponse.json({ error: 'Missing video ID' }, { status: 400 });
         }
 
+        // Authenticate the user
+        const token = req.headers.get("Authorization")?.split(' ')[1] || req.cookies.get('sb-fybxhwpkujbodlfoadem-auth-token')?.value || '';
+        if (!token) {
+            return NextResponse.json({ error: 'Unauthorized: Missing session token' }, { status: 401 });
+        }
+
+        const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
+        if (authError || !user) {
+            return NextResponse.json({ error: 'Unauthorized: Invalid session token' }, { status: 401 });
+        }
+
+        // Fetch video to check ownership
+        const { data: video, error: fetchError } = await supabaseAdmin
+            .from('videos')
+            .select('owner_id')
+            .eq('id', id)
+            .maybeSingle();
+
+        if (fetchError || !video) {
+            return NextResponse.json({ error: 'Video not found' }, { status: 404 });
+        }
+
+        const isAdmin = user.email === process.env.NEXT_PUBLIC_ADMIN_EMAIL || user.user_metadata?.role === 'admin' || user.role === 'admin';
+        const isOwner = video.owner_id === user.id;
+
+        if (!isAdmin && !isOwner) {
+            return NextResponse.json({ error: 'Forbidden: You do not own this video' }, { status: 403 });
+        }
+
         // 1. Delete from DB (Admin)
         const { error } = await supabaseAdmin.from('videos').delete().eq('id', id);
 
@@ -24,7 +53,8 @@ export async function DELETE(req: NextRequest) {
         }
 
         return NextResponse.json({ success: true });
-    } catch {
-        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : String(err);
+        return NextResponse.json({ error: msg }, { status: 500 });
     }
 }

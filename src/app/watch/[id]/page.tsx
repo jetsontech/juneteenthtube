@@ -32,7 +32,7 @@ export default function WatchPage({
     params: Promise<{ id: string }>;
 }) {
     const resolvedParams = use(params);
-    const { getVideoById, videos, getVideoComments, postComment, getLikes, toggleLike, getSubscription, toggleSubscription } = useVideo();
+    const { getVideoById, videos, getVideoComments, postComment, getLikes, toggleLike, getSubscription, toggleSubscription, addToHistory } = useVideo();
     const [sidebarCategory, setSidebarCategory] = useState<string>("All");
 
     // Derived Recommendations logic
@@ -48,6 +48,13 @@ export default function WatchPage({
         if (!resolvedParams.id || videos.length === 0) return undefined;
         return getVideoById(resolvedParams.id);
     }, [resolvedParams.id, videos, getVideoById]);
+
+    // Track Watch History
+    useEffect(() => {
+        if (video) {
+            addToHistory(video);
+        }
+    }, [video, addToHistory]);
 
     // Interaction State
     const [isSubscribed, setIsSubscribed] = useState(false);

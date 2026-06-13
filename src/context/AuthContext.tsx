@@ -14,6 +14,22 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const clearSupabaseLocalStorage = () => {
+    if (typeof window === 'undefined') return;
+    try {
+        const keysToRemove: string[] = [];
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && key.startsWith('sb-') && key.endsWith('-auth-token')) {
+                keysToRemove.push(key);
+            }
+        }
+        keysToRemove.forEach(key => localStorage.removeItem(key));
+    } catch (e) {
+        console.error("Failed to clear localStorage keys:", e);
+    }
+};
+
 export function AuthProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [session, setSession] = useState<Session | null>(null);
@@ -22,13 +38,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     useEffect(() => {
         // Check active sessions and sets the user
         const getInitialSession = async () => {
-            const { data: { session }, error } = await supabase.auth.getSession();
-            if (error) {
-                console.error("Error getting session:", error.message);
+            try {
+                const { data: { session }, error } = await supabase.auth.getSession();
+                if (error) {
+                    console.error("Error getting session:", error.message);
+                    if (
+                        error.message?.includes("refresh_token") || 
+                        error.message?.includes("Refresh Token") ||
+                        error.message?.includes("not found")
+                    ) {
+                        clearSupabaseLocalStorage();
+                        await supabase.auth.signOut().catch(() => {});
+                    }
+                }
+                setSession(session);
+                setUser(session?.user ?? null);
+            } catch (err) {
+                console.error("Unexpected error during session initialization:", err);
+            } finally {
+                setLoading(false);
             }
-            setSession(session);
-            setUser(session?.user ?? null);
-            setLoading(false);
         };
 
         getInitialSession();

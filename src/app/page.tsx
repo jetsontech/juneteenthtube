@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, startTransition } from "react";
 import { useVideo, type VideoProps } from "@/context/VideoContext";
 import { HeroCarousel } from "@/components/home/HeroCarousel";
 import { ContentRail } from "@/components/home/ContentRail";
@@ -204,7 +204,9 @@ export default function HomePage() {
 
             <div className="relative px-4 sm:px-6 lg:px-10 pt-6 sm:pt-8 space-y-12 sm:space-y-16 max-w-[1600px] mx-auto">
                 {/* Hero Carousel — Featured or Top 5 by views */}
-                <HeroCarousel videos={carouselVideos} />
+                <div className="animate-revealUp" style={{ animationDuration: '0.8s', animationFillMode: 'both' }}>
+                    <HeroCarousel videos={carouselVideos} />
+                </div>
 
                 {/* Premium Gold-Fading Divider */}
                 <div className="h-px bg-gradient-to-r from-transparent via-amber-500/15 to-transparent my-4 opacity-80" />
@@ -216,7 +218,7 @@ export default function HomePage() {
                         return (
                             <button
                                 key={cat}
-                                onClick={() => setSelectedCategory(cat)}
+                                onClick={() => startTransition(() => setSelectedCategory(cat))}
                                 className={`px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-wider transition-all border ${
                                     active
                                         ? "bg-j-gold text-black border-j-gold shadow-[0_0_10px_rgba(212,175,55,0.15)]"
@@ -277,42 +279,46 @@ export default function HomePage() {
                 )}
 
                 {/* Trending */}
-                <ContentRail
-                    title="Trending Now"
-                    videos={filteredTrending}
-                    icon={<TrendingUp className="w-4 h-4" />}
-                    accentColor="red"
-                    seeAllHref="/explore"
-                    headerControls={
-                        <div className="flex items-center gap-2 overflow-x-auto custom-scrollbar pb-1">
-                            {(['Curated', 'Today', 'This Week', 'All Time'] as TrendingFilter[]).map((filter) => (
-                                <button
-                                    key={filter}
-                                    onClick={() => setTrendingFilter(filter)}
-                                    className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all border ${
-                                        trendingFilter === filter
-                                            ? "bg-j-red/10 text-j-red border-j-red/30 shadow-[0_0_10px_rgba(229,9,20,0.1)]"
-                                            : "bg-white/5 text-gray-500 border-white/10 hover:bg-white/10 hover:text-white"
-                                    }`}
-                                >
-                                    {filter}
-                                </button>
-                            ))}
-                        </div>
-                    }
-                />
+                <div className="animate-revealUp" style={{ animationDelay: '0.2s', animationDuration: '0.8s', animationFillMode: 'both' }}>
+                    <ContentRail
+                        title="Trending Now"
+                        videos={filteredTrending}
+                        icon={<TrendingUp className="w-4 h-4" />}
+                        accentColor="red"
+                        seeAllHref="/explore"
+                        headerControls={
+                            <div className="flex items-center gap-2 overflow-x-auto custom-scrollbar pb-1">
+                                {(['Curated', 'Today', 'This Week', 'All Time'] as TrendingFilter[]).map((filter) => (
+                                    <button
+                                        key={filter}
+                                        onClick={() => startTransition(() => setTrendingFilter(filter))}
+                                        className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all border ${
+                                            trendingFilter === filter
+                                                ? "bg-j-red/10 text-j-red border-j-red/30 shadow-[0_0_10px_rgba(229,9,20,0.1)]"
+                                                : "bg-white/5 text-gray-500 border-white/10 hover:bg-white/10 hover:text-white"
+                                        }`}
+                                    >
+                                        {filter}
+                                    </button>
+                                ))}
+                            </div>
+                        }
+                    />
+                </div>
 
                 {/* Premium Gold-Fading Divider */}
                 <div className="h-px bg-gradient-to-r from-transparent via-amber-500/15 to-transparent my-4 opacity-80" />
 
                 {/* Shorts Shelf */}
-                <ShortsShelf horizontal={true} />
+                <div className="animate-revealUp" style={{ animationDelay: '0.4s', animationDuration: '0.8s', animationFillMode: 'both' }}>
+                    <ShortsShelf horizontal={true} />
+                </div>
 
                 {/* Premium Gold-Fading Divider */}
                 <div className="h-px bg-gradient-to-r from-transparent via-amber-500/15 to-transparent my-4 opacity-80" />
 
                 {/* Recently Added — Premium Responsive Grid layout */}
-                <section className="space-y-6">
+                <section className="space-y-6 animate-revealUp" style={{ animationDelay: '0.6s', animationDuration: '0.8s', animationFillMode: 'both' }}>
                     <div className="flex items-center justify-between px-1">
                         <div className="flex items-center gap-3">
                             <Clock className="text-zinc-400 opacity-80 w-4 h-4" />
@@ -363,7 +369,8 @@ export default function HomePage() {
                 <div className="h-px bg-gradient-to-r from-transparent via-amber-500/15 to-transparent my-4 opacity-80" />
 
                 {/* Trivia Game Promo Card */}
-                <section className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-r from-red-950/10 via-black/40 to-emerald-950/10 backdrop-blur-2xl p-8 sm:p-12 shadow-2xl mt-8 hover:border-j-gold/40 transition-all duration-500 group flex flex-col md:flex-row items-center justify-between gap-8">
+                <section className="relative overflow-hidden rounded-3xl premium-card p-8 sm:p-12 mt-8 group flex flex-col md:flex-row items-center justify-between gap-8 gloss-shine animate-revealUp" style={{ animationDelay: '0.8s', animationDuration: '0.8s', animationFillMode: 'both' }}>
+                    <div className="gloss-overlay" />
                     <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 via-transparent to-red-500/5 pointer-events-none" />
                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,rgba(16,185,129,0.06),transparent_40%)] pointer-events-none" />
 
@@ -400,7 +407,8 @@ export default function HomePage() {
                 <div className="h-px bg-gradient-to-r from-transparent via-amber-500/15 to-transparent my-4 opacity-80" />
 
                 {/* Platform Identity Footer Card */}
-                <section className="relative overflow-hidden rounded-3xl border border-white/10 bg-black/40 backdrop-blur-2xl p-8 sm:p-14 shadow-2xl mt-8 mb-4 group hover:border-white/20 transition-colors duration-500">
+                <section className="relative overflow-hidden rounded-3xl premium-card p-8 sm:p-14 mt-8 mb-4 group gloss-shine animate-revealUp" style={{ animationDelay: '1s', animationDuration: '0.8s', animationFillMode: 'both' }}>
+                    <div className="gloss-overlay" />
                     <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 via-transparent to-emerald-500/5" />
                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(245,158,11,0.08),transparent_40%)]" />
                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,rgba(16,185,129,0.06),transparent_40%)]" />

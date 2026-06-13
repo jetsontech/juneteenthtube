@@ -6,6 +6,23 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { title, video_url, thumbnail_url, category, duration, state, transcode_status, owner_id } = body;
 
+    // Authenticate user
+    const token = req.headers.get("Authorization")?.split(' ')[1] || req.cookies.get('sb-fybxhwpkujbodlfoadem-auth-token')?.value || '';
+    if (!token) {
+      return NextResponse.json({ error: 'Unauthorized: Missing session token' }, { status: 401 });
+    }
+
+    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized: Invalid session token' }, { status: 401 });
+    }
+
+    const isAdmin = user.email === process.env.NEXT_PUBLIC_ADMIN_EMAIL || user.user_metadata?.role === 'admin' || user.role === 'admin';
+    if (owner_id && owner_id !== user.id && !isAdmin) {
+      return NextResponse.json({ error: 'Forbidden: Cannot create video for another owner' }, { status: 403 });
+    }
+
+    const finalOwnerId = isAdmin ? (owner_id || user.id) : user.id;
 
     const { data, error } = await supabaseAdmin
       .from('videos')
@@ -18,9 +35,8 @@ export async function POST(req: NextRequest) {
           duration,
           state,
           transcode_status,
-          owner_id
+          owner_id: finalOwnerId
         }
-
       ])
       .select()
       .single();
@@ -34,7 +50,7 @@ export async function POST(req: NextRequest) {
     if (data?.id && process.env.GITHUB_DISPATCH_TOKEN) {
       try {
         await fetch(
-          'https://api.github.com/repos/jetsontech/juneteenthtube-gh-transcoder/dispatches',
+          'https://api.github.com/repos/jetsontech/culturequest-gh-transcoder/dispatches',
           {
             method: 'POST',
             headers: {

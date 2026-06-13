@@ -32,19 +32,20 @@ export function HeroCarousel({ videos }: HeroCarouselProps) {
 
     return (
         <section
-            className="relative w-full overflow-hidden rounded-2xl sm:rounded-3xl border border-white/[0.06] shadow-2xl group"
+            className="relative w-full overflow-hidden rounded-2xl sm:rounded-[2rem] premium-card border-none shadow-[0_30px_60px_-15px_rgba(0,0,0,0.8),0_0_40px_rgba(212,175,55,0.08)] group gloss-shine"
             onMouseEnter={() => setIsPaused(true)}
             onMouseLeave={() => setIsPaused(false)}
         >
+            <div className="gloss-overlay" />
             {/* Background Image */}
-            <div className="relative aspect-[16/10] sm:aspect-[2.4/1] w-full bg-black">
+            <div className="relative aspect-[16/10] sm:aspect-[2.5/1] w-full bg-black">
                 {current.thumbnail && current.thumbnail !== "/placeholder.svg" ? (
                     <Image
                         src={current.thumbnail}
                         alt={current.title}
                         fill
                         sizes="100vw"
-                        className="object-cover transition-transform duration-[1500ms] ease-out group-hover:scale-105 opacity-90 group-hover:opacity-100"
+                        className="object-cover transition-transform duration-[2000ms] ease-out scale-105 group-hover:scale-110 opacity-90 group-hover:opacity-100 will-change-transform"
                         priority
                     />
                 ) : (
@@ -52,12 +53,13 @@ export function HeroCarousel({ videos }: HeroCarouselProps) {
                 )}
 
                 {/* Gradient Overlays for Cinematic Feel */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-90" />
-                <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/40 to-transparent" />
-                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_50%,rgba(0,0,0,0.4))]" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/40 to-transparent opacity-95" />
+                <div className="absolute inset-0 bg-gradient-to-r from-[#050505]/95 via-[#050505]/50 to-transparent" />
+                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_40%,rgba(5,5,5,0.6))]" />
 
                 {/* Ambient Glow */}
-                <div className="absolute bottom-0 left-0 w-[70%] h-[60%] bg-[radial-gradient(ellipse_at_bottom_left,rgba(212,175,55,0.15),transparent_60%)] pointer-events-none mix-blend-screen" />
+                <div className="absolute bottom-0 left-0 w-[80%] h-[80%] bg-[radial-gradient(ellipse_at_bottom_left,rgba(212,175,55,0.25),transparent_60%)] pointer-events-none mix-blend-screen" />
+                <div className="absolute top-0 right-0 w-[60%] h-[60%] bg-[radial-gradient(ellipse_at_top_right,rgba(227,28,35,0.15),transparent_60%)] pointer-events-none mix-blend-screen" />
             </div>
 
             {/* Full-card link for mobile only (prevents HTML nested <a> tag validation errors on desktop) */}
@@ -88,13 +90,18 @@ export function HeroCarousel({ videos }: HeroCarouselProps) {
                     </p>
 
                     {/* CTA */}
-                    <Link
-                        href={`/watch/${current.id}`}
-                        className="inline-flex items-center gap-1.5 px-4 py-2 sm:gap-2.5 sm:px-8 sm:py-3.5 bg-white text-black font-bold text-[11px] sm:text-sm rounded-full hover:bg-zinc-200 transition-all duration-300 hover:scale-105 active:scale-95 shadow-[0_0_15px_rgba(255,255,255,0.1)] sm:shadow-[0_0_30px_rgba(255,255,255,0.15)] hover:shadow-[0_0_40px_rgba(255,255,255,0.25)] pointer-events-auto"
-                    >
-                        <Play className="w-3 h-3 sm:w-4 sm:h-4 fill-black" />
-                        Watch Now
-                    </Link>
+                    <div className="flex gap-4">
+                        <Link
+                            href={`/watch/${current.id}`}
+                            className="inline-flex items-center gap-1.5 px-6 py-2.5 sm:gap-2.5 sm:px-10 sm:py-4 bg-white text-black font-bold text-[12px] sm:text-sm rounded-full hover:bg-zinc-200 transition-all duration-300 hover:scale-105 active:scale-95 shadow-[0_0_15px_rgba(255,255,255,0.2)] sm:shadow-[0_0_30px_rgba(255,255,255,0.3)] hover:shadow-[0_0_50px_rgba(255,255,255,0.4)] pointer-events-auto"
+                        >
+                            <Play className="w-4 h-4 sm:w-5 sm:h-5 fill-black" />
+                            Watch Now
+                        </Link>
+                        <button className="hidden sm:inline-flex items-center justify-center w-12 h-12 rounded-full glass-heavy border border-white/20 hover:bg-white/10 transition-all duration-300 pointer-events-auto hover:scale-105">
+                            <span className="text-white font-bold text-lg">+</span>
+                        </button>
+                    </div>
                 </div>
             </div>
 

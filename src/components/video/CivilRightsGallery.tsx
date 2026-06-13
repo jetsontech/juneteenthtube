@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { Film, Play, Pause, Volume2, VolumeX, Maximize, Landmark, Scale, Megaphone, BookOpen, Users, ChevronRight, Radio } from "lucide-react";
+import { Film, Play, Pause, Volume2, VolumeX, Maximize, Landmark, Scale, Megaphone, Users, PictureInPicture } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 /* ════════════════════════════════════════════════════
@@ -18,6 +18,7 @@ interface VideoItem {
     duration: string;
     director: string;
     category: "March & Protest" | "Documentary" | "Military & Service" | "Legal & Legislative" | "Culture & Identity";
+    thumbnail?: string;
 }
 
 interface Section {
@@ -57,7 +58,8 @@ const SECTIONS: Section[] = [
                 year: "1963",
                 duration: "30m",
                 director: "U.S. Information Agency",
-                category: "March & Protest"
+                category: "March & Protest",
+                thumbnail: "https://images.unsplash.com/photo-1501386761578-eac5c94b800a?q=80&w=800"
             },
             {
                 id: "1619-up-from-slavery",
@@ -68,7 +70,8 @@ const SECTIONS: Section[] = [
                 year: "2000",
                 duration: "1h 30m",
                 director: "PBS",
-                category: "March & Protest"
+                category: "March & Protest",
+                thumbnail: "https://images.unsplash.com/photo-1520006403909-838d6b92c22e?q=80&w=800"
             },
         ]
     },
@@ -93,7 +96,8 @@ const SECTIONS: Section[] = [
                 year: "1968",
                 duration: "52m",
                 director: "CBS News",
-                category: "Documentary"
+                category: "Documentary",
+                thumbnail: "https://images.unsplash.com/photo-1590073844006-33379778ae09?q=80&w=800"
             },
             {
                 id: "black-history-lost-stolen-pt1",
@@ -104,7 +108,8 @@ const SECTIONS: Section[] = [
                 year: "1968",
                 duration: "27m",
                 director: "Perry Wolff",
-                category: "Documentary"
+                category: "Documentary",
+                thumbnail: "https://images.unsplash.com/photo-1590073844006-33379778ae09?q=80&w=800"
             },
             {
                 id: "black-history-lost-stolen-pt2",
@@ -115,11 +120,12 @@ const SECTIONS: Section[] = [
                 year: "1968",
                 duration: "27m",
                 director: "Perry Wolff",
-                category: "Documentary"
+                category: "Documentary",
+                thumbnail: "https://images.unsplash.com/photo-1447069387593-a5de0862481e?q=80&w=800"
             },
         ]
     },
-
+ 
     /* ──── MILITARY & SERVICE ──── */
     {
         id: "military",
@@ -140,7 +146,8 @@ const SECTIONS: Section[] = [
                 year: "1944",
                 duration: "40m",
                 director: "Stuart Heisler",
-                category: "Military & Service"
+                category: "Military & Service",
+                thumbnail: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?q=80&w=800"
             },
             {
                 id: "wings-for-this-man",
@@ -151,7 +158,8 @@ const SECTIONS: Section[] = [
                 year: "1945",
                 duration: "12m",
                 director: "U.S. Army Air Forces",
-                category: "Military & Service"
+                category: "Military & Service",
+                thumbnail: "https://images.unsplash.com/photo-1520006403909-838d6b92c22e?q=80&w=800"
             },
         ]
     },
@@ -176,7 +184,8 @@ const SECTIONS: Section[] = [
                 year: "1920",
                 duration: "1h 19m",
                 director: "Oscar Micheaux",
-                category: "Legal & Legislative"
+                category: "Legal & Legislative",
+                thumbnail: "https://images.unsplash.com/photo-1590073844006-33379778ae09?q=80&w=800"
             },
             {
                 id: "murder-in-harlem",
@@ -187,7 +196,8 @@ const SECTIONS: Section[] = [
                 year: "1935",
                 duration: "1h 36m",
                 director: "Oscar Micheaux",
-                category: "Legal & Legislative"
+                category: "Legal & Legislative",
+                thumbnail: "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?q=80&w=800"
             },
         ]
     },
@@ -212,7 +222,8 @@ const SECTIONS: Section[] = [
                 year: "1933",
                 duration: "18m",
                 director: "Unknown",
-                category: "Culture & Identity"
+                category: "Culture & Identity",
+                thumbnail: "https://images.unsplash.com/photo-1513364776144-60967b0f800f?q=80&w=800"
             },
             {
                 id: "1950s-detroit-home-cr",
@@ -223,7 +234,8 @@ const SECTIONS: Section[] = [
                 year: "1950s",
                 duration: "15m",
                 director: "Unknown",
-                category: "Culture & Identity"
+                category: "Culture & Identity",
+                thumbnail: "https://images.unsplash.com/photo-1580136608260-4eb11f4b24fe?q=80&w=800"
             },
             {
                 id: "rock-n-roll-revue-cr",
@@ -234,13 +246,13 @@ const SECTIONS: Section[] = [
                 year: "1955",
                 duration: "1h 10m",
                 director: "Joseph Kohn",
-                category: "Culture & Identity"
+                category: "Culture & Identity",
+                thumbnail: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=800"
             },
         ]
     },
 ];
 
-const ALL_FILMS = SECTIONS.flatMap(s => s.films);
 const CATEGORIES = ["All", "March & Protest", "Documentary", "Military & Service", "Legal & Legislative", "Culture & Identity"] as const;
 
 export function CivilRightsGallery() {
@@ -347,7 +359,7 @@ export function CivilRightsGallery() {
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         {filteredFilms.map((film) => (
                             <div key={film.id} className="group space-y-4">
-                                <CivilRightsPlayer src={film.url} accent={activeSection.accent} />
+                                <CivilRightsPlayer src={film.url} poster={film.thumbnail} accent={activeSection.accent} />
                                 <div>
                                     <div className="flex items-center justify-between mb-2">
                                         <span className={cn("text-[10px] font-black uppercase tracking-widest", activeSection.accentText)}>
@@ -375,7 +387,13 @@ export function CivilRightsGallery() {
    CINEMA PLAYER (lightweight)
    ════════════════════════════════════════════════════ */
 
-function CivilRightsPlayer({ src, accent }: { src: string; accent: string }) {
+interface HTMLVideoElementWithPlaybackTarget extends HTMLVideoElement {
+    webkitSupportsPresentationMode?: (mode: string) => boolean;
+    webkitPresentationMode?: string;
+    webkitSetPresentationMode?: (mode: string) => void;
+}
+
+function CivilRightsPlayer({ src, poster, accent }: { src: string; poster?: string; accent: string }) {
     const videoRef = useRef<HTMLVideoElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const hideTimerRef = useRef<NodeJS.Timeout | null>(null); // FIXED: Added useRef for timer
@@ -385,6 +403,40 @@ function CivilRightsPlayer({ src, accent }: { src: string; accent: string }) {
     const [currentTime, setCurrentTime] = useState("0:00");
     const [totalDuration, setTotalDuration] = useState("0:00");
     const [showControls, setShowControls] = useState(true);
+    const [isPipAvailable, setIsPipAvailable] = useState(true);
+
+    useEffect(() => {
+        const v = videoRef.current as HTMLVideoElementWithPlaybackTarget;
+        if (!v) return;
+        const check = () => {
+            const supportsPip = 
+                document.pictureInPictureEnabled || 
+                (v.webkitSupportsPresentationMode && 
+                 v.webkitSupportsPresentationMode("picture-in-picture")) ||
+                (typeof v.webkitSetPresentationMode === "function") ||
+                ('pictureInPictureEnabled' in document);
+            setIsPipAvailable(!!supportsPip);
+        };
+        setTimeout(check, 0);
+    }, [src]);
+
+    const togglePip = async (e: React.MouseEvent) => {
+        e.stopPropagation();
+        const v = videoRef.current as HTMLVideoElementWithPlaybackTarget;
+        if (!v) return;
+        try {
+            if (document.pictureInPictureElement) {
+                await document.exitPictureInPicture();
+            } else if (v.requestPictureInPicture) {
+                await v.requestPictureInPicture();
+            } else if (typeof v.webkitSetPresentationMode === "function") {
+                const newMode = v.webkitPresentationMode === "picture-in-picture" ? "inline" : "picture-in-picture";
+                v.webkitSetPresentationMode(newMode);
+            }
+        } catch (error) {
+            console.error("Failed to toggle Picture-in-Picture:", error);
+        }
+    };
 
     const accentBar = accent === "red" ? "bg-red-500" : accent === "blue" ? "bg-blue-500" : accent === "amber" ? "bg-amber-500" : accent === "purple" ? "bg-purple-500" : "bg-emerald-500";
 
@@ -470,7 +522,7 @@ function CivilRightsPlayer({ src, accent }: { src: string; accent: string }) {
             onMouseLeave={() => isPlaying && setShowControls(false)}
             onClick={togglePlay}
         >
-            <video ref={videoRef} src={src} poster="/placeholder.svg" preload="metadata" playsInline className="w-full h-full object-contain bg-black">
+            <video ref={videoRef} src={src} poster={poster || "/placeholder.svg"} preload="metadata" playsInline className="w-full h-full object-contain bg-black">
                 {src.includes('.m3u8') && <source src={src} type="application/x-mpegURL" />}
                 <source src={src} type="video/mp4" />
             </video>
@@ -503,9 +555,16 @@ function CivilRightsPlayer({ src, accent }: { src: string; accent: string }) {
                         </button>
                         <span className="text-xs text-gray-400 font-mono">{currentTime} / {totalDuration}</span>
                     </div>
-                    <button onClick={toggleFullscreen} className="text-white hover:text-gray-300 transition" title="Fullscreen" aria-label="Fullscreen">
-                        <Maximize className="w-5 h-5" />
-                    </button>
+                    <div className="flex items-center gap-3">
+                        {isPipAvailable && (
+                            <button onClick={togglePip} className="text-white hover:text-gray-300 transition" title="Picture in Picture" aria-label="Picture in Picture">
+                                <PictureInPicture className="w-5 h-5" />
+                            </button>
+                        )}
+                        <button onClick={toggleFullscreen} className="text-white hover:text-gray-300 transition" title="Fullscreen" aria-label="Fullscreen">
+                            <Maximize className="w-5 h-5" />
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Lock, ArrowRight, Play } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -15,9 +15,23 @@ export const LoginSplash: React.FC<LoginSplashProps> = ({ onUnlock }) => {
     const [isLoaded, setIsLoaded] = useState(false);
     const [phase, setPhase] = useState<'gate' | 'welcome'>('gate');
 
+    const videoRef = useRef<HTMLVideoElement>(null);
+
     useEffect(() => {
-        setTimeout(() => setIsLoaded(true), 100);
+        if (videoRef.current) {
+            videoRef.current.muted = true; // Force DOM-level mute to bypass React's attribute bug
+            videoRef.current.play().catch((err) => {
+                console.warn("[LoginSplash] Video play failed or was blocked by autoplay policies:", err);
+            });
+        }
+        setTimeout(() => setIsLoaded(true), 6000);
     }, []);
+
+    useEffect(() => {
+        if (isLoaded && videoRef.current) {
+            videoRef.current.pause();
+        }
+    }, [isLoaded]);
 
     const handleUnlock = (e?: React.FormEvent) => {
         e?.preventDefault();
@@ -59,19 +73,30 @@ export const LoginSplash: React.FC<LoginSplashProps> = ({ onUnlock }) => {
             {/* Shared Background System */}
             {/* Background Video */}
             <video
+                ref={videoRef}
                 autoPlay
                 loop
                 muted
                 playsInline
-                className="absolute inset-0 w-full h-full object-cover z-0 opacity-40"
+                preload="auto"
+                className={cn(
+                    "absolute inset-0 w-full h-full object-contain sm:object-cover z-0 transition-opacity duration-1000",
+                    isLoaded ? "opacity-30" : "opacity-100"
+                )}
             >
                 <source src="/cq4.mp4" type="video/mp4" />
             </video>
 
+            {/* Dark glassmorphism overlay that fades in when login screen is loaded */}
+            <div className={cn(
+                "absolute inset-0 bg-black/60 backdrop-blur-[4px] transition-opacity duration-1000 z-[5]",
+                isLoaded ? "opacity-100" : "opacity-0 pointer-events-none"
+            )} />
+
             {/* Content Container */}
             <div className={cn(
                 "relative z-10 w-full max-w-lg px-8 py-12 transition-all duration-1000 delay-300 transform",
-                isLoaded ? "translate-y-0 opacity-100" : "translate-y-12 opacity-0"
+                isLoaded ? "translate-y-0 opacity-100 pointer-events-auto" : "translate-y-12 opacity-0 pointer-events-none"
             )}>
                 <div className="flex flex-col items-center text-center space-y-8">
                     {/* Logo/Icon Section */}

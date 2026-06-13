@@ -40,11 +40,10 @@ export async function POST(req: NextRequest) {
             process.env.SUPABASE_SERVICE_ROLE_KEY!
         );
         const { data: { user } } = await supabase.auth.getUser(req.headers.get("Authorization")?.split(' ')[1] || req.cookies.get('sb-fybxhwpkujbodlfoadem-auth-token')?.value || '');
-        const isAdmin = user?.email === process.env.NEXT_PUBLIC_ADMIN_EMAIL || user?.user_metadata?.role === 'admin' || user?.role === 'admin';
 
-        if (!isAdmin) {
-            console.warn("Unauthorized API access attempt");
-            return NextResponse.json({ error: "Unauthorized. Artist Network Premium feature." }, { status: 403 });
+        if (!user) {
+            console.warn("Unauthorized API upload attempt - missing user session");
+            return NextResponse.json({ error: "Unauthorized. Please log in to upload." }, { status: 401 });
         }
 
         const { filename, contentType } = await req.json();

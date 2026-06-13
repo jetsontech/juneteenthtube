@@ -193,8 +193,54 @@ const VAULT_VIDEOS = [
     }
 ];
 
+interface VaultVideo {
+    title: string;
+    year: string;
+    director: string;
+    url: string;
+    duration: string;
+    category: string;
+    description: string;
+}
+
+interface DBVideo {
+    id: string;
+    title: string;
+    video_url?: string | null;
+    category?: string | null;
+    duration?: string | null;
+    transcode_status?: string | null;
+    state?: string | null;
+    owner_id?: string | null;
+}
+
+interface EpgVideoInput {
+    id?: string;
+    title: string;
+    url?: string;
+    video_url?: string | null;
+    duration?: string | null;
+    category?: string | null;
+}
+
 export async function POST(req: NextRequest) {
     try {
+        // Authenticate the administrator
+        const token = req.headers.get("Authorization")?.split(' ')[1] || req.cookies.get('sb-fybxhwpkujbodlfoadem-auth-token')?.value || '';
+        if (!token) {
+            return NextResponse.json({ error: 'Unauthorized: Missing session token' }, { status: 401 });
+        }
+
+        const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
+        if (authError || !user) {
+            return NextResponse.json({ error: 'Unauthorized: Invalid session token' }, { status: 401 });
+        }
+
+        const isAdmin = user.email === process.env.NEXT_PUBLIC_ADMIN_EMAIL || user.user_metadata?.role === 'admin' || user.role === 'admin';
+        if (!isAdmin) {
+            return NextResponse.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
+        }
+
         const now = new Date();
         const futureWindow = new Date(now.getTime() + 48 * 60 * 60 * 1000);
         let syncedCount = 0;
@@ -210,10 +256,11 @@ export async function POST(req: NextRequest) {
 
         // 2. Fetch all videos to map
         const { data: allVideos } = await supabaseAdmin.from('videos').select('*');
-        const videoMap = new Map(allVideos?.map((v: any) => [v.video_url, v.id]));
+        const typedAllVideos = allVideos as DBVideo[] | null;
+        const videoMap = new Map<string, string>(typedAllVideos?.map((v: DBVideo) => [v.video_url || '', v.id]) || []);
 
         // Helper: Schedule a channel
-        const fillChannel = async (channelId: string, videos: any[], tag: string) => {
+        const fillChannel = async (channelId: string, videos: EpgVideoInput[], tag: string) => {
             if (videos.length === 0) return 0;
 
             const { data: latestEpg } = await supabaseAdmin
@@ -235,7 +282,7 @@ export async function POST(req: NextRequest) {
                 const v = videos[videoIdx % videos.length];
                 videoIdx++;
 
-                const videoId = v.id || videoMap.get(v.url);
+                const videoId = v.id || (v.url ? videoMap.get(v.url) : (v.video_url ? videoMap.get(v.video_url) : undefined));
                 if (!videoId) continue;
 
                 let durationSecs = 1800;
@@ -265,10 +312,10 @@ export async function POST(req: NextRequest) {
         };
 
         if (legacyChannel) {
-            const missing = VAULT_VIDEOS.filter((v: any) => !videoMap.has(v.url));
+            const missing = (VAULT_VIDEOS as VaultVideo[]).filter((v: VaultVideo) => !videoMap.has(v.url));
             if (missing.length > 0) {
                 const { data: nvs } = await supabaseAdmin.from('videos').insert(
-                    missing.map((v: any) => ({
+                    missing.map((v: VaultVideo) => ({
                         title: v.title,
                         video_url: v.url,
                         category: 'Legacy',
@@ -278,30 +325,32 @@ export async function POST(req: NextRequest) {
                         owner_id: null
                     }))
                 ).select();
-                nvs?.forEach((v: any) => videoMap.set(v.video_url, v.id));
-                syncedCount += nvs?.length || 0;
+                const typedNvs = nvs as DBVideo[] | null;
+                typedNvs?.forEach((v: DBVideo) => videoMap.set(v.video_url || '', v.id));
+                syncedCount += typedNvs?.length || 0;
             }
             scheduledCount += await fillChannel(legacyChannel.id, VAULT_VIDEOS, "Legacy Vault");
         }
 
         // 4. Sync SAREMBOK (Dynamic)
         if (sarembokChannel) {
-            const sVideos = allVideos?.filter((v: any) => v.category === 'SAREMBOK' || v.category === 'Music' || v.category === 'Entertainment') || [];
+            const sVideos = typedAllVideos?.filter((v: DBVideo) => v.category === 'SAREMBOK' || v.category === 'Music' || v.category === 'Entertainment') || [];
             scheduledCount += await fillChannel(sarembokChannel.id, sVideos, "SAREMBOK Entertainment");
         }
 
         // 5. Sync J-Tube Originals (Dynamic - Non-Vault)
         if (jtubeChannel) {
-            const vaultUrls = new Set(VAULT_VIDEOS.map((v: any) => v.url));
-            const jVideos = allVideos?.filter((v: any) => v.category === 'J-Tube Originals' && !vaultUrls.has(v.video_url)) || [];
+            const vaultUrls = new Set((VAULT_VIDEOS as VaultVideo[]).map((v: VaultVideo) => v.url));
+            const jVideos = typedAllVideos?.filter((v: DBVideo) => v.category === 'J-Tube Originals' && !vaultUrls.has(v.video_url || '')) || [];
             if (jVideos.length > 0) {
                 scheduledCount += await fillChannel(jtubeChannel.id, jVideos, "J-Tube Original");
             }
         }
 
         return NextResponse.json({ success: true, syncedCount, scheduledCount });
-    } catch (error: any) {
-        console.error('Rotation Error:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+    } catch (error: unknown) {
+        const err = error as Error;
+        console.error('Rotation Error:', err);
+        return NextResponse.json({ error: err.message }, { status: 500 });
     }
 }

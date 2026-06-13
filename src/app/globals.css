@@ -24,9 +24,12 @@
   --navbar-height: var(--navbar-full-height);
   --sidebar-w: 260px;
 
-  --background: #0f0f0f;
-  /* YouTube Dark Background */
+  --background: #050505;
   --foreground: #ffffff;
+  
+  /* Volumetric Lighting */
+  --dynamic-glow: rgba(255, 215, 0, 0.15);
+  --ambient-light: radial-gradient(circle at 50% 50%, rgba(212,175,55,0.08) 0%, rgba(227,28,35,0.04) 50%, transparent 100%);
 
   /* Juneteenth Palette */
   --color-j-red: #E31C23;
@@ -414,7 +417,7 @@ video {
 }
 
 html {
-  background-color: #0f0f0f;
+  background-color: #050505;
   position: fixed;
   inset: 0;
   width: 100%;
@@ -431,7 +434,13 @@ body {
   margin: 0;
   padding: 0;
   overflow: hidden !important;
-  background-color: var(--bg);
+  background-color: #050505;
+  background-image: 
+    radial-gradient(circle at 15% 50%, rgba(212, 175, 55, 0.08), transparent 40%),
+    radial-gradient(circle at 85% 30%, rgba(227, 28, 35, 0.06), transparent 40%),
+    radial-gradient(circle at 50% 80%, rgba(0, 107, 61, 0.05), transparent 40%);
+  background-size: 200% 200%;
+  animation: mesh-sweep 25s ease-in-out infinite alternate;
   color: var(--text);
   font-family: 'DM Sans', sans-serif;
   overscroll-behavior: none;

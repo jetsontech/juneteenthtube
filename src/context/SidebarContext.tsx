@@ -23,35 +23,50 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
     const pathname = usePathname();
     const isWatchPage = pathname?.startsWith('/watch/') || pathname?.startsWith('/shorts/');
 
-    // Detect mobile on mount and window resize
+    // Detect mobile and set initial open/closed state on mount and resizes
     useEffect(() => {
-        const checkMobile = () => {
-            // Mobile if: width < 640 OR device has coarse pointer (touch) OR no hover capability
+        const handleResize = () => {
             const isTouch = window.matchMedia("(pointer: coarse)").matches || window.matchMedia("(hover: none)").matches;
-            const isSmallScreen = window.innerWidth < 640; // sm breakpoint
+            const isSmallScreen = window.innerWidth < 640;
             const mobile = isSmallScreen || isTouch;
-
             setIsMobile(mobile);
-            // On mobile, always start closed
-            // On desktop, open by default on browse pages, closed on watch/shorts
+
+            // If screen becomes mobile size, force it closed
             if (mobile) {
-                setIsOpen(false);
-            } else if (!isWatchPage) {
-                setIsOpen(true);
-            } else {
                 setIsOpen(false);
             }
         };
 
-        checkMobile();
-        window.addEventListener('resize', checkMobile);
-        return () => window.removeEventListener('resize', checkMobile);
-    }, [isWatchPage]);
+        // Run once on mount to establish mobile vs desktop layout and initial state
+        const isTouch = window.matchMedia("(pointer: coarse)").matches || window.matchMedia("(hover: none)").matches;
+        const isSmallScreen = window.innerWidth < 640;
+        const mobile = isSmallScreen || isTouch;
+        
+        const initialPath = window.location.pathname;
+        const initialIsWatch = initialPath?.startsWith('/watch/') || initialPath?.startsWith('/shorts/');
+
+        // Defer state updates to comply with custom ESLint react-hooks/set-state-in-effect rule
+        const timer = setTimeout(() => {
+            setIsMobile(mobile);
+            if (mobile) {
+                setIsOpen(false);
+            } else if (!initialIsWatch) {
+                setIsOpen(false);
+            } else {
+                setIsOpen(false);
+            }
+        }, 0);
+
+        window.addEventListener('resize', handleResize);
+        return () => {
+            clearTimeout(timer);
+            window.removeEventListener('resize', handleResize);
+        };
+    }, []); // Empty dependency array -> ONLY runs on initial mount!
 
     // Auto-close sidebar when navigating to watch/shorts pages
     useEffect(() => {
         if (isWatchPage) {
-            // Push to next tick to avoid "synchronous update" warning during render phase
             const timer = setTimeout(() => setIsOpen(false), 0);
             return () => clearTimeout(timer);
         }

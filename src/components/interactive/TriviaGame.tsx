@@ -927,6 +927,9 @@ export function TriviaGame() {
     // Setup and cleanup audio synthesis
     useEffect(() => {
         if (typeof window !== "undefined") {
+            if (!audioRef.current) {
+                audioRef.current = new Audio();
+            }
             try {
                 const stored = localStorage.getItem("jt_trivia_leaderboard");
                 if (stored) {

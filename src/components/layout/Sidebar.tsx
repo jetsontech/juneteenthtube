@@ -67,9 +67,9 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                             key={link.href}
                             href={link.href}
                             onClick={handleMobileClose}
-                            className={`nav-link ${isActive ? 'active' : ''}`}
+                            className={`flex items-center gap-4 px-4 py-3 mx-2 my-1 rounded-xl transition-all duration-300 font-medium ${isActive ? 'bg-gradient-to-r from-amber-500/20 to-red-500/10 text-white shadow-[inset_3px_0_0_#D4AF37,0_0_20px_rgba(212,175,55,0.15)]' : 'text-zinc-400 hover:bg-white/5 hover:text-white'}`}
                         >
-                            <link.icon className="nav-icon" />
+                            <link.icon className={`w-5 h-5 transition-transform duration-300 ${isActive ? 'text-amber-400 scale-110 drop-shadow-[0_0_8px_rgba(255,215,0,0.5)]' : ''}`} />
                             {link.label}
                         </Link>
                     );
@@ -88,9 +88,9 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                             key={link.href}
                             href={link.href}
                             onClick={handleMobileClose}
-                            className={`nav-link ${isActive ? 'active' : ''}`}
+                            className={`flex items-center gap-4 px-4 py-3 mx-2 my-1 rounded-xl transition-all duration-300 font-medium ${isActive ? 'bg-gradient-to-r from-amber-500/20 to-red-500/10 text-white shadow-[inset_3px_0_0_#D4AF37,0_0_20px_rgba(212,175,55,0.15)]' : 'text-zinc-400 hover:bg-white/5 hover:text-white'}`}
                         >
-                            <link.icon className="nav-icon" />
+                            <link.icon className={`w-5 h-5 transition-transform duration-300 ${isActive ? 'text-amber-400 scale-110 drop-shadow-[0_0_8px_rgba(255,215,0,0.5)]' : ''}`} />
                             {link.label}
                         </Link>
                     );

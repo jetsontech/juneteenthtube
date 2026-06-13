@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, startTransition } from "react";
 import { X, ChevronLeft, ChevronRight, Image as ImageIcon, Trash2, Upload } from "lucide-react";
 import Image from "next/image";
 import { useVideo } from "@/context/VideoContext";
@@ -41,18 +41,30 @@ export default function PhotosPage() {
         fetchPhotos();
     }, []);
 
-    const openLightbox = (index: number) => setSelectedIndex(index);
-    const closeLightbox = () => setSelectedIndex(null);
+    const openLightbox = (index: number) => {
+        startTransition(() => {
+            setSelectedIndex(index);
+        });
+    };
+    const closeLightbox = () => {
+        startTransition(() => {
+            setSelectedIndex(null);
+        });
+    };
 
     const goToPrevious = () => {
         if (selectedIndex !== null) {
-            setSelectedIndex(selectedIndex === 0 ? photos.length - 1 : selectedIndex - 1);
+            startTransition(() => {
+                setSelectedIndex(selectedIndex === 0 ? photos.length - 1 : selectedIndex - 1);
+            });
         }
     };
 
     const goToNext = () => {
         if (selectedIndex !== null) {
-            setSelectedIndex(selectedIndex === photos.length - 1 ? 0 : selectedIndex + 1);
+            startTransition(() => {
+                setSelectedIndex(selectedIndex === photos.length - 1 ? 0 : selectedIndex + 1);
+            });
         }
     };
 
@@ -196,7 +208,7 @@ export default function PhotosPage() {
             {/* Lightbox Modal */}
             {selectedIndex !== null && photos[selectedIndex] && (
                 <div
-                    className="fixed inset-0 z-[80] bg-black/95 backdrop-blur-xl flex items-center justify-center animate-in fade-in duration-200"
+                    className="fixed inset-0 z-[80] bg-black/80 backdrop-blur-md flex items-center justify-center animate-in fade-in duration-200"
                     onClick={closeLightbox}
                 >
                     {/* Close button */}

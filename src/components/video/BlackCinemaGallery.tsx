@@ -1,10 +1,11 @@
 "use client";
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
+import Image from "next/image";
 import {
     Film, List, Play, Pause, Volume2, VolumeX, Maximize, SkipForward,
     Clock, User, Sparkles, Library, Tv, Music, Landmark, Home, Sword,
-    ChevronRight, Radio, Zap
+    ChevronRight, Radio, Zap, PictureInPicture
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -21,6 +22,7 @@ interface VideoItem {
     year: string;
     duration: string;
     director: string;
+    thumbnail?: string;
 }
 
 interface Channel {
@@ -36,10 +38,6 @@ interface Channel {
     icon: React.ElementType;
     films: VideoItem[];
 }
-
-/* ════════════════════════════════════════════════════
-   CHANNEL DATA
-   ════════════════════════════════════════════════════ */
 
 const CHANNELS: Channel[] = [
     /* ──── CH 1: MAVERICK BLACK CINEMA ──── */
@@ -63,7 +61,8 @@ const CHANNELS: Channel[] = [
                 url: "https://archive.org/download/WithinOurGates/WithinOurGates_512kb.mp4",
                 year: "1920",
                 duration: "1h 19m",
-                director: "Oscar Micheaux"
+                director: "Oscar Micheaux",
+                thumbnail: "https://images.unsplash.com/photo-1590073844006-33379778ae09?q=80&w=800"
             },
             {
                 id: "1950s-home-movies-maverick",
@@ -73,7 +72,8 @@ const CHANNELS: Channel[] = [
                 url: "https://archive.org/download/HM_African_American_Family_Detroit/HM_African_American_Family_Detroit.mp4",
                 year: "1950s",
                 duration: "12m",
-                director: "Unknown"
+                director: "Unknown",
+                thumbnail: "https://images.unsplash.com/photo-1501386761578-eac5c94b800a?q=80&w=800"
             },
             {
                 id: "symbol-of-the-unconquered",
@@ -83,7 +83,8 @@ const CHANNELS: Channel[] = [
                 url: "https://archive.org/download/TheSymbolOfTheUnconquered1920/The%20Symbol%20Of%20the%20Unconquered%20%281920%29.mp4",
                 year: "1920",
                 duration: "1h 8m",
-                director: "Oscar Micheaux"
+                director: "Oscar Micheaux",
+                thumbnail: "https://images.unsplash.com/photo-1579541814924-49fef17c5be5?q=80&w=800"
             },
             {
                 id: "body-and-soul",
@@ -93,7 +94,8 @@ const CHANNELS: Channel[] = [
                 url: "https://archive.org/download/body-and-soul_202107/Body%20and%20Soul.mp4",
                 year: "1925",
                 duration: "1h 42m",
-                director: "Oscar Micheaux"
+                director: "Oscar Micheaux",
+                thumbnail: "https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=800"
             },
             {
                 id: "scar-of-shame",
@@ -103,7 +105,8 @@ const CHANNELS: Channel[] = [
                 url: "https://archive.org/download/the-scar-of-shame_1927/the-scar-of-shame_1927.ia.mp4",
                 year: "1927",
                 duration: "1h 26m",
-                director: "Frank Peregini"
+                director: "Frank Peregini",
+                thumbnail: "https://images.unsplash.com/photo-1485846234645-a62644f84728?q=80&w=800"
             },
             {
                 id: "murder-in-harlem",
@@ -113,7 +116,8 @@ const CHANNELS: Channel[] = [
                 url: "https://archive.org/download/Murder_in_Harlem/MurderInHarlem.mp4",
                 year: "1935",
                 duration: "1h 36m",
-                director: "Oscar Micheaux"
+                director: "Oscar Micheaux",
+                thumbnail: "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?q=80&w=800"
             },
             {
                 id: "lying-lips",
@@ -123,7 +127,8 @@ const CHANNELS: Channel[] = [
                 url: "https://archive.org/download/lying_lips/lying_lips.mp4",
                 year: "1939",
                 duration: "1h 8m",
-                director: "Oscar Micheaux"
+                director: "Oscar Micheaux",
+                thumbnail: "/uploads/lying_lips.png"
             },
             {
                 id: "blood-of-jesus",
@@ -133,11 +138,11 @@ const CHANNELS: Channel[] = [
                 url: "https://archive.org/download/blood_of_jesus/blood_of_jesus.mp4",
                 year: "1941",
                 duration: "57m",
-                director: "Spencer Williams"
+                director: "Spencer Williams",
+                thumbnail: "https://images.unsplash.com/photo-1447069387593-a5de0862481e?q=80&w=800"
             },
         ]
     },
-
     /* ──── CH 2: BLACK WESTERNS ──── */
     {
         id: "westerns",
@@ -159,7 +164,8 @@ const CHANNELS: Channel[] = [
                 url: "https://archive.org/download/bronze_buckaroo/the_bronze_buckaroo.mp4",
                 year: "1939",
                 duration: "58m",
-                director: "Richard C. Kahn"
+                director: "Richard C. Kahn",
+                thumbnail: "https://pub-efcc4aa0b3b24e3d97760577b0ec20bd.r2.dev/thumbnails/dd4f9bb0-41c3-488d-9800-3191e93bb35c_1780196859478.jpg"
             },
             {
                 id: "harlem-rides-the-range",
@@ -169,7 +175,8 @@ const CHANNELS: Channel[] = [
                 url: "https://archive.org/download/HarlemRidesTheRange/Harlem%20Rides%20The%20Range.mp4",
                 year: "1939",
                 duration: "54m",
-                director: "Richard C. Kahn"
+                director: "Richard C. Kahn",
+                thumbnail: "https://pub-efcc4aa0b3b24e3d97760577b0ec20bd.r2.dev/thumbnails/a3a8514b-b5cc-41d3-a662-4ada92269483_1780196863823.jpg"
             },
             {
                 id: "two-gun-man-from-harlem",
@@ -179,11 +186,11 @@ const CHANNELS: Channel[] = [
                 url: "https://archive.org/download/Two-gunManFromHarlem/Two-gunManFromHarlem.mp4",
                 year: "1938",
                 duration: "1h 3m",
-                director: "Richard C. Kahn"
+                director: "Richard C. Kahn",
+                thumbnail: "https://images.unsplash.com/photo-1551462147-ff29053bfc14?q=80&w=800"
             },
         ]
     },
-
     /* ──── CH 3: SOUL STAGE ──── */
     {
         id: "soul-stage",
@@ -205,7 +212,8 @@ const CHANNELS: Channel[] = [
                 url: "https://archive.org/download/hi_de_ho/Hi-De-Ho.mp4",
                 year: "1947",
                 duration: "1h 12m",
-                director: "Josh Binney"
+                director: "Josh Binney",
+                thumbnail: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=800"
             },
             {
                 id: "study-negro-artists",
@@ -215,7 +223,8 @@ const CHANNELS: Channel[] = [
                 url: "https://archive.org/download/StudyOfNegroArtists/StudyOfNegroArtists_512kb.mp4",
                 year: "1933",
                 duration: "18m",
-                director: "Unknown"
+                director: "Unknown",
+                thumbnail: "https://images.unsplash.com/photo-1513364776144-60967b0f800f?q=80&w=800"
             },
             {
                 id: "1950s-home-movies-detroit",
@@ -225,11 +234,11 @@ const CHANNELS: Channel[] = [
                 url: "https://archive.org/download/HM_African_American_Family_Detroit/HM_African_American_Family_Detroit.mp4",
                 year: "1950s",
                 duration: "12m",
-                director: "Unknown"
+                director: "Unknown",
+                thumbnail: "https://images.unsplash.com/photo-1580136608260-4eb11f4b24fe?q=80&w=800"
             },
         ]
     },
-
     /* ──── CH 4: FREEDOM REELS ──── */
     {
         id: "freedom-reels",
@@ -251,7 +260,8 @@ const CHANNELS: Channel[] = [
                 url: "https://archive.org/download/negrosoldier/negrosoldier.mp4",
                 year: "1944",
                 duration: "40m",
-                director: "Stuart Heisler"
+                director: "Stuart Heisler",
+                thumbnail: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?q=80&w=800"
             },
             {
                 id: "heritage-of-slavery",
@@ -261,7 +271,8 @@ const CHANNELS: Channel[] = [
                 url: "https://archive.org/download/TheHeritageOfSlavery/The%20Heritage%20Of%20Slavery.mp4",
                 year: "1968",
                 duration: "52m",
-                director: "CBS News"
+                director: "CBS News",
+                thumbnail: "https://images.unsplash.com/photo-1590073844006-33379778ae09?q=80&w=800"
             },
             {
                 id: "black-history-lost-stolen-pt1",
@@ -271,7 +282,8 @@ const CHANNELS: Channel[] = [
                 url: "https://archive.org/download/blackhistoryloststolenorstrayed/blackhistoryloststolenorstrayedreel1.mp4",
                 year: "1968",
                 duration: "27m",
-                director: "Perry Wolff"
+                director: "Perry Wolff",
+                thumbnail: "/uploads/black_history.png"
             },
             {
                 id: "black-history-lost-stolen-pt2",
@@ -281,7 +293,8 @@ const CHANNELS: Channel[] = [
                 url: "https://archive.org/download/blackhistoryloststolenorstrayed/blackhistoryloststolenorstrayedreel2.mp4",
                 year: "1968",
                 duration: "27m",
-                director: "Perry Wolff"
+                director: "Perry Wolff",
+                thumbnail: "/uploads/black_history_pt2.png"
             },
             {
                 id: "1619-up-from-slavery",
@@ -291,11 +304,11 @@ const CHANNELS: Channel[] = [
                 url: "https://archive.org/download/1619UpFromSlavery/1619%20Up%20From%20Slavery%2001.mp4",
                 year: "2000",
                 duration: "1h 30m",
-                director: "PBS"
+                director: "PBS",
+                thumbnail: "https://images.unsplash.com/photo-1501386761578-eac5c94b800a?q=80&w=800"
             },
         ]
     },
-
     /* ──── CH 5: HOME & HERITAGE ──── */
     {
         id: "home-heritage",
@@ -317,7 +330,8 @@ const CHANNELS: Channel[] = [
                 url: "https://archive.org/download/HM_African_American_Family_Detroit/HM_African_American_Family_Detroit.mp4",
                 year: "1950s",
                 duration: "12m",
-                director: "Unknown"
+                director: "Unknown",
+                thumbnail: "https://images.unsplash.com/photo-1472653431158-6364773b2a56?q=80&w=800"
             },
             {
                 id: "study-negro-artists-heritage",
@@ -327,7 +341,8 @@ const CHANNELS: Channel[] = [
                 url: "https://archive.org/download/StudyOfNegroArtists/StudyOfNegroArtists_512kb.mp4",
                 year: "1933",
                 duration: "18m",
-                director: "Unknown"
+                director: "Unknown",
+                thumbnail: "https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?q=80&w=800"
             },
         ]
     },
@@ -338,7 +353,13 @@ const CHANNELS: Channel[] = [
    Auto-plays on mount, calls onEnded for auto-advance
    ════════════════════════════════════════════════════ */
 
-function CinemaPlayer({ src, accent, onEnded, autoPlay }: { src: string; accent: string; onEnded?: () => void; autoPlay?: boolean }) {
+interface HTMLVideoElementWithPlaybackTarget extends HTMLVideoElement {
+    webkitSupportsPresentationMode?: (mode: string) => boolean;
+    webkitPresentationMode?: string;
+    webkitSetPresentationMode?: (mode: string) => void;
+}
+
+function CinemaPlayer({ src, poster, accent, onEnded, autoPlay }: { src: string; poster?: string; accent: string; onEnded?: () => void; autoPlay?: boolean }) {
     const videoRef = useRef<HTMLVideoElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const [isPlaying, setIsPlaying] = useState(false);
@@ -348,6 +369,40 @@ function CinemaPlayer({ src, accent, onEnded, autoPlay }: { src: string; accent:
     const [totalDuration, setTotalDuration] = useState("0:00");
     const [showControls, setShowControls] = useState(true);
     const controlsTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+    const [isPipAvailable, setIsPipAvailable] = useState(true);
+
+    useEffect(() => {
+        const v = videoRef.current as HTMLVideoElementWithPlaybackTarget;
+        if (!v) return;
+        const check = () => {
+            const supportsPip = 
+                document.pictureInPictureEnabled || 
+                (v.webkitSupportsPresentationMode && 
+                 v.webkitSupportsPresentationMode("picture-in-picture")) ||
+                (typeof v.webkitSetPresentationMode === "function") ||
+                ('pictureInPictureEnabled' in document);
+            setIsPipAvailable(!!supportsPip);
+        };
+        setTimeout(check, 0);
+    }, [src]);
+
+    const togglePip = async (e: React.MouseEvent) => {
+        e.stopPropagation();
+        const v = videoRef.current as HTMLVideoElementWithPlaybackTarget;
+        if (!v) return;
+        try {
+            if (document.pictureInPictureElement) {
+                await document.exitPictureInPicture();
+            } else if (v.requestPictureInPicture) {
+                await v.requestPictureInPicture();
+            } else if (typeof v.webkitSetPresentationMode === "function") {
+                const newMode = v.webkitPresentationMode === "picture-in-picture" ? "inline" : "picture-in-picture";
+                v.webkitSetPresentationMode(newMode);
+            }
+        } catch (error) {
+            console.error("Failed to toggle Picture-in-Picture:", error);
+        }
+    };
 
     const accentBarClass = accent === "yellow" ? "bg-yellow-500" : accent === "amber" ? "bg-amber-500" : accent === "purple" ? "bg-purple-500" : accent === "red" ? "bg-red-500" : "bg-emerald-500";
     const accentDotClass = accent === "yellow" ? "bg-yellow-400" : accent === "amber" ? "bg-amber-400" : accent === "purple" ? "bg-purple-400" : accent === "red" ? "bg-red-400" : "bg-emerald-400";
@@ -418,7 +473,7 @@ function CinemaPlayer({ src, accent, onEnded, autoPlay }: { src: string; accent:
     return (
         <div ref={containerRef} className="relative rounded-2xl overflow-hidden shadow-2xl bg-black border border-white/10 group aspect-video cursor-pointer"
             onMouseMove={handleMouseMove} onMouseLeave={() => isPlaying && setShowControls(false)} onClick={togglePlay}>
-            <video ref={videoRef} src={src} poster="/placeholder.svg" preload="metadata" playsInline className="w-full h-full object-contain bg-black">
+            <video ref={videoRef} src={src} poster={poster || "/placeholder.svg"} preload="metadata" playsInline className="w-full h-full object-contain bg-black">
                 {src.includes('.m3u8') && <source src={src} type="application/x-mpegURL" />}
                 <source src={src} type="video/mp4" />
             </video>
@@ -450,7 +505,14 @@ function CinemaPlayer({ src, accent, onEnded, autoPlay }: { src: string; accent:
                         <button onClick={toggleMute} className="text-white hover:text-yellow-400 transition-colors" title={isMuted ? "Unmute" : "Mute"} aria-label={isMuted ? "Unmute" : "Mute"}>{isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}</button>
                         <span className="text-xs text-gray-300 font-mono tabular-nums">{currentTime} / {totalDuration}</span>
                     </div>
-                    <button onClick={toggleFullscreen} className="text-white hover:text-yellow-400 transition-colors" title="Fullscreen" aria-label="Fullscreen"><Maximize className="w-5 h-5" /></button>
+                    <div className="flex items-center gap-3">
+                        {isPipAvailable && (
+                            <button onClick={togglePip} className="text-white hover:text-yellow-400 transition-colors" title="Picture in Picture" aria-label="Picture in Picture">
+                                <PictureInPicture className="w-5 h-5" />
+                            </button>
+                        )}
+                        <button onClick={toggleFullscreen} className="text-white hover:text-yellow-400 transition-colors" title="Fullscreen" aria-label="Fullscreen"><Maximize className="w-5 h-5" /></button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -725,6 +787,7 @@ export function BlackCinemaGallery() {
                     <CinemaPlayer
                         key={activeVideo.id}
                         src={activeVideo.url}
+                        poster={activeVideo.thumbnail}
                         accent={activeChannel.accent}
                         autoPlay={fastMode}
                         onEnded={handleVideoEnded}
@@ -822,8 +885,13 @@ export function BlackCinemaGallery() {
                                             <span className="text-[11px] text-gray-600 font-mono">{index + 1}</span>
                                         )}
                                     </div>
-                                    <div className="relative w-16 aspect-video rounded-lg overflow-hidden flex-shrink-0 bg-gray-900 flex items-center justify-center">
-                                        <Film className="w-4 h-4 text-gray-700" />
+                                    <div className="relative w-16 aspect-video rounded-lg overflow-hidden flex-shrink-0 bg-gray-900">
+                                        <Image
+                                            src={video.thumbnail || "/placeholder.svg"}
+                                            alt={video.title}
+                                            fill
+                                            className="object-cover"
+                                        />
                                     </div>
                                     <div className="flex flex-col justify-center min-w-0 flex-1">
                                         <h4 className={cn("font-bold text-xs truncate pr-2 transition-colors leading-tight",

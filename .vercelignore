@@ -1,7 +1,6 @@
 
 # Vercel Ignore
 *.MOV
-*.mp4
 *.webm
 node_modules
 .next

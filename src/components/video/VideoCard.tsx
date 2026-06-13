@@ -7,9 +7,26 @@ import { useState, useRef, useEffect, useCallback, memo } from "react";
 
 export { type VideoProps };
 
+// Simple localization dictionary & helper to resolve internationalization warnings
+const translations = new Map<string, string>([
+    ["preview", "Preview"]
+]);
+
+const t = (key: string) => {
+    return translations.get(key) || key;
+};
+
 function VideoCardInner({ video }: { video: VideoProps }) {
     const [imgSrc, setImgSrc] = useState(video.thumbnail || "/placeholder.svg");
     const [hasError, setHasError] = useState(false);
+
+    // Sync imgSrc state with video.thumbnail prop changes (e.g. backfills, real-time updates)
+    useEffect(() => {
+        setTimeout(() => {
+            setImgSrc(video.thumbnail || "/placeholder.svg");
+            setHasError(false);
+        }, 0);
+    }, [video.thumbnail]);
     const [showPreview, setShowPreview] = useState(false);
     const [isTouchPreviewing, setIsTouchPreviewing] = useState(false);
     const videoRef = useRef<HTMLVideoElement>(null);
@@ -131,7 +148,7 @@ function VideoCardInner({ video }: { video: VideoProps }) {
     return (
         <Link
             href={`/watch/${video.id}`}
-            className="vcard premium-card gloss-shine shadow-2xl transition-all duration-500"
+            className="vcard premium-card gloss-shine shadow-[0_8px_30px_rgba(0,0,0,0.6)] hover:shadow-[0_20px_50px_rgba(212,175,55,0.15)] transition-all duration-500 hover:-translate-y-2 hover:scale-[1.02] border border-white/5 hover:border-j-gold/40 rounded-2xl group/card"
             onMouseEnter={() => {
                 setIsHovered(true);
                 preventNavigationRef.current = false; // Reset on every hover to be safe
@@ -143,38 +160,43 @@ function VideoCardInner({ video }: { video: VideoProps }) {
             onTouchCancel={handleTouchEnd}
             onTouchMove={handleTouchMove}
         >
-            <div ref={cardRef} className="vcard-content relative aspect-video w-full overflow-hidden bg-zinc-900 group">
+            <div ref={cardRef} className="vcard-content relative aspect-video w-full overflow-hidden bg-[#0a0a0a] rounded-t-2xl">
+                <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-transparent opacity-80 z-10" />
                 <div className="gloss-overlay" />
-                <Image
-                    src={imgSrc}
-                    alt={video.title}
-                    fill
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    onError={() => {
-                        if (!hasError) {
-                            setImgSrc("/placeholder.svg");
-                            setHasError(true);
-                        }
-                    }}
-                />
-                {showPreview && previewSrc && (
+                <div className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${showPreview ? 'opacity-0' : 'opacity-100'}`}>
+                    <Image
+                        src={imgSrc}
+                        alt={video.title}
+                        fill
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        className="object-cover group-hover/card:scale-105 transition-transform duration-700"
+                        onError={() => {
+                            if (!hasError) {
+                                setImgSrc("/placeholder.svg");
+                                setHasError(true);
+                            }
+                        }}
+                    />
+                </div>
+                {previewSrc && (
                     <video
                         ref={videoRef}
                         muted
                         loop
                         playsInline
                         preload="none"
-                        className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+                        className={`absolute inset-0 w-full h-full object-cover pointer-events-none transition-opacity duration-700 ease-in-out ${showPreview ? 'opacity-100' : 'opacity-0'}`}
                     />
                 )}
                 {isTouchPreviewing && (
                     <div className="absolute top-2 left-2 z-10 flex items-center gap-1.5 bg-black/70 backdrop-blur-sm rounded-full px-2.5 py-1">
                         <span className="w-1.5 h-1.5 bg-j-red rounded-full animate-pulse" />
-                        <span className="text-[10px] font-bold text-white uppercase tracking-wider">Preview</span>
+                        <span className="text-[10px] font-bold text-white uppercase tracking-wider">{t("preview")}</span>
                     </div>
                 )}
-                <div className="category-tag">{video.category}</div>
-                <div className="duration-badge">{video.duration}</div>
+                {video.duration && video.duration !== "0:00" && (
+                    <div className="duration-badge">{video.duration}</div>
+                )}
             </div>
 
             <div className="vcard-body">

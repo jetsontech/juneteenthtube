@@ -2,8 +2,6 @@
 
 import { cn } from "@/lib/utils";
 
-import { useRouter } from "next/navigation";
-
 interface CategoryBarProps {
     categories: readonly string[];
     selectedCategory: string;
@@ -17,8 +15,6 @@ export function CategoryBar({
     onCategoryChange,
     className
 }: CategoryBarProps) {
-    const router = useRouter();
-
     return (
         <div className="relative w-full group/cat">
             <div className={cn("cat-bar scrollbar-none", className)}>

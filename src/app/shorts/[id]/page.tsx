@@ -34,43 +34,6 @@ export default function ShortsPlayerPage({
     const videoRef = useRef<HTMLVideoElement>(null);
     const playerRef = useRef<Player | null>(null);
 
-    // Audio Context Refs
-    const audioContextRef = useRef<AudioContext | null>(null);
-    const sourceNodeRef = useRef<MediaElementAudioSourceNode | null>(null);
-    const compressorRef = useRef<DynamicsCompressorNode | null>(null);
-
-    const setupAudioContext = useCallback(() => {
-        if (audioContextRef.current) return;
-        const video = videoRef.current;
-        if (!video) return;
-
-        try {
-            const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
-            const ctx = new AudioContext();
-            const source = ctx.createMediaElementSource(video);
-
-            const compressor = ctx.createDynamicsCompressor();
-            compressor.threshold.value = -24;
-            compressor.knee.value = 30;
-            compressor.ratio.value = 12;
-            compressor.attack.value = 0.003;
-            compressor.release.value = 0.25;
-
-            const gainNode = ctx.createGain();
-            gainNode.gain.value = 1.5;
-
-            source.connect(compressor);
-            compressor.connect(gainNode);
-            gainNode.connect(ctx.destination);
-
-            audioContextRef.current = ctx;
-            sourceNodeRef.current = source;
-            compressorRef.current = compressor;
-        } catch (err) {
-            console.error("Web Audio API not supported", err);
-        }
-    }, []);
-
     // Initialize Video.js
     useEffect(() => {
         if (!videoRef.current || !video?.videoUrl) return;
@@ -94,17 +57,13 @@ export default function ShortsPlayerPage({
 
         playerRef.current = player;
 
-        player.on('play', () => {
-            if (!audioContextRef.current) setupAudioContext();
-        });
-
         return () => {
             if (playerRef.current) {
                 playerRef.current.dispose();
                 playerRef.current = null;
             }
         };
-    }, [video?.videoUrl, setupAudioContext, isMuted]);
+    }, [video?.videoUrl, isMuted]);
 
     // Parse duration to seconds for filtering shorts
     const parseDurationToSeconds = (duration: string | undefined): number => {
@@ -280,7 +239,6 @@ export default function ShortsPlayerPage({
 
                     <button
                         onClick={() => {
-                            if (!audioContextRef.current) setupAudioContext();
                             if (playerRef.current) {
                                 const newMuted = !isMuted;
                                 playerRef.current.muted(newMuted);
