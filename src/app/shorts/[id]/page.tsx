@@ -6,7 +6,7 @@ import { VideoProps } from "@/components/video/VideoCard";
 import videojs from "video.js";
 import type Player from "video.js/dist/types/player";
 import "video.js/dist/video-js.css";
-import { ThumbsUp, ThumbsDown, MessageCircle, Share2, MoreVertical, X, ChevronUp, ChevronDown, Volume2, VolumeX } from "lucide-react";
+import { ThumbsUp, ThumbsDown, MessageCircle, Share2, MoreVertical, X, ChevronUp, ChevronDown, Volume2, VolumeX, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -28,7 +28,7 @@ export default function ShortsPlayerPage({
     const [liked, setLiked] = useState(false);
     const [disliked, setDisliked] = useState(false);
     const [likesCount, setLikesCount] = useState(0);
-    const [isMuted, setIsMuted] = useState(false);
+    const [isMuted, setIsMuted] = useState(true);
     const [touchStart, setTouchStart] = useState<{ x: number, y: number } | null>(null);
 
     const videoRef = useRef<HTMLVideoElement>(null);
@@ -162,8 +162,9 @@ export default function ShortsPlayerPage({
             onTouchStart={handleTouchStart}
             onTouchEnd={handleTouchEnd}
         >
-            <Link href="/" className="absolute top-4 left-4 z-50 p-2 hover:bg-white/10 rounded-full transition-colors backdrop-blur-md">
-                <X className="w-6 h-6 text-white" />
+            <Link href="/" className="absolute top-4 left-4 z-50 p-3 hover:bg-white/10 rounded-full transition-colors backdrop-blur-md flex items-center gap-2">
+                <ArrowLeft className="w-6 h-6 text-white" />
+                <span className="hidden sm:inline text-white font-bold tracking-widest uppercase text-xs">Back to Home</span>
             </Link>
 
             <div className="hidden md:flex absolute right-4 top-1/2 -translate-y-1/2 flex-col gap-4 z-50">
@@ -208,31 +209,31 @@ export default function ShortsPlayerPage({
                     </div>
                 </div>
 
-                <div className="absolute right-3 bottom-24 flex flex-col gap-5 items-center md:relative md:right-0 md:bottom-0 md:ml-6 md:self-end md:mb-20">
+                <div className="absolute right-3 bottom-24 flex flex-col gap-4 md:gap-5 items-center md:relative md:right-0 md:bottom-0 md:ml-6 md:self-end md:mb-20">
                     <button onClick={handleLike} className="flex flex-col items-center gap-1.5 group">
-                        <div className={cn("w-14 h-14 rounded-full flex items-center justify-center transition-all duration-300 backdrop-blur-xl", liked ? "bg-j-red text-white scale-110" : "bg-white/10 text-white hover:bg-white/20")}>
-                            <ThumbsUp className={cn("w-6 h-6", liked && "fill-white")} />
+                        <div className={cn("w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center transition-all duration-300 backdrop-blur-xl", liked ? "bg-j-red text-white scale-110" : "bg-white/10 text-white hover:bg-white/20")}>
+                            <ThumbsUp className={cn("w-5 h-5 md:w-6 md:h-6", liked && "fill-white")} />
                         </div>
                         <span className="text-white text-[10px] font-black uppercase tracking-tighter">{likesCount}</span>
                     </button>
 
                     <button onClick={handleDislike} className="flex flex-col items-center gap-1.5 group">
-                        <div className={cn("w-14 h-14 rounded-full flex items-center justify-center transition-all duration-300 backdrop-blur-xl", disliked ? "bg-white text-black scale-110" : "bg-white/10 text-white hover:bg-white/20")}>
-                            <ThumbsDown className={cn("w-6 h-6", disliked && "fill-white")} />
+                        <div className={cn("w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center transition-all duration-300 backdrop-blur-xl", disliked ? "bg-white text-black scale-110" : "bg-white/10 text-white hover:bg-white/20")}>
+                            <ThumbsDown className={cn("w-5 h-5 md:w-6 md:h-6", disliked && "fill-white")} />
                         </div>
                         <span className="text-white text-[10px] font-black uppercase tracking-tighter">Dislike</span>
                     </button>
 
                     <button className="flex flex-col items-center gap-1.5 group">
-                        <div className="w-14 h-14 rounded-full bg-white/10 text-white flex items-center justify-center hover:bg-white/20 transition-all backdrop-blur-xl leading-none">
-                            <MessageCircle className="w-6 h-6" />
+                        <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-white/10 text-white flex items-center justify-center hover:bg-white/20 transition-all backdrop-blur-xl leading-none">
+                            <MessageCircle className="w-5 h-5 md:w-6 md:h-6" />
                         </div>
                         <span className="text-white text-[10px] font-black uppercase tracking-tighter">0</span>
                     </button>
 
                     <button onClick={handleShare} className="flex flex-col items-center gap-1.5 group">
-                        <div className="w-14 h-14 rounded-full bg-white/10 text-white flex items-center justify-center hover:bg-white/20 transition-all backdrop-blur-xl">
-                            <Share2 className="w-6 h-6" />
+                        <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-white/10 text-white flex items-center justify-center hover:bg-white/20 transition-all backdrop-blur-xl">
+                            <Share2 className="w-5 h-5 md:w-6 md:h-6" />
                         </div>
                         <span className="text-white text-[10px] font-black uppercase tracking-tighter">Share</span>
                     </button>
@@ -247,8 +248,8 @@ export default function ShortsPlayerPage({
                         }}
                         className="flex flex-col items-center gap-1.5"
                     >
-                        <div className="w-14 h-14 rounded-full bg-white/10 text-white flex items-center justify-center hover:bg-white/20 transition-all backdrop-blur-xl">
-                            {isMuted ? <VolumeX className="w-6 h-6" /> : <Volume2 className="w-6 h-6" />}
+                        <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-white/10 text-white flex items-center justify-center hover:bg-white/20 transition-all backdrop-blur-xl">
+                            {isMuted ? <VolumeX className="w-5 h-5 md:w-6 md:h-6" /> : <Volume2 className="w-5 h-5 md:w-6 md:h-6" />}
                         </div>
                         <span className="text-white text-[10px] font-black uppercase tracking-tighter">{isMuted ? 'Muted' : 'Sound'}</span>
                     </button>
