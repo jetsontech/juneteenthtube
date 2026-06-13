@@ -228,11 +228,6 @@ export default function WatchPage({
 
     return (
         <div className="flex flex-col sm:block h-[calc(100dvh-3.5rem)] sm:h-auto overflow-hidden sm:overflow-visible bg-transparent relative z-0">
-            {/* Ambient Backgrounds */}
-            <div className="absolute top-0 right-0 w-[80vw] sm:w-[50vw] h-[60vh] bg-[radial-gradient(circle_at_100%_0%,_#3f2e05_0%,_transparent_70%)] opacity-40 pointer-events-none z-[-1]" />
-            <div className="absolute top-[20vh] left-0 w-[100vw] h-[80vh] bg-[radial-gradient(circle_at_50%_50%,_#4a0000_0%,_transparent_60%)] opacity-20 pointer-events-none z-[-1]" />
-            <div className="absolute bottom-0 left-0 w-[80vw] sm:w-[50vw] h-[50vh] bg-[radial-gradient(circle_at_0%_100%,_#0a2f0a_0%,_transparent_70%)] opacity-30 pointer-events-none z-[-1]" />
-
             <div className="max-w-[1600px] mx-auto w-full h-full flex flex-col lg:flex-row lg:gap-6 lg:items-start pt-0 sm:pt-6">
 
                 {/* LEFT COLUMN: Player (Sticky Mobile, Static Desktop) + Info + Comments */}
