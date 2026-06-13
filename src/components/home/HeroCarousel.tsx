@@ -89,7 +89,6 @@ export function HeroCarousel({ videos }: HeroCarouselProps) {
                         <span className="text-white font-bold">{current.channelName}</span>
                     </p>
 
-                    {/* CTA */}
                     <div className="flex gap-4">
                         <Link
                             href={`/watch/${current.id}`}
@@ -98,9 +97,6 @@ export function HeroCarousel({ videos }: HeroCarouselProps) {
                             <Play className="w-4 h-4 sm:w-5 sm:h-5 fill-black" />
                             Watch Now
                         </Link>
-                        <button className="hidden sm:inline-flex items-center justify-center w-12 h-12 rounded-full glass-heavy border border-white/20 hover:bg-white/10 transition-all duration-300 pointer-events-auto hover:scale-105">
-                            <span className="text-white font-bold text-lg">+</span>
-                        </button>
                     </div>
                 </div>
             </div>

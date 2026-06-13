@@ -110,7 +110,7 @@ export function ContentRail({
 
                 <div
                     ref={scrollRef}
-                    className="flex gap-3 sm:gap-4 overflow-x-auto no-scrollbar scroll-smooth pb-2 snap-x snap-mandatory"
+                    className="flex gap-3 sm:gap-4 overflow-x-auto no-scrollbar scroll-smooth pt-6 -mt-6 px-2 -mx-2 pb-6 snap-x snap-mandatory"
                 >
                     {items.length === 0 ? (
                         <div className="w-full py-12 flex items-center justify-center bg-white/[0.02] rounded-2xl border border-white/5">
