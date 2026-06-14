@@ -25,6 +25,17 @@ interface CategoryFeed {
     videos: VideoProps[];
 }
 
+let globalHomepageCache: {
+    trending: VideoProps[];
+    recent: VideoProps[];
+    featured: VideoProps[];
+    categoryFeeds: CategoryFeed[];
+    totalArchives: number;
+    stateCode: string | undefined;
+} | null = null;
+
+let globalCategoryCache: Record<string, { videos: VideoProps[]; stateCode: string | undefined }> = {};
+
 export default function HomePage() {
     const { watchHistory } = useVideo();
     const { selectedState } = useStateFilter();
@@ -32,16 +43,23 @@ export default function HomePage() {
     type TrendingFilter = 'Curated' | 'Today' | 'This Week' | 'All Time';
     const [trendingFilter, setTrendingFilter] = useState<TrendingFilter>('Curated');
 
+    const cached = globalHomepageCache?.stateCode === selectedState?.code ? globalHomepageCache : null;
+
     // State-driven paginated feeds
-    const [trendingVideos, setTrendingVideos] = useState<VideoProps[]>([]);
-    const [recentVideos, setRecentVideos] = useState<VideoProps[]>([]);
-    const [featuredVideos, setFeaturedVideos] = useState<VideoProps[]>([]);
-    const [categoryFeeds, setCategoryFeeds] = useState<CategoryFeed[]>([]);
-    const [isFeedsLoading, setIsFeedsLoading] = useState(true);
-    const [totalArchives, setTotalArchives] = useState(48);
+    const [trendingVideos, setTrendingVideos] = useState<VideoProps[]>(cached?.trending || []);
+    const [recentVideos, setRecentVideos] = useState<VideoProps[]>(cached?.recent || []);
+    const [featuredVideos, setFeaturedVideos] = useState<VideoProps[]>(cached?.featured || []);
+    const [categoryFeeds, setCategoryFeeds] = useState<CategoryFeed[]>(cached?.categoryFeeds || []);
+    const [isFeedsLoading, setIsFeedsLoading] = useState(!cached);
+    const [totalArchives, setTotalArchives] = useState(cached?.totalArchives || 48);
 
     const [selectedCategory, setSelectedCategory] = useState<string>("All");
-    const [categoryVideos, setCategoryVideos] = useState<VideoProps[]>([]);
+    
+    const catCached = globalCategoryCache[selectedCategory]?.stateCode === selectedState?.code 
+        ? globalCategoryCache[selectedCategory].videos 
+        : null;
+
+    const [categoryVideos, setCategoryVideos] = useState<VideoProps[]>(catCached || []);
     const [isCategoryLoading, setIsCategoryLoading] = useState(false);
 
     // Fetch category specific videos when category filter is selected
@@ -56,6 +74,7 @@ export default function HomePage() {
                 const data = await res.json();
                 if (!isCancelled) {
                     setCategoryVideos(data.videos || []);
+                    globalCategoryCache[selectedCategory] = { videos: data.videos || [], stateCode: selectedState?.code };
                 }
             } catch (e) {
                 console.error("Failed to load category videos:", e);
@@ -72,6 +91,7 @@ export default function HomePage() {
     useEffect(() => {
         let isCancelled = false;
         async function fetchHomepageFeeds() {
+            if (globalHomepageCache?.stateCode === selectedState?.code) return; // Use cache
             setIsFeedsLoading(true);
             try {
                 const stateParam = selectedState?.code ? `&state=${selectedState.code}` : "";
@@ -100,11 +120,22 @@ export default function HomePage() {
                 const resolvedCats = await Promise.all(catPromises);
 
                 if (!isCancelled) {
+                    const resolvedCatFeeds = resolvedCats.filter(cat => cat.videos.length > 0);
+                    const total = recentData.total || trendData.total || 48;
                     setTrendingVideos(trendData.videos || []);
                     setRecentVideos(recentData.videos || []);
                     setFeaturedVideos(featuredData.videos || []);
-                    setCategoryFeeds(resolvedCats.filter(cat => cat.videos.length > 0));
-                    setTotalArchives(recentData.total || trendData.total || 48);
+                    setCategoryFeeds(resolvedCatFeeds);
+                    setTotalArchives(total);
+                    
+                    globalHomepageCache = {
+                        trending: trendData.videos || [],
+                        recent: recentData.videos || [],
+                        featured: featuredData.videos || [],
+                        categoryFeeds: resolvedCatFeeds,
+                        totalArchives: total,
+                        stateCode: selectedState?.code
+                    };
                 }
             } catch (e) {
                 console.error("Failed to load homepage feeds:", e);
