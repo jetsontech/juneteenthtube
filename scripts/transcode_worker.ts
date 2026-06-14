@@ -44,16 +44,23 @@ async function run() {
     }
 
     let sourceKey = sourceUrl;
+    let isExternalUrl = false;
+    
     if (sourceUrl.startsWith('http')) {
         const url = new URL(sourceUrl);
-        sourceKey = url.pathname.substring(1);
+        // If it doesn't look like our R2 or a presigned URL, treat it as an external public URL
+        if (!sourceUrl.includes("cloudflarestorage") && !sourceUrl.includes("r2.dev")) {
+            isExternalUrl = true;
+        } else {
+            sourceKey = url.pathname.substring(1);
+        }
     }
 
     // On GitHub Actions (Ubuntu), ffmpeg is pre-installed globally
     const ffmpegPath = "ffmpeg";
 
     const tempDir = await mkdtemp(join(os.tmpdir(), "gh-transcode-"));
-    const inputPath = join(tempDir, "input");
+    let inputPath = join(tempDir, "input");
     const hlsDir = join(tempDir, "hls");
     const outputM3u8 = join(hlsDir, "output.m3u8");
 
@@ -65,23 +72,28 @@ async function run() {
             fs.mkdirSync(hlsDir, { recursive: true });
         }
 
-        console.log(`[GH Worker] Downloading source from R2...`);
-        const response = await S3.send(
-            new GetObjectCommand({
-                Bucket: sanitizeEnv(process.env.S3_BUCKET_NAME)!,
-                Key: sourceKey,
-            })
-        );
+        if (isExternalUrl) {
+            console.log(`[GH Worker] External public URL detected: ${sourceUrl}. Bypassing R2 download...`);
+            inputPath = sourceUrl; // FFmpeg can read HTTP natively
+        } else {
+            console.log(`[GH Worker] Downloading source from R2 (Key: ${sourceKey})...`);
+            const response = await S3.send(
+                new GetObjectCommand({
+                    Bucket: sanitizeEnv(process.env.S3_BUCKET_NAME)!,
+                    Key: sourceKey,
+                })
+            );
 
-        if (!response.Body) {
-            throw new Error("Empty body returned from S3 source download");
+            if (!response.Body) {
+                throw new Error("Empty body returned from S3 source download");
+            }
+
+            await new Promise<void>((resolve, reject) => {
+                const ws = createWriteStream(inputPath);
+                // @ts-ignore
+                response.Body.pipe(ws).on("finish", resolve).on("error", reject);
+            });
         }
-
-        await new Promise<void>((resolve, reject) => {
-            const ws = createWriteStream(inputPath);
-            // @ts-ignore
-            response.Body.pipe(ws).on("finish", resolve).on("error", reject);
-        });
 
         console.log(`[GH Worker] Spawning FFmpeg...`);
         
