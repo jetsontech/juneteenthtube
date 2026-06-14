@@ -211,6 +211,7 @@ export function VideoProvider({ children }: { children: ReactNode }) {
             const { data, error } = await supabase
                 .from('videos')
                 .select('*')
+                .not('owner_id', 'is', null) // strictly banish legacy vault videos
                 .order('created_at', { ascending: false })
                 .limit(120); // Scale-safe boundary for catalog queries
 

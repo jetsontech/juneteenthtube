@@ -52,10 +52,10 @@ export function HeroCarousel({ videos }: HeroCarouselProps) {
                     <div className="absolute inset-0 bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-950" />
                 )}
 
-                {/* Gradient Overlays for Cinematic Feel (Reduced opacity for crystal clear visuals) */}
-                <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-transparent opacity-90" />
-                <div className="absolute inset-0 bg-gradient-to-r from-[#050505]/60 via-transparent to-transparent" />
-                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_60%,rgba(5,5,5,0.4))]" />
+                {/* Gradient Overlays for Cinematic Feel */}
+                <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/40 to-transparent opacity-95" />
+                <div className="absolute inset-0 bg-gradient-to-r from-[#050505]/95 via-[#050505]/50 to-transparent" />
+                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_40%,rgba(5,5,5,0.6))]" />
 
                 {/* Ambient Glow */}
                 <div className="absolute bottom-0 left-0 w-[80%] h-[80%] bg-[radial-gradient(ellipse_at_bottom_left,rgba(212,175,55,0.25),transparent_60%)] pointer-events-none mix-blend-screen" />
@@ -97,6 +97,9 @@ export function HeroCarousel({ videos }: HeroCarouselProps) {
                             <Play className="w-4 h-4 sm:w-5 sm:h-5 fill-black" />
                             Watch Now
                         </Link>
+                        <button className="hidden sm:inline-flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-full glass-heavy border border-white/20 hover:bg-white/10 transition-all duration-300 pointer-events-auto hover:scale-105">
+                            <span className="text-white font-bold text-xl sm:text-2xl">+</span>
+                        </button>
                     </div>
                 </div>
             </div>

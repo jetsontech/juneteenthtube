@@ -38,11 +38,36 @@ export default function GalleryPage() {
                 className="mb-8"
             />
 
-            {/* Content */}
             {isLoading ? (
-                <div className="flex items-center justify-center h-64">
-                    <Loader2 className="w-8 h-8 text-j-gold animate-spin" />
-                </div>
+                <>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((j) => (
+                            <div key={j} className="flex-shrink-0 w-full">
+                                <div className="aspect-video rounded-2xl bg-[#111] border border-white/5 relative overflow-hidden">
+                                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.02] to-transparent skeleton-shine" />
+                                </div>
+                                <div className="mt-3 flex gap-3">
+                                    <div className="w-10 h-10 rounded-full bg-[#111] border border-white/5 flex-shrink-0 relative overflow-hidden">
+                                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.02] to-transparent skeleton-shine" />
+                                    </div>
+                                    <div className="flex-1 space-y-2 py-1">
+                                        <div className="h-4 w-full bg-[#111] rounded border border-white/5 relative overflow-hidden" />
+                                        <div className="h-3 w-2/3 bg-[#111] rounded border border-white/5 relative overflow-hidden" />
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                    <style dangerouslySetInnerHTML={{__html: `
+                        @keyframes skeleton-shine {
+                            0% { transform: translateX(-100%); }
+                            100% { transform: translateX(100%); }
+                        }
+                        .skeleton-shine {
+                            animation: skeleton-shine 2s infinite ease-in-out;
+                        }
+                    `}} />
+                </>
             ) : filteredVideos.length > 0 ? (
                 <VideoGrid videos={filteredVideos} />
             ) : (

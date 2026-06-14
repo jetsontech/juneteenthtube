@@ -41,6 +41,7 @@
     "ws": "^8.21.0"
   },
   "devDependencies": {
+    "@octokit/rest": "^22.0.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
@@ -49,6 +50,7 @@
     "baseline-browser-mapping": "^2.9.19",
     "eslint": "^9",
     "eslint-config-next": "16.0.7",
+    "libsodium-wrappers": "^0.8.4",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
