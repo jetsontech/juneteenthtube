@@ -173,26 +173,56 @@ export default function HomePage() {
     // Loading skeleton
     if (isFeedsLoading) {
         return (
-            <main className="min-h-screen pb-16">
-                <div className="px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 space-y-8">
+            <main className="min-h-screen pb-16 bg-[#0a0a0a] relative overflow-hidden">
+                <div className="fixed inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_top,rgba(212,175,55,0.03),transparent_50%)]" />
+                <div className="px-4 sm:px-6 lg:px-10 pt-6 sm:pt-8 space-y-12 sm:space-y-16 max-w-[1600px] mx-auto relative z-10">
                     {/* Hero Skeleton */}
-                    <div className="aspect-[21/9] sm:aspect-[2.4/1] w-full rounded-2xl sm:rounded-3xl bg-zinc-900 animate-pulse" />
+                    <div className="relative aspect-[21/9] sm:aspect-[2.4/1] w-full rounded-2xl sm:rounded-3xl bg-white/5 border border-white/10 overflow-hidden shadow-2xl">
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.03] to-transparent skeleton-shine" />
+                        <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="w-12 h-12 rounded-full border-2 border-amber-500/20 border-t-amber-500 animate-spin" />
+                        </div>
+                    </div>
+                    
+                    {/* Premium Gold-Fading Divider */}
+                    <div className="h-px bg-gradient-to-r from-transparent via-amber-500/15 to-transparent opacity-50" />
+
                     {/* Rail Skeletons */}
                     {[1, 2, 3].map((i) => (
-                        <div key={i} className="space-y-3">
-                            <div className="h-6 w-40 bg-zinc-800 rounded animate-pulse" />
+                        <div key={i} className="space-y-5">
+                            <div className="h-7 w-48 bg-white/5 rounded-lg border border-white/5 relative overflow-hidden">
+                                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.02] to-transparent skeleton-shine" />
+                            </div>
                             <div className="flex gap-4 overflow-hidden">
-                                {[1, 2, 3, 4].map((j) => (
-                                    <div key={j} className="flex-shrink-0 w-[280px]">
-                                        <div className="aspect-video rounded-xl bg-zinc-800 animate-pulse" />
-                                        <div className="mt-2 h-4 w-3/4 bg-zinc-800 rounded animate-pulse" />
-                                        <div className="mt-1 h-3 w-1/2 bg-zinc-900 rounded animate-pulse" />
+                                {[1, 2, 3, 4, 5].map((j) => (
+                                    <div key={j} className="flex-shrink-0 w-[280px] sm:w-[320px]">
+                                        <div className="aspect-video rounded-2xl bg-white/5 border border-white/10 relative overflow-hidden">
+                                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.02] to-transparent skeleton-shine" />
+                                        </div>
+                                        <div className="mt-3 flex gap-3">
+                                            <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex-shrink-0 relative overflow-hidden">
+                                                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.02] to-transparent skeleton-shine" />
+                                            </div>
+                                            <div className="flex-1 space-y-2 py-1">
+                                                <div className="h-4 w-full bg-white/5 rounded border border-white/5 relative overflow-hidden" />
+                                                <div className="h-3 w-2/3 bg-white/5 rounded border border-white/5 relative overflow-hidden" />
+                                            </div>
+                                        </div>
                                     </div>
                                 ))}
                             </div>
                         </div>
                     ))}
                 </div>
+                <style dangerouslySetInnerHTML={{__html: `
+                    @keyframes skeleton-shine {
+                        0% { transform: translateX(-100%); }
+                        100% { transform: translateX(100%); }
+                    }
+                    .skeleton-shine {
+                        animation: skeleton-shine 2s infinite ease-in-out;
+                    }
+                `}} />
             </main>
         );
     }
