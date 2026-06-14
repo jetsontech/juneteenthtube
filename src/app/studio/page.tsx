@@ -370,9 +370,12 @@ export default function StudioPage() {
                             </tbody>
                         </table>
                     </div>
-                    </div>
-                )}
+                </div>
+            )}
             </div>
+            )}
+            </div>
+
 
             {/* Edit Modal */}
             {editingVideo && (
