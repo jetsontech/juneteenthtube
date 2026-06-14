@@ -477,7 +477,10 @@ export function VideoProvider({ children }: { children: ReactNode }) {
             body: JSON.stringify({ action: "create", filename: file.name, contentType: file.type || "video/mp4" }),
             signal
         });
-        if (!initRes.ok) throw new Error(`Failed to init multipart upload: ${initRes.status}`);
+        if (!initRes.ok) {
+            const errorText = await initRes.text();
+            throw new Error(`Failed to init multipart upload: ${initRes.status} - ${errorText}`);
+        }
         const { uploadId, key } = await initRes.json();
 
         let completedChunks = 0;
@@ -491,6 +494,10 @@ export function VideoProvider({ children }: { children: ReactNode }) {
                     body: JSON.stringify({ action: "sign-part", key, uploadId, partNumber }),
                     signal
                 });
+                if (!signRes.ok) {
+                    const errorText = await signRes.text();
+                    throw new Error(`Failed to sign part: ${errorText}`);
+                }
                 const { signedUrl } = await signRes.json();
                 const etag = await (async function uploadPartWithRetry(retries = 5, delay = 2000): Promise<string> {
                     return new Promise((resolve, reject) => {
@@ -518,7 +525,10 @@ export function VideoProvider({ children }: { children: ReactNode }) {
             body: JSON.stringify({ action: "complete", key, uploadId, parts: parts.sort((a, b) => a.PartNumber - b.PartNumber) }),
             signal
         });
-        if (!completeRes.ok) throw new Error("Failed to complete multipart upload");
+        if (!completeRes.ok) {
+            const errorText = await completeRes.text();
+            throw new Error(`Failed to complete multipart upload: ${errorText}`);
+        }
         const { publicUrl } = await completeRes.json();
         return publicUrl;
     }, [getAuthHeaders]);
@@ -783,7 +793,12 @@ export function VideoProvider({ children }: { children: ReactNode }) {
                     headers: getAuthHeaders({ "Content-Type": "application/json" }),
                     body: JSON.stringify({ filename: file.name, contentType: file.type || "video/mp4" })
                 });
+                if (!res.ok) {
+                    const errorText = await res.text();
+                    throw new Error(`API Upload Error: ${errorText}`);
+                }
                 const { signedUrl, publicUrl: url } = await res.json();
+                console.log("Got signed URL:", signedUrl);
                 await new Promise<void>((resolve, reject) => {
                     const xhr = new XMLHttpRequest();
                     xhr.open("PUT", signedUrl);
@@ -811,6 +826,10 @@ export function VideoProvider({ children }: { children: ReactNode }) {
                     headers: getAuthHeaders({ "Content-Type": "application/json" }),
                     body: JSON.stringify({ filename: `thumb_${Date.now()}_${activeThumbnail.name}`, contentType: activeThumbnail.type || "image/jpeg" })
                 });
+                if (!res.ok) {
+                    const errorText = await res.text();
+                    throw new Error(`API Thumb Error: ${errorText}`);
+                }
                 const { signedUrl, publicUrl: url } = await res.json();
                 await new Promise<void>((resolve, reject) => {
                     const xhr = new XMLHttpRequest();
@@ -843,6 +862,10 @@ export function VideoProvider({ children }: { children: ReactNode }) {
                 headers: getAuthHeaders({ "Content-Type": "application/json" }),
                 body: JSON.stringify({ filename: file.name, contentType: file.type || "image/jpeg" })
             });
+            if (!res.ok) {
+                const errorText = await res.text();
+                throw new Error(`API Photo Error: ${errorText}`);
+            }
             const { signedUrl, publicUrl } = await res.json();
             await new Promise<void>((resolve, reject) => {
                 const xhr = new XMLHttpRequest();
