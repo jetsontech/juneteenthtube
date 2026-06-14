@@ -70,7 +70,7 @@ export default function HomePage() {
         if (selectedCategory === "All") return;
         let isCancelled = false;
         async function fetchCategoryVideos() {
-            if (globalCategoryCache[selectedCategory]?.stateCode === selectedState?.code) {
+            if (globalCategoryCache[selectedCategory] && globalCategoryCache[selectedCategory].stateCode === selectedState?.code) {
                 if (!isCancelled) {
                     setIsCategoryLoading(false);
                     setCategoryVideos(globalCategoryCache[selectedCategory].videos);
@@ -101,7 +101,7 @@ export default function HomePage() {
     useEffect(() => {
         let isCancelled = false;
         async function fetchHomepageFeeds() {
-            if (globalHomepageCache?.stateCode === selectedState?.code) {
+            if (globalHomepageCache && globalHomepageCache.stateCode === selectedState?.code) {
                 if (!isCancelled) {
                     setIsFeedsLoading(false);
                     setTrendingVideos(globalHomepageCache.trending);
