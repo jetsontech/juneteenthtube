@@ -89,7 +89,7 @@ export async function GET(req: NextRequest) {
         }
 
         const mappedVideos = ((data as unknown as DBVideo[]) || []).map((video: DBVideo) => {
-            const s3Domain = "https://pub-efcc4aa0b3b24e3d97760577b0ec20bd.r2.dev";
+            const s3Domain = "https://media.culturequest.vip";
             
             let h264Url = video.video_url_h264;
             if (h264Url && !h264Url.startsWith('http')) {
@@ -109,9 +109,6 @@ export async function GET(req: NextRequest) {
             if (thumbnail) {
                 if (!thumbnail.startsWith('http') && !thumbnail.startsWith('/uploads/')) {
                     thumbnail = `${s3Domain}/${thumbnail.startsWith('/') ? thumbnail.slice(1) : thumbnail}`;
-                }
-                if (thumbnail.includes('media.culturequest.vip')) {
-                    thumbnail = thumbnail.replace('media.culturequest.vip', 'pub-efcc4aa0b3b24e3d97760577b0ec20bd.r2.dev');
                 }
             }
 

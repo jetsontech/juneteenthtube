@@ -233,14 +233,14 @@ export function VideoProvider({ children }: { children: ReactNode }) {
                     // Normalize H264 URL
                     let h264Url = video.video_url_h264;
                     if (h264Url && !h264Url.startsWith('http')) {
-                        const s3Domain = "https://pub-efcc4aa0b3b24e3d97760577b0ec20bd.r2.dev";
+                        const s3Domain = "https://media.culturequest.vip";
                         h264Url = `${s3Domain}/${h264Url}`;
                     }
 
                     // Normalize original video URL (relative R2 paths)
                     let videoUrl = video.video_url;
                     if (videoUrl && !videoUrl.startsWith('http')) {
-                        const s3Domain = "https://pub-efcc4aa0b3b24e3d97760577b0ec20bd.r2.dev";
+                        const s3Domain = "https://media.culturequest.vip";
                         if (videoUrl.startsWith('pub-efcc4aa0b3b24e3d97760577b0ec20bd/')) {
                             videoUrl = `${s3Domain}/${videoUrl.substring('pub-efcc4aa0b3b24e3d97760577b0ec20bd/'.length)}`;
                         } else {
@@ -251,11 +251,8 @@ export function VideoProvider({ children }: { children: ReactNode }) {
                     let thumbnail = video.thumbnail_url || "";
                     if (thumbnail) {
                         if (!thumbnail.startsWith('http') && !thumbnail.startsWith('/uploads/')) {
-                            const s3Domain = "https://pub-efcc4aa0b3b24e3d97760577b0ec20bd.r2.dev";
+                            const s3Domain = "https://media.culturequest.vip";
                             thumbnail = `${s3Domain}/${thumbnail.startsWith('/') ? thumbnail.slice(1) : thumbnail}`;
-                        }
-                        if (thumbnail.includes('media.culturequest.vip')) {
-                            thumbnail = thumbnail.replace('media.culturequest.vip', 'pub-efcc4aa0b3b24e3d97760577b0ec20bd.r2.dev');
                         }
                     }
                     const duration = video.duration || mockChannel.duration || "5:00";
@@ -309,7 +306,7 @@ export function VideoProvider({ children }: { children: ReactNode }) {
                 { event: 'UPDATE', schema: 'public', table: 'videos' },
                 (payload) => {
                     const video = payload.new as DBVideo;
-                    const s3Domain = "https://pub-efcc4aa0b3b24e3d97760577b0ec20bd.r2.dev";
+                    const s3Domain = "https://media.culturequest.vip";
 
                     let h264Url = video.video_url_h264;
                     if (h264Url && !h264Url.startsWith('http')) {
@@ -321,9 +318,6 @@ export function VideoProvider({ children }: { children: ReactNode }) {
                     if (thumbnail) {
                         if (!thumbnail.startsWith('http') && !thumbnail.startsWith('/uploads/')) {
                             thumbnail = `${s3Domain}/${thumbnail.startsWith('/') ? thumbnail.slice(1) : thumbnail}`;
-                        }
-                        if (thumbnail.includes('media.culturequest.vip')) {
-                            thumbnail = thumbnail.replace('media.culturequest.vip', 'pub-efcc4aa0b3b24e3d97760577b0ec20bd.r2.dev');
                         }
                     }
 

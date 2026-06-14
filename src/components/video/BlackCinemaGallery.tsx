@@ -165,7 +165,7 @@ const CHANNELS: Channel[] = [
                 year: "1939",
                 duration: "58m",
                 director: "Richard C. Kahn",
-                thumbnail: "https://pub-efcc4aa0b3b24e3d97760577b0ec20bd.r2.dev/thumbnails/dd4f9bb0-41c3-488d-9800-3191e93bb35c_1780196859478.jpg"
+                thumbnail: "https://media.culturequest.vip/thumbnails/dd4f9bb0-41c3-488d-9800-3191e93bb35c_1780196859478.jpg"
             },
             {
                 id: "harlem-rides-the-range",
@@ -176,7 +176,7 @@ const CHANNELS: Channel[] = [
                 year: "1939",
                 duration: "54m",
                 director: "Richard C. Kahn",
-                thumbnail: "https://pub-efcc4aa0b3b24e3d97760577b0ec20bd.r2.dev/thumbnails/a3a8514b-b5cc-41d3-a662-4ada92269483_1780196863823.jpg"
+                thumbnail: "https://media.culturequest.vip/thumbnails/a3a8514b-b5cc-41d3-a662-4ada92269483_1780196863823.jpg"
             },
             {
                 id: "two-gun-man-from-harlem",

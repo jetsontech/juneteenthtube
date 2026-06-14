@@ -461,15 +461,31 @@ export function CustomPlayer({ src, srcH264, poster, videoId, transcodeStatus, o
                     if (data.fatal) {
                         switch (data.type) {
                             case Hls.ErrorTypes.NETWORK_ERROR:
-                                hls.startLoad();
+                                // If the manifest itself fails to load (e.g. 404 because transcode is pending/failed or CORS)
+                                if (data.details === Hls.ErrorDetails.MANIFEST_LOAD_ERROR || data.details === Hls.ErrorDetails.MANIFEST_LOAD_TIMEOUT) {
+                                    console.warn("HLS Manifest failed to load, falling back to MP4:", src);
+                                    hls.destroy();
+                                    hlsInstanceRef.current = null;
+                                    video.src = src; // Fallback to raw MP4
+                                    video.load();
+                                    // If user already clicked play (or we are trying to play), force it to resume
+                                    video.play().catch(() => {});
+                                    srcReadyRef.current = true;
+                                } else {
+                                    hls.startLoad();
+                                }
                                 break;
                             case Hls.ErrorTypes.MEDIA_ERROR:
                                 hls.recoverMediaError();
                                 break;
                             default:
                                 hls.destroy();
-                                setIsBuffering(false);
-                                setPlaybackError("Playback error — tap Retry.");
+                                hlsInstanceRef.current = null;
+                                // Try native fallback before giving up completely
+                                console.warn("HLS Fatal Error, falling back to native MP4:", src);
+                                video.src = src;
+                                video.load();
+                                srcReadyRef.current = true;
                                 break;
                         }
                     }
@@ -593,9 +609,6 @@ export function CustomPlayer({ src, srcH264, poster, videoId, transcodeStatus, o
                         
                         const currentSrc = videoRef.current?.src || resolvedSrc;
                         let nextSrc = currentSrc;
-                        if (currentSrc.includes('media.culturequest.vip')) {
-                            nextSrc = currentSrc.replace('media.culturequest.vip', 'pub-efcc4aa0b3b24e3d97760577b0ec20bd.r2.dev');
-                        }
 
                         sendTelemetry('playback_error', {
                             error: videoRef.current?.error?.message || "HTML5 video error",
