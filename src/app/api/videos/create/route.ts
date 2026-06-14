@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
     if (data?.id && process.env.GITHUB_DISPATCH_TOKEN) {
       try {
         await fetch(
-          'https://api.github.com/repos/jetsontech/culturequest-gh-transcoder/dispatches',
+          'https://api.github.com/repos/jetsontech/juneteenthtube/dispatches',
           {
             method: 'POST',
             headers: {
@@ -61,12 +61,7 @@ export async function POST(req: NextRequest) {
               event_type: 'transcode',
               client_payload: {
                 videoId: data.id,
-                quality: 'auto',
-                crf: 23,
-                preset: 'fast',
-                audio_bitrate: '192k',
-                dolby_vision: false,
-                spatial_audio: false
+                video_url: data.video_url
               },
             }),
           }
