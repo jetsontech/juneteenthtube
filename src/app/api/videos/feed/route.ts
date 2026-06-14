@@ -52,14 +52,16 @@ export async function GET(req: NextRequest) {
         if (feed === 'trending') {
             let pauseOrganic = false;
             try {
-                const settingsPath = path.join(process.cwd(), 'src/data/settings.json');
-                if (fs.existsSync(settingsPath)) {
-                    const content = fs.readFileSync(settingsPath, 'utf-8');
-                    const settings = JSON.parse(content);
-                    pauseOrganic = !!settings.pauseOrganicTrending;
+                const { data } = await supabaseAdmin
+                    .from('platform_settings')
+                    .select('algorithm_paused')
+                    .eq('id', 'global')
+                    .single();
+                if (data && data.algorithm_paused) {
+                    pauseOrganic = true;
                 }
             } catch (e) {
-                console.error("Failed to read settings.json inside feed API:", e);
+                console.error("Failed to fetch platform settings:", e);
             }
 
             if (pauseOrganic) {

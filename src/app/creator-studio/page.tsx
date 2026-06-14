@@ -3,15 +3,70 @@
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { UploadCloud, LayoutDashboard, ShieldCheck } from "lucide-react";
+import { UploadCloud, LayoutDashboard, ShieldCheck, Sparkles, X, Power } from "lucide-react";
 import { useVideo } from "@/context/VideoContext";
 
 export default function CreatorStudioPage() {
     const { user, isAdmin, loading } = useAuth();
     const router = useRouter();
-    const [activeTab, setActiveTab] = useState<'overview'>('overview');
-    const { uploadVideo, isUploading, uploadProgress, cancelUpload } = useVideo();
+    const [activeTab, setActiveTab] = useState<'overview' | 'curation'>('overview');
+    const { uploadVideo, isUploading, uploadProgress, cancelUpload, toggleVideoFeatured, toggleVideoTrending } = useVideo();
     const [fileRef, setFileRef] = useState<HTMLInputElement | null>(null);
+
+    // Curation State
+    const [isAlgorithmPaused, setIsAlgorithmPaused] = useState(false);
+    const [curatedVideos, setCuratedVideos] = useState<{ featured: any[], trending: any[] }>({ featured: [], trending: [] });
+    const [isCurationLoading, setIsCurationLoading] = useState(true);
+
+    const loadCurationState = async () => {
+        setIsCurationLoading(true);
+        try {
+            const [algRes, curRes] = await Promise.all([
+                fetch('/api/settings/algorithm'),
+                fetch('/api/videos/curated')
+            ]);
+            const algData = await algRes.json();
+            const curData = await curRes.json();
+            setIsAlgorithmPaused(algData.algorithm_paused);
+            setCuratedVideos(curData);
+        } catch (e) {
+            console.error("Failed to load curation state", e);
+        } finally {
+            setIsCurationLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        if (activeTab === 'curation') {
+            loadCurationState();
+        }
+    }, [activeTab]);
+
+    const handleToggleAlgorithm = async () => {
+        const newState = !isAlgorithmPaused;
+        setIsAlgorithmPaused(newState);
+        try {
+            const token = user?.id ? await (await fetch('/api/auth/session')).json() : ''; // Optional fallback depending on auth structure
+            await fetch('/api/settings/algorithm', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ algorithm_paused: newState })
+            });
+        } catch (e) {
+            console.error("Failed to toggle algorithm", e);
+            setIsAlgorithmPaused(!newState); // revert on failure
+        }
+    };
+
+    const handleRemoveFeatured = async (id: string) => {
+        await toggleVideoFeatured(id, true);
+        setCuratedVideos(prev => ({ ...prev, featured: prev.featured.filter(v => v.id !== id) }));
+    };
+
+    const handleRemoveTrending = async (id: string) => {
+        await toggleVideoTrending(id, true);
+        setCuratedVideos(prev => ({ ...prev, trending: prev.trending.filter(v => v.id !== id) }));
+    };
 
     useEffect(() => {
         if (!loading && (!user || !isAdmin)) {
@@ -47,6 +102,13 @@ export default function CreatorStudioPage() {
                         >
                             <LayoutDashboard className="w-5 h-5" />
                             Overview
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('curation')}
+                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-bold ${activeTab === 'curation' ? 'bg-amber-500 text-black' : 'text-gray-400 hover:bg-amber-500/10 hover:text-amber-500'}`}
+                        >
+                            <Sparkles className="w-5 h-5" />
+                            Curation Center
                         </button>
                     </nav>
                 </div>
@@ -105,6 +167,113 @@ export default function CreatorStudioPage() {
                         </div>
                     )}
 
+                    {activeTab === 'curation' && (
+                        <div className="space-y-12 animate-fade-in-up pb-20">
+                            <div>
+                                <h1 className="text-4xl font-black mb-2 flex items-center gap-3">
+                                    <Sparkles className="w-8 h-8 text-amber-500" />
+                                    Curation Center
+                                </h1>
+                                <p className="text-gray-400 text-lg">Manage homepage layouts and algorithmic behaviors.</p>
+                            </div>
+
+                            {/* Master Killswitch */}
+                            <div className="bg-gradient-to-br from-zinc-900 to-black border border-white/10 rounded-3xl p-8 relative overflow-hidden group">
+                                <div className={`absolute top-0 right-0 w-64 h-64 blur-[80px] rounded-full pointer-events-none transition-colors duration-1000 ${isAlgorithmPaused ? 'bg-red-500/20' : 'bg-emerald-500/20'}`} />
+                                <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
+                                    <div>
+                                        <h2 className="text-2xl font-black mb-2 flex items-center gap-2">
+                                            Organic Algorithm Status
+                                        </h2>
+                                        <p className="text-gray-400 max-w-xl">
+                                            When paused, the platform will completely ignore organic view counts and strictly display <strong>only the videos you manually curate</strong> below in the Trending feeds.
+                                        </p>
+                                    </div>
+                                    <button
+                                        onClick={handleToggleAlgorithm}
+                                        className={`shrink-0 flex items-center gap-3 px-8 py-4 rounded-2xl font-black uppercase tracking-widest transition-all duration-300 shadow-xl ${
+                                            isAlgorithmPaused 
+                                                ? 'bg-red-500 text-white shadow-red-500/20 hover:bg-red-600' 
+                                                : 'bg-emerald-500 text-white shadow-emerald-500/20 hover:bg-emerald-600'
+                                        }`}
+                                    >
+                                        <Power className="w-5 h-5" />
+                                        {isAlgorithmPaused ? 'Algorithm Paused' : 'Algorithm Active'}
+                                    </button>
+                                </div>
+                            </div>
+
+                            {isCurationLoading ? (
+                                <div className="h-32 flex items-center justify-center">
+                                    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-amber-500"></div>
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                                    {/* Hero Carousel List */}
+                                    <div className="bg-white/5 border border-white/10 rounded-3xl p-6">
+                                        <h3 className="text-xl font-black text-white mb-6 border-l-4 border-j-gold pl-3">Featured Hero Carousel</h3>
+                                        <p className="text-sm text-gray-400 mb-6 italic">These videos appear at the very top of the homepage in the giant slider.</p>
+                                        
+                                        <div className="space-y-4">
+                                            {curatedVideos.featured.length === 0 ? (
+                                                <div className="text-center py-8 text-gray-500 font-medium">No featured videos set.</div>
+                                            ) : (
+                                                curatedVideos.featured.map(video => (
+                                                    <div key={video.id} className="flex items-center justify-between bg-black/40 rounded-xl p-3 border border-white/5 group">
+                                                        <div className="flex items-center gap-4 min-w-0">
+                                                            <div className="w-20 h-12 bg-zinc-800 rounded-md shrink-0 overflow-hidden relative">
+                                                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                                {video.thumbnail_url && <img src={video.thumbnail_url} alt="" className="object-cover w-full h-full" />}
+                                                            </div>
+                                                            <div className="truncate font-bold text-sm text-gray-200">{video.title}</div>
+                                                        </div>
+                                                        <button 
+                                                            onClick={() => handleRemoveFeatured(video.id)}
+                                                            className="p-2 text-gray-500 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors shrink-0"
+                                                            title="Remove from Featured"
+                                                        >
+                                                            <X className="w-4 h-4" />
+                                                        </button>
+                                                    </div>
+                                                ))
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Trending List */}
+                                    <div className="bg-white/5 border border-white/10 rounded-3xl p-6">
+                                        <h3 className="text-xl font-black text-white mb-6 border-l-4 border-red-500 pl-3">Curated Trending Rail</h3>
+                                        <p className="text-sm text-gray-400 mb-6 italic">These videos are forced into the "Trending Now" rail. If algorithm is paused, ONLY these appear.</p>
+                                        
+                                        <div className="space-y-4">
+                                            {curatedVideos.trending.length === 0 ? (
+                                                <div className="text-center py-8 text-gray-500 font-medium">No trending overrides set.</div>
+                                            ) : (
+                                                curatedVideos.trending.map(video => (
+                                                    <div key={video.id} className="flex items-center justify-between bg-black/40 rounded-xl p-3 border border-white/5 group">
+                                                        <div className="flex items-center gap-4 min-w-0">
+                                                            <div className="w-20 h-12 bg-zinc-800 rounded-md shrink-0 overflow-hidden relative">
+                                                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                                {video.thumbnail_url && <img src={video.thumbnail_url} alt="" className="object-cover w-full h-full" />}
+                                                            </div>
+                                                            <div className="truncate font-bold text-sm text-gray-200">{video.title}</div>
+                                                        </div>
+                                                        <button 
+                                                            onClick={() => handleRemoveTrending(video.id)}
+                                                            className="p-2 text-gray-500 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors shrink-0"
+                                                            title="Remove from Trending"
+                                                        >
+                                                            <X className="w-4 h-4" />
+                                                        </button>
+                                                    </div>
+                                                ))
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
 
                 </div>
             </div>
