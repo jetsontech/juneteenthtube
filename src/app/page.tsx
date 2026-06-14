@@ -43,7 +43,9 @@ export default function HomePage() {
     type TrendingFilter = 'Curated' | 'Today' | 'This Week' | 'All Time';
     const [trendingFilter, setTrendingFilter] = useState<TrendingFilter>('Curated');
 
-    const cached = globalHomepageCache?.stateCode === selectedState?.code ? globalHomepageCache : null;
+    // Ignore stateCode strict matching for initial hydration so we don't flash the skeleton
+    // because selectedState is always undefined on the very first client render.
+    const cached = globalHomepageCache;
 
     // State-driven paginated feeds
     const [trendingVideos, setTrendingVideos] = useState<VideoProps[]>(cached?.trending || []);
@@ -55,7 +57,8 @@ export default function HomePage() {
 
     const [selectedCategory, setSelectedCategory] = useState<string>("All");
     
-    const catCached = globalCategoryCache[selectedCategory]?.stateCode === selectedState?.code 
+    // Ignore strict state match on first render for category cache too
+    const catCached = globalCategoryCache[selectedCategory]
         ? globalCategoryCache[selectedCategory].videos 
         : null;
 
