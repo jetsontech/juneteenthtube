@@ -848,6 +848,10 @@ export function VideoProvider({ children }: { children: ReactNode }) {
                 headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
                 body: JSON.stringify({ title: file.name.replace(/\.[^/.]+$/, ""), video_url: publicUrl, thumbnail_url: thumbUrl, category, duration, state, transcode_status: 'pending', owner_id: user?.id })
             });
+            if (!res.ok) {
+                const errText = await res.text();
+                throw new Error(`Database Error: ${errText}`);
+            }
             await res.json();
             fetchVideos();
         } finally { setIsUploading(false); abortControllerRef.current = null; }

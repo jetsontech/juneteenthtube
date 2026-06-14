@@ -35,8 +35,7 @@ export async function POST(req: NextRequest) {
           duration,
           state,
           transcode_status,
-          owner_id: finalOwnerId,
-          hdr_supported: true
+          owner_id: finalOwnerId
         }
       ])
       .select()
