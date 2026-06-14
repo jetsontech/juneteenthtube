@@ -146,9 +146,17 @@ export function EditVideoModal({ video, isOpen, onClose }: EditVideoModalProps) 
                                 onChange={handleThumbnailChange}
                                 title="Upload Select"
                             />
-                            <p className="text-[10px] text-gray-500 font-medium leading-relaxed italic">
+                            <p className="text-[10px] text-gray-500 font-medium leading-relaxed italic mb-3">
                                 * Recommended: 1280x720 (16:9 ratio). High quality thumbnails increase click-through rates.
                             </p>
+                            
+                            <button
+                                onClick={() => alert("AI Thumbnail Generation is currently in training. Coming soon to this frontier platform!")}
+                                className="w-full mt-2 py-3 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 border border-indigo-500/20 rounded-xl font-bold text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 group"
+                            >
+                                <Sparkles className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                                Generate AI Thumbnail
+                            </button>
                         </div>
 
                         {/* Details Side */}
