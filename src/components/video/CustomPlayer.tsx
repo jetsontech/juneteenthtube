@@ -645,6 +645,16 @@ export function CustomPlayer({ src, srcH264, poster, videoId, onPlayStart }: Cus
                 </div>
             )}
 
+            {(transcodeStatus === 'pending' || transcodeStatus === 'processing') && !srcH264 && (
+                <div className="absolute top-4 left-4 z-[50] flex items-center gap-2 bg-amber-500/20 border border-amber-500/30 backdrop-blur-md rounded-full px-4 py-1.5 pointer-events-auto">
+                    <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                    <span className="text-[10px] font-black text-amber-500 uppercase tracking-widest flex items-center gap-2">
+                        Processing High Quality
+                        <span className="hidden sm:inline text-amber-500/70 lowercase font-medium tracking-normal">(black screen may occur on some browsers until finished)</span>
+                    </span>
+                </div>
+            )}
+
             <div
                 className={cn(
                     "absolute inset-0 z-[60] bg-transparent transition-opacity duration-300 flex flex-col justify-end pointer-events-none",

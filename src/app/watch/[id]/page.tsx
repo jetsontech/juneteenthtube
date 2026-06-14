@@ -243,6 +243,8 @@ export default function WatchPage({
                                     src={video.videoUrl}
                                     srcH264={video.videoUrlH264}
                                     poster={video.thumbnail}
+                                    videoId={video.id}
+                                    transcodeStatus={video.transcodeStatus}
                                 />
                             ) : (
                                 <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
