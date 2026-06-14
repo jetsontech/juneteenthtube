@@ -67,6 +67,13 @@ export default function HomePage() {
         if (selectedCategory === "All") return;
         let isCancelled = false;
         async function fetchCategoryVideos() {
+            if (globalCategoryCache[selectedCategory]?.stateCode === selectedState?.code) {
+                if (!isCancelled) {
+                    setIsCategoryLoading(false);
+                    setCategoryVideos(globalCategoryCache[selectedCategory].videos);
+                }
+                return;
+            }
             setIsCategoryLoading(true);
             try {
                 const stateParam = selectedState?.code ? `&state=${selectedState.code}` : "";
@@ -91,7 +98,17 @@ export default function HomePage() {
     useEffect(() => {
         let isCancelled = false;
         async function fetchHomepageFeeds() {
-            if (globalHomepageCache?.stateCode === selectedState?.code) return; // Use cache
+            if (globalHomepageCache?.stateCode === selectedState?.code) {
+                if (!isCancelled) {
+                    setIsFeedsLoading(false);
+                    setTrendingVideos(globalHomepageCache.trending);
+                    setRecentVideos(globalHomepageCache.recent);
+                    setFeaturedVideos(globalHomepageCache.featured);
+                    setCategoryFeeds(globalHomepageCache.categoryFeeds);
+                    setTotalArchives(globalHomepageCache.totalArchives);
+                }
+                return;
+            }
             setIsFeedsLoading(true);
             try {
                 const stateParam = selectedState?.code ? `&state=${selectedState.code}` : "";
