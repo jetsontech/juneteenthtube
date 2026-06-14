@@ -30,6 +30,7 @@ export function CustomPlayer({ src, srcH264, poster, videoId, transcodeStatus, o
     const videoRef = useRef<HTMLVideoElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const hlsInstanceRef = useRef<Hls | null>(null);
+    const timeTextRef = useRef<HTMLDivElement>(null);
 
     const [prevVideoId, setPrevVideoId] = useState(videoId);
     const [hasIncrementedView, setHasIncrementedView] = useState(false);
@@ -333,11 +334,11 @@ export function CustomPlayer({ src, srcH264, poster, videoId, transcodeStatus, o
     };
 
     useEffect(() => {
-        if (progressBarRef.current) {
+        if (progressBarRef.current && isDragging) {
             const pct = duration > 0 ? (currentTime / duration) * 100 : 0;
             progressBarRef.current.style.setProperty('--progress-percent', `${pct}%`);
         }
-    }, [currentTime, duration]);
+    }, [currentTime, duration, isDragging]);
 
     useEffect(() => {
         const handleResize = () => { if (isCssFullscreen) setWindowHeight(window.innerHeight); };
@@ -476,6 +477,7 @@ export function CustomPlayer({ src, srcH264, poster, videoId, transcodeStatus, o
                 hlsInstanceRef.current = hls;
             } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
                 video.src = srcUrl;
+                video.load(); // Explicitly force the browser to reload for native HLS
                 srcReadyRef.current = true;
             } else {
                 setPlaybackError("HLS not supported in this browser.");
@@ -556,7 +558,21 @@ export function CustomPlayer({ src, srcH264, poster, videoId, transcodeStatus, o
                         sendTelemetry('watch_complete', { durationSeconds: videoRef.current?.duration || 0 });
                     }}
                     onTimeUpdate={(e) => {
-                        if (!isDragging) setCurrentTime(e.currentTarget.currentTime);
+                        const time = e.currentTarget.currentTime;
+                        if (!isDragging) {
+                            if (progressBarRef.current && duration > 0) {
+                                const pct = (time / duration) * 100;
+                                progressBarRef.current.style.setProperty('--progress-percent', `${pct}%`);
+                            }
+                            if (timeTextRef.current) {
+                                timeTextRef.current.textContent = `${formatTime(time)} / ${formatTime(duration)}`;
+                            }
+                            // Only update React state occasionally or skip it if we don't strictly need it.
+                            // We still need to sync it sometimes for the native range input value.
+                            if (Math.abs(currentTime - time) > 1) {
+                                setCurrentTime(time);
+                            }
+                        }
                     }}
                     onLoadedMetadata={(e) => {
                         setDuration(e.currentTarget.duration);
@@ -698,7 +714,7 @@ export function CustomPlayer({ src, srcH264, poster, videoId, transcodeStatus, o
                                     <input type="range" title="Volume" placeholder="Volume" aria-label="Volume" min="0" max="1" step="0.05" value={isMuted ? 0 : volume} onChange={handleVolumeChange} className="w-20 h-1 bg-white/30 rounded-lg appearance-none cursor-pointer accent-white" />
                                 </div>
                             </div>
-                            <div className="text-white/80 text-sm font-medium font-mono">
+                            <div ref={timeTextRef} className="text-white/80 text-sm font-medium font-mono">
                                 {formatTime(currentTime)} / {formatTime(duration)}
                             </div>
                         </div>
