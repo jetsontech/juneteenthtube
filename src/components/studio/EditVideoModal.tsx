@@ -4,6 +4,7 @@ import React, { useState, useRef } from "react";
 import Image from "next/image";
 import { X, Upload, Video, Check, Loader2, Sparkles } from "lucide-react";
 import { VideoProps, useVideo } from "@/context/VideoContext";
+import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
 
 interface EditVideoModalProps {
@@ -13,13 +14,16 @@ interface EditVideoModalProps {
 }
 
 export function EditVideoModal({ video, isOpen, onClose }: EditVideoModalProps) {
-    const { updateVideoTitle, updateVideoThumbnail } = useVideo();
+    const { updateVideoTitle, updateVideoThumbnail, toggleVideoFeatured, toggleVideoTrending } = useVideo();
+    const { isAdmin } = useAuth();
     const [title, setTitle] = useState(video.title);
     const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
     const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(video.thumbnail);
     const [isSaving, setIsSaving] = useState(false);
     const [isAutoFilling, setIsAutoFilling] = useState(false);
     const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
+    const [isFeaturedLocal, setIsFeaturedLocal] = useState(video.isFeatured || false);
+    const [isTrendingLocal, setIsTrendingLocal] = useState(video.isTrending || false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     if (!isOpen) return null;
@@ -67,6 +71,16 @@ export function EditVideoModal({ video, isOpen, onClose }: EditVideoModalProps) 
             // Update Thumbnail if changed
             if (thumbnailFile) {
                 await updateVideoThumbnail(video.id, thumbnailFile);
+            }
+
+            // Update Admin Overrides
+            if (isAdmin) {
+                if (isFeaturedLocal !== (video.isFeatured || false)) {
+                    await toggleVideoFeatured(video.id, video.isFeatured || false);
+                }
+                if (isTrendingLocal !== (video.isTrending || false)) {
+                    await toggleVideoTrending(video.id, video.isTrending || false);
+                }
             }
 
             setSaveStatus('success');
@@ -167,6 +181,44 @@ export function EditVideoModal({ video, isOpen, onClose }: EditVideoModalProps) 
                                 </div>
                                 <p className="mt-2 text-[10px] text-gray-600 italic">Category cannot be changed after upload.</p>
                             </div>
+
+                            {isAdmin && (
+                                <div className="p-5 bg-white/[0.02] border border-j-gold/20 rounded-2xl space-y-4 relative overflow-hidden">
+                                    <div className="absolute top-0 right-0 w-24 h-24 bg-j-gold/10 blur-[30px] rounded-full pointer-events-none" />
+                                    <h3 className="text-xs font-black text-j-gold uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+                                        <Sparkles className="w-3.5 h-3.5" />
+                                        Admin Overrides
+                                    </h3>
+                                    
+                                    <label className="flex items-center justify-between cursor-pointer group">
+                                        <div>
+                                            <span className="block text-sm font-bold text-white group-hover:text-j-gold transition-colors">Hero Carousel (Featured)</span>
+                                            <span className="block text-[10px] text-gray-400 mt-0.5">Force this video to the top homepage carousel</span>
+                                        </div>
+                                        <div className="relative">
+                                            <input type="checkbox" className="sr-only" checked={isFeaturedLocal} onChange={(e) => setIsFeaturedLocal(e.target.checked)} />
+                                            <div className={cn("w-10 h-6 rounded-full transition-colors", isFeaturedLocal ? "bg-j-gold" : "bg-white/10")}>
+                                                <div className={cn("absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform", isFeaturedLocal ? "translate-x-4" : "translate-x-0")} />
+                                            </div>
+                                        </div>
+                                    </label>
+
+                                    <div className="h-px bg-white/10 w-full" />
+
+                                    <label className="flex items-center justify-between cursor-pointer group">
+                                        <div>
+                                            <span className="block text-sm font-bold text-white group-hover:text-j-gold transition-colors">Curated Trending</span>
+                                            <span className="block text-[10px] text-gray-400 mt-0.5">Push this to the 'Trending Now' section manually</span>
+                                        </div>
+                                        <div className="relative">
+                                            <input type="checkbox" className="sr-only" checked={isTrendingLocal} onChange={(e) => setIsTrendingLocal(e.target.checked)} />
+                                            <div className={cn("w-10 h-6 rounded-full transition-colors", isTrendingLocal ? "bg-j-gold" : "bg-white/10")}>
+                                                <div className={cn("absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform", isTrendingLocal ? "translate-x-4" : "translate-x-0")} />
+                                            </div>
+                                        </div>
+                                    </label>
+                                </div>
+                            )}
                         </div>
                     </div>
 
