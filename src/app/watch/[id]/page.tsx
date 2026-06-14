@@ -165,7 +165,9 @@ export default function WatchPage({
 
     const handleShare = async () => {
         try {
-            await navigator.clipboard.writeText(window.location.href);
+            const path = window.location.pathname + window.location.search;
+            const primaryDomain = "https://culturequest.vip";
+            await navigator.clipboard.writeText(`${primaryDomain}${path}`);
             alert("Link copied to clipboard!");
         } catch (err) {
             console.error("Failed to copy link", err);

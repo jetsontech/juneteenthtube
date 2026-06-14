@@ -120,7 +120,9 @@ export default function ShortsPlayerPage({
 
     const handleShare = async () => {
         try {
-            await navigator.clipboard.writeText(window.location.href);
+            const path = window.location.pathname + window.location.search;
+            const primaryDomain = "https://culturequest.vip";
+            await navigator.clipboard.writeText(`${primaryDomain}${path}`);
             alert("Link copied!");
         } catch (err) { console.error("Failed to copy", err); }
     };

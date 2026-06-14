@@ -377,10 +377,10 @@ export function VideoProvider({ children }: { children: ReactNode }) {
 
     const postComment = useCallback(async (videoId: string, text: string, userName: string) => {
         const guestId = getGuestId();
-        const headers: Record<string, string> = {
+        const headers = getAuthHeaders({
             'Content-Type': 'application/json',
             'x-guest-id': guestId
-        };
+        });
         if (user?.id) {
             headers['x-user-id'] = user.id;
         }
@@ -396,9 +396,9 @@ export function VideoProvider({ children }: { children: ReactNode }) {
 
     const getLikes = useCallback(async (videoId: string) => {
         const guestId = getGuestId();
-        const headers: Record<string, string> = {
+        const headers = getAuthHeaders({
             'x-guest-id': guestId
-        };
+        });
         if (user?.id) {
             headers['x-user-id'] = user.id;
         }
@@ -410,10 +410,10 @@ export function VideoProvider({ children }: { children: ReactNode }) {
 
     const toggleLike = useCallback(async (videoId: string, type: 'like' | 'dislike') => {
         const guestId = getGuestId();
-        const headers: Record<string, string> = {
+        const headers = getAuthHeaders({
             'Content-Type': 'application/json',
             'x-guest-id': guestId
-        };
+        });
         if (user?.id) {
             headers['x-user-id'] = user.id;
         }
@@ -429,9 +429,9 @@ export function VideoProvider({ children }: { children: ReactNode }) {
 
     const getSubscription = useCallback(async (channelName: string) => {
         const guestId = getGuestId();
-        const headers: Record<string, string> = {
+        const headers = getAuthHeaders({
             'x-guest-id': guestId
-        };
+        });
         if (user?.id) {
             headers['x-user-id'] = user.id;
         }
@@ -444,10 +444,10 @@ export function VideoProvider({ children }: { children: ReactNode }) {
 
     const toggleSubscription = useCallback(async (channelName: string) => {
         const guestId = getGuestId();
-        const headers: Record<string, string> = {
+        const headers = getAuthHeaders({
             'Content-Type': 'application/json',
             'x-guest-id': guestId
-        };
+        });
         if (user?.id) {
             headers['x-user-id'] = user.id;
         }
