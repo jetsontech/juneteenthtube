@@ -49,6 +49,11 @@ export async function GET(req: NextRequest) {
             query = query.eq('category', category);
         }
 
+        // Hide non-user uploaded videos (owner_id is null) from everything EXCEPT the Legacy Vault
+        if (category !== 'Vault') {
+            query = query.not('owner_id', 'is', null);
+        }
+
         if (feed === 'trending') {
             let pauseOrganic = false;
             try {
