@@ -61,12 +61,12 @@ export async function POST(req: NextRequest) {
               event_type: 'transcode',
               client_payload: {
                 videoId: data.id,
-                quality: 'master',
-                crf: 16,
-                preset: 'veryslow',
-                audio_bitrate: '320k',
-                dolby_vision: true,
-                spatial_audio: true
+                quality: 'auto',
+                crf: 23,
+                preset: 'fast',
+                audio_bitrate: '192k',
+                dolby_vision: false,
+                spatial_audio: false
               },
             }),
           }
