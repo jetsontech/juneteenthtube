@@ -9,7 +9,7 @@ import "video.js/dist/video-js.css";
 import { ThumbsUp, ThumbsDown, MessageCircle, Share2, MoreVertical, X, ChevronUp, ChevronDown, Volume2, VolumeX, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 export default function ShortsPlayerPage({
@@ -19,8 +19,13 @@ export default function ShortsPlayerPage({
 }) {
     const resolvedParams = use(params);
     const router = useRouter();
-    const searchParams = useSearchParams();
-    const mode = searchParams.get('mode') || 'portrait';
+    const [mode, setMode] = useState('portrait');
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const params = new URLSearchParams(window.location.search);
+            setMode(params.get('mode') || 'portrait');
+        }
+    }, []);
     const isLandscape = mode === 'landscape';
     const { getVideoById, videos, getLikes, toggleLike } = useVideo();
 
@@ -162,7 +167,7 @@ export default function ShortsPlayerPage({
             onTouchStart={handleTouchStart}
             onTouchEnd={handleTouchEnd}
         >
-            <Link href="/" className="absolute top-4 left-4 z-50 p-3 hover:bg-white/10 rounded-full transition-colors backdrop-blur-md flex items-center gap-2">
+            <Link href="/" className="absolute top-6 left-6 z-[1000] p-3 bg-black/40 hover:bg-black/60 rounded-full transition-colors backdrop-blur-md flex items-center gap-2 border border-white/10 shadow-xl">
                 <ArrowLeft className="w-6 h-6 text-white" />
                 <span className="hidden sm:inline text-white font-bold tracking-widest uppercase text-xs">Back to Home</span>
             </Link>
