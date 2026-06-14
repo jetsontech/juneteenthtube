@@ -26,7 +26,7 @@ interface CustomPlayerProps {
     onPlayStart?: () => void;
 }
 
-export function CustomPlayer({ src, srcH264, poster, videoId, onPlayStart }: CustomPlayerProps) {
+export function CustomPlayer({ src, srcH264, poster, videoId, transcodeStatus, onPlayStart }: CustomPlayerProps) {
     const videoRef = useRef<HTMLVideoElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const hlsInstanceRef = useRef<Hls | null>(null);
