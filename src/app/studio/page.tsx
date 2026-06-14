@@ -104,19 +104,19 @@ export default function StudioPage() {
                         <table className="w-full text-left">
                             <thead className="bg-white/[0.03] text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] border-b border-white/5">
                                 <tr>
-                                    <th className="px-8 py-5">Video</th>
-                                    <th className="px-8 py-5">Visibility</th>
-                                    <th className="px-8 py-5">Date</th>
-                                    <th className="px-8 py-5">Views</th>
-                                    <th className="px-8 py-5 text-right">Actions</th>
+                                    <th className="px-4 md:px-8 py-5">Video</th>
+                                    <th className="px-4 md:px-8 py-5 hidden md:table-cell">Visibility</th>
+                                    <th className="px-4 md:px-8 py-5 hidden sm:table-cell">Date</th>
+                                    <th className="px-4 md:px-8 py-5 hidden lg:table-cell">Views</th>
+                                    <th className="px-4 md:px-8 py-5 text-right sticky right-0 bg-[#0a0a0a] z-10 shadow-[-10px_0_20px_rgba(0,0,0,0.5)]">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-white/5">
                                 {userVideos.map((video) => (
                                     <tr key={video.id} className="hover:bg-white/[0.02] transition-colors group">
-                                        <td className="px-8 py-6">
-                                            <div className="flex items-center gap-5">
-                                                <div className="w-40 aspect-video rounded-xl bg-black/40 border border-white/10 overflow-hidden relative shadow-lg">
+                                        <td className="px-4 md:px-8 py-6">
+                                            <div className="flex items-center gap-3 md:gap-5">
+                                                <div className="w-24 md:w-40 aspect-video rounded-xl bg-black/40 border border-white/10 overflow-hidden relative shadow-lg flex-shrink-0">
                                                     {video.thumbnail ? (
                                                         <Image src={video.thumbnail} alt="" fill className="object-cover group-hover:scale-110 transition-transform duration-700" />
                                                     ) : (
@@ -124,36 +124,36 @@ export default function StudioPage() {
                                                             <Video className="w-6 h-6 text-white/10" />
                                                         </div>
                                                     )}
-                                                    <div className="absolute bottom-1.5 right-1.5 bg-black/80 px-1.5 py-0.5 rounded text-[10px] font-bold text-white border border-white/10">
+                                                    <div className="absolute bottom-1 right-1 bg-black/80 px-1 py-0.5 rounded text-[8px] md:text-[10px] font-bold text-white border border-white/10">
                                                         {video.duration}
                                                     </div>
                                                 </div>
                                                 <div className="min-w-0 flex-1">
-                                                    <p className="text-white font-black text-lg line-clamp-1 truncate tracking-tight group-hover:text-j-gold transition-colors">
+                                                    <p className="text-white font-black text-base md:text-lg line-clamp-2 leading-tight tracking-tight group-hover:text-j-gold transition-colors break-words max-w-[200px] md:max-w-[300px]">
                                                         {video.title}
                                                     </p>
-                                                    <p className="text-[10px] text-gray-500 font-mono mt-1 opacity-60 uppercase">Category: {video.category}</p>
+                                                    <p className="text-[10px] text-gray-500 font-mono mt-1 opacity-60 uppercase">Cat: {video.category}</p>
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="px-8 py-6">
+                                        <td className="px-4 md:px-8 py-6 hidden md:table-cell">
                                             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-500/10 border border-green-500/20 text-green-500 text-[10px] font-black uppercase tracking-widest">
                                                 <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
                                                 Public
                                             </div>
                                         </td>
-                                        <td className="px-8 py-6">
+                                        <td className="px-4 md:px-8 py-6 hidden sm:table-cell">
                                             <p className="text-gray-400 text-sm font-medium">{video.postedAt}</p>
                                             <p className="text-[10px] text-gray-600 uppercase font-black mt-0.5 tracking-tighter">Published</p>
                                         </td>
-                                        <td className="px-8 py-6">
+                                        <td className="px-4 md:px-8 py-6 hidden lg:table-cell">
                                             <div className="flex items-center gap-2">
                                                 <Eye className="w-4 h-4 text-gray-600" />
                                                 <span className="text-white font-black text-sm">{video.views}</span>
                                             </div>
                                         </td>
-                                        <td className="px-8 py-6 text-right">
-                                            <div className="flex items-center justify-end gap-2 opacity-40 group-hover:opacity-100 transition-opacity">
+                                        <td className="px-4 md:px-8 py-6 text-right sticky right-0 bg-[#0a0a0a] z-10 border-l border-white/5 shadow-[-10px_0_20px_rgba(0,0,0,0.5)]">
+                                            <div className="flex items-center justify-end gap-1 md:gap-2 opacity-100">
                                                 <Link
                                                     href={`/watch/${video.id}`}
                                                     className="p-3 text-gray-400 hover:text-white hover:bg-white/10 rounded-2xl transition-all"
