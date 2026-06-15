@@ -89,7 +89,7 @@ export async function GET(req: NextRequest) {
         }
 
         const mappedVideos = ((data as unknown as DBVideo[]) || []).map((video: DBVideo) => {
-            const s3Domain = "https://media.culturequest.vip";
+            const s3Domain = process.env.S3_PUBLIC_DOMAIN || "https://media.culturequest.vip";
             
             let h264Url = video.video_url_h264;
             if (h264Url && !h264Url.startsWith('http')) {

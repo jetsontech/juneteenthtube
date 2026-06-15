@@ -24,6 +24,8 @@ export const metadata = {
   },
 };
 
+import { Toaster } from 'react-hot-toast';
+
 export default function RootLayout({
   children,
 }: {
@@ -36,6 +38,7 @@ export default function RootLayout({
           {children}
           <SpeedInsights />
         </ClientShell>
+        <Toaster position="bottom-center" toastOptions={{ style: { background: '#333', color: '#fff', fontSize: '14px', borderRadius: '8px' } }} />
       </body>
     </html>
   );

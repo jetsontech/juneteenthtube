@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, ReactNode, useEffect, useRef, useMemo, useCallback } from 'react';
+import toast from 'react-hot-toast';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
 import { safeUUID } from '@/lib/utils';
@@ -222,6 +223,7 @@ export function VideoProvider({ children }: { children: ReactNode }) {
                     hint: error.hint,
                     error
                 });
+                toast.error("Failed to load video feed. Please try again.");
                 setVideos([]);
                 return;
             }
@@ -233,14 +235,14 @@ export function VideoProvider({ children }: { children: ReactNode }) {
                     // Normalize H264 URL
                     let h264Url = video.video_url_h264;
                     if (h264Url && !h264Url.startsWith('http')) {
-                        const s3Domain = "https://media.culturequest.vip";
+                        const s3Domain = process.env.NEXT_PUBLIC_S3_PUBLIC_DOMAIN || "https://media.culturequest.vip";
                         h264Url = `${s3Domain}/${h264Url}`;
                     }
 
                     // Normalize original video URL (relative R2 paths)
                     let videoUrl = video.video_url;
                     if (videoUrl && !videoUrl.startsWith('http')) {
-                        const s3Domain = "https://media.culturequest.vip";
+                        const s3Domain = process.env.NEXT_PUBLIC_S3_PUBLIC_DOMAIN || "https://media.culturequest.vip";
                         if (videoUrl.startsWith('pub-efcc4aa0b3b24e3d97760577b0ec20bd/')) {
                             videoUrl = `${s3Domain}/${videoUrl.substring('pub-efcc4aa0b3b24e3d97760577b0ec20bd/'.length)}`;
                         } else {
@@ -251,7 +253,7 @@ export function VideoProvider({ children }: { children: ReactNode }) {
                     let thumbnail = video.thumbnail_url || "";
                     if (thumbnail) {
                         if (!thumbnail.startsWith('http') && !thumbnail.startsWith('/uploads/')) {
-                            const s3Domain = "https://media.culturequest.vip";
+                            const s3Domain = process.env.NEXT_PUBLIC_S3_PUBLIC_DOMAIN || "https://media.culturequest.vip";
                             thumbnail = `${s3Domain}/${thumbnail.startsWith('/') ? thumbnail.slice(1) : thumbnail}`;
                         }
                     }
@@ -290,6 +292,7 @@ export function VideoProvider({ children }: { children: ReactNode }) {
             }
         } catch (err) {
             console.error("Unexpected error fetching videos:", err);
+            toast.error("An unexpected error occurred while loading videos.");
         } finally {
             setIsLoading(false);
         }
@@ -306,7 +309,7 @@ export function VideoProvider({ children }: { children: ReactNode }) {
                 { event: 'UPDATE', schema: 'public', table: 'videos' },
                 (payload) => {
                     const video = payload.new as DBVideo;
-                    const s3Domain = "https://media.culturequest.vip";
+                    const s3Domain = process.env.NEXT_PUBLIC_S3_PUBLIC_DOMAIN || "https://media.culturequest.vip";
 
                     let h264Url = video.video_url_h264;
                     if (h264Url && !h264Url.startsWith('http')) {
@@ -541,6 +544,7 @@ export function VideoProvider({ children }: { children: ReactNode }) {
             setVideos(prev => prev.filter(v => v.id !== id));
         } catch (error) {
             console.error("Error deleting video:", error);
+            toast.error("Failed to delete video. Please try again.");
             throw error;
         }
     }, [getAuthHeaders]);
@@ -556,6 +560,7 @@ export function VideoProvider({ children }: { children: ReactNode }) {
             setVideos(prev => prev.map(v => v.id === id ? { ...v, title: newTitle } : v));
         } catch (error) {
             console.error("Error updating title:", error);
+            toast.error("Failed to update title.");
             throw error;
         }
     }, [getAuthHeaders]);
@@ -641,6 +646,7 @@ export function VideoProvider({ children }: { children: ReactNode }) {
             setVideos(prev => prev.map(v => v.id === id ? { ...v, thumbnail: publicUrl } : v));
         } catch (error) {
             console.error("Error updating thumbnail:", error);
+            toast.error("Failed to upload new thumbnail.");
             throw error;
         }
     }, [getAuthHeaders]);

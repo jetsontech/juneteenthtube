@@ -359,6 +359,9 @@ export function CustomPlayer({ src, srcH264, poster, videoId, transcodeStatus, o
         if (isPlaying && !hasEnded) {
             controlsTimeoutRef.current = setTimeout(() => setShowControls(false), 3000);
         }
+        return () => {
+            if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
+        };
     }, [isPlaying, hasEnded]);
 
     useEffect(() => {

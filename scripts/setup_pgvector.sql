@@ -30,6 +30,7 @@ as $$
   from videos
   where videos.embedding is not null
     and videos.id != exclude_id
+    and videos.owner_id is not null
     and 1 - (videos.embedding <=> query_embedding) > match_threshold
   order by videos.embedding <=> query_embedding
   limit match_count;

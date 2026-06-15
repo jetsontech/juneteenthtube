@@ -254,8 +254,8 @@ export async function POST(req: NextRequest) {
         const sarembokChannel = channels.find((c: { name: string; id: string }) => c.name === 'SAREMBOK');
         const jtubeChannel = channels.find((c: { name: string; id: string }) => c.name === 'J-Tube Originals');
 
-        // 2. Fetch all videos to map
-        const { data: allVideos } = await supabaseAdmin.from('videos').select('*');
+        // 2. Fetch all videos to map (only necessary fields to prevent massive payload sizes)
+        const { data: allVideos } = await supabaseAdmin.from('videos').select('id, video_url, category');
         const typedAllVideos = allVideos as DBVideo[] | null;
         const videoMap = new Map<string, string>(typedAllVideos?.map((v: DBVideo) => [v.video_url || '', v.id]) || []);
 
