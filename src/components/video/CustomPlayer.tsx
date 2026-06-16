@@ -611,7 +611,7 @@ export function CustomPlayer({ src, srcH264, poster, videoId, transcodeStatus, o
                         if (!srcReadyRef.current) return;
                         
                         const currentSrc = videoRef.current?.src || resolvedSrc;
-                        let nextSrc = currentSrc;
+                        const nextSrc = currentSrc;
 
                         sendTelemetry('playback_error', {
                             error: videoRef.current?.error?.message || "HTML5 video error",
