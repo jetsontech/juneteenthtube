@@ -1,0 +1,2 @@
+import { NextResponse } from "next/server";
+export async function POST(req: Request) { try { const body = await req.json().catch(() => ({})); const { id, filename } = body || {}; if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 }); console.info("[retrigger-transcode] requested id:", id, "filename:", filename); // TODO: enqueue real transcode job return NextResponse.json({ ok: true, id }); } catch (e) { return NextResponse.json({ error: "Server error" }, { status: 500 }); } }
