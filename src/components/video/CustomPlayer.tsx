@@ -32,13 +32,16 @@ export function CustomPlayer({ src, srcH264, poster, videoId, transcodeStatus, o
     const hlsInstanceRef = useRef<Hls | null>(null);
     const timeTextRef = useRef<HTMLDivElement>(null);
 
-    const [prevVideoId, setPrevVideoId] = useState(videoId);
+    // avoid setState during render: use ref + effect for tracking videoId changes
+    const prevVideoIdRef = useRef<string | undefined>(videoId);
     const [hasIncrementedView, setHasIncrementedView] = useState(false);
 
-    if (videoId !== prevVideoId) {
-        setPrevVideoId(videoId);
-        setHasIncrementedView(false);
-    }
+    useEffect(() => {
+        if (videoId !== prevVideoIdRef.current) {
+            prevVideoIdRef.current = videoId;
+            setHasIncrementedView(false);
+        }
+    }, [videoId]);
 
     const [qualityMode, setQualityMode] = useState<'master' | 'optimized'>(srcH264 ? 'optimized' : 'master');
     const [activeSrc, setActiveSrc] = useState(srcH264 || src);
@@ -131,12 +134,10 @@ export function CustomPlayer({ src, srcH264, poster, videoId, transcodeStatus, o
         return activeSrc;
     }, [activeSrc]);
 
-    const [prevProps, setPrevProps] = useState({ src, srcH264 });
-    if (src !== prevProps.src || srcH264 !== prevProps.srcH264) {
-        setPrevProps({ src, srcH264 });
-        const nextSrc = srcH264 || src;
-        setActiveSrc(nextSrc);
-    }
+    // sync activeSrc after render when props change
+    useEffect(() => {
+        setActiveSrc(srcH264 || src);
+    }, [src, srcH264]);
 
     const resetControls = useCallback(() => {
         setShowControls(true);
