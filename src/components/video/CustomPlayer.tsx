@@ -62,48 +62,43 @@ export function CustomPlayer({ src, srcH264, poster, videoId, transcodeStatus, o
     const [isPipAvailable, setIsPipAvailable] = useState(true);
 
     const progressBarRef = useRef<HTMLDivElement>(null);
-    const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const controlsTimeoutRef = useRef<number | null>(null);
     const retryCountRef = useRef(0);
     const srcReadyRef = useRef(false);
     const MAX_RETRIES = 3;
 
-    // Netflix-grade Buffering States & Timeouts
     const [showSpinner, setShowSpinner] = useState(false);
     const [showQualitySuggestion, setShowQualitySuggestion] = useState(false);
-    const bufferTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const stallTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const bufferTimeoutRef = useRef<number | null>(null);
+    const stallTimeoutRef = useRef<number | null>(null);
 
-    // Debounce Buffer Spinner & Stall Suggestion Hook
     useEffect(() => {
-        if (bufferTimeoutRef.current) clearTimeout(bufferTimeoutRef.current);
-        if (stallTimeoutRef.current) clearTimeout(stallTimeoutRef.current);
+        if (bufferTimeoutRef.current !== null) window.clearTimeout(bufferTimeoutRef.current);
+        if (stallTimeoutRef.current !== null) window.clearTimeout(stallTimeoutRef.current);
 
-        let clearStateTimeout: NodeJS.Timeout | null = null;
+        let clearStateTimeout: number | null = null;
 
         if (isBuffering && isPlaying) {
-            // Wait 1200ms of consecutive stall before showing spinner to prevent flashing on slow progressive streams
-            bufferTimeoutRef.current = setTimeout(() => {
+            bufferTimeoutRef.current = window.setTimeout(() => {
                 setShowSpinner(true);
 
-                // If in master (raw 4K/UHD) quality mode and we buffer for > 5 seconds, show optimized recommendation
                 if (qualityMode === 'master' && srcH264) {
-                    stallTimeoutRef.current = setTimeout(() => {
+                    stallTimeoutRef.current = window.setTimeout(() => {
                         setShowQualitySuggestion(true);
                     }, 5000);
                 }
             }, 1200);
         } else {
-            // Defer setState execution asynchronously to avoid synchronous cascading updates in effects
-            clearStateTimeout = setTimeout(() => {
+            clearStateTimeout = window.setTimeout(() => {
                 setShowSpinner(prev => prev ? false : prev);
                 setShowQualitySuggestion(prev => prev ? false : prev);
             }, 0);
         }
 
         return () => {
-            if (bufferTimeoutRef.current) clearTimeout(bufferTimeoutRef.current);
-            if (stallTimeoutRef.current) clearTimeout(stallTimeoutRef.current);
-            if (clearStateTimeout) clearTimeout(clearStateTimeout);
+            if (bufferTimeoutRef.current !== null) window.clearTimeout(bufferTimeoutRef.current);
+            if (stallTimeoutRef.current !== null) window.clearTimeout(stallTimeoutRef.current);
+            if (clearStateTimeout !== null) window.clearTimeout(clearStateTimeout);
         };
     }, [isBuffering, isPlaying, qualityMode, srcH264]);
 
@@ -145,9 +140,12 @@ export function CustomPlayer({ src, srcH264, poster, videoId, transcodeStatus, o
 
     const resetControls = useCallback(() => {
         setShowControls(true);
-        if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
+        if (controlsTimeoutRef.current !== null) {
+            window.clearTimeout(controlsTimeoutRef.current);
+            controlsTimeoutRef.current = null;
+        }
         if (isPlaying && !hasEnded) {
-            controlsTimeoutRef.current = setTimeout(() => setShowControls(false), 3000);
+            controlsTimeoutRef.current = window.setTimeout(() => setShowControls(false), 3000);
         }
     }, [isPlaying, hasEnded]);
 
@@ -205,11 +203,11 @@ export function CustomPlayer({ src, srcH264, poster, videoId, transcodeStatus, o
         setQualityMode(newMode);
         setActiveSrc(newMode === 'master' ? src : srcH264);
         sendTelemetry('quality_change', { from: qualityMode, to: newMode });
-        
+
         if (videoRef.current) {
             const wasPlaying = !videoRef.current.paused;
             const currentTime = videoRef.current.currentTime;
-            
+
             setTimeout(() => {
                 if (videoRef.current) {
                     videoRef.current.currentTime = currentTime;
@@ -243,7 +241,6 @@ export function CustomPlayer({ src, srcH264, poster, videoId, transcodeStatus, o
 
         const remoteVideo = video as HTMLVideoElementWithPlaybackTarget;
 
-        // Check Remote Playback (Chromecast/AirPlay) availability
         try {
             if (remoteVideo.remote && remoteVideo.remote.watchAvailability) {
                 let callbackId: number | undefined;
@@ -252,7 +249,6 @@ export function CustomPlayer({ src, srcH264, poster, videoId, transcodeStatus, o
                 }).then((id: number) => {
                     callbackId = id;
                 }).catch(() => {
-                    // If detection fails, fallback to showing cast icon if API is present
                     setTimeout(() => setIsCastAvailable(true), 0);
                 });
 
@@ -262,24 +258,21 @@ export function CustomPlayer({ src, srcH264, poster, videoId, transcodeStatus, o
                     }
                 };
             } else if (remoteVideo.webkitShowsPlaybackTargetPicker) {
-                // Safari legacy AirPlay fallback
                 setTimeout(() => setIsCastAvailable(true), 0);
             }
         } catch (error) {
             console.warn("[CustomPlayer] RemotePlayback watchAvailability error:", error);
-            // Default to true so they can still try prompting if they click
             setTimeout(() => setIsCastAvailable(true), 0);
         }
 
-        // Check Picture-in-Picture availability
         try {
-            const supportsPip = 
-                document.pictureInPictureEnabled || 
-                (remoteVideo.webkitSupportsPresentationMode && 
+            const supportsPip =
+                document.pictureInPictureEnabled ||
+                (remoteVideo.webkitSupportsPresentationMode &&
                  remoteVideo.webkitSupportsPresentationMode("picture-in-picture")) ||
                 (typeof remoteVideo.webkitSetPresentationMode === "function") ||
                 ('pictureInPictureEnabled' in document);
-            
+
             setIsPipAvailable(!!supportsPip);
         } catch (error) {
             console.warn("[CustomPlayer] Picture-in-Picture check failed:", error);
@@ -355,12 +348,15 @@ export function CustomPlayer({ src, srcH264, poster, videoId, transcodeStatus, o
     }, [isCssFullscreen, windowHeight]);
 
     useEffect(() => {
-        if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
+        if (controlsTimeoutRef.current !== null) window.clearTimeout(controlsTimeoutRef.current);
         if (isPlaying && !hasEnded) {
-            controlsTimeoutRef.current = setTimeout(() => setShowControls(false), 3000);
+            controlsTimeoutRef.current = window.setTimeout(() => setShowControls(false), 3000);
         }
         return () => {
-            if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
+            if (controlsTimeoutRef.current !== null) {
+                window.clearTimeout(controlsTimeoutRef.current);
+                controlsTimeoutRef.current = null;
+            }
         };
     }, [isPlaying, hasEnded]);
 
@@ -432,13 +428,11 @@ export function CustomPlayer({ src, srcH264, poster, videoId, transcodeStatus, o
         const video = videoRef.current;
         if (!video || !srcUrl) return;
 
-        // Clean up previous HLS instance if it exists to prevent memory leaks and duplicate attachment
         if (hlsInstanceRef.current) {
             hlsInstanceRef.current.destroy();
             hlsInstanceRef.current = null;
         }
 
-        // Reset state for new source
         retryCountRef.current = 0;
         srcReadyRef.current = false;
         setPlaybackError(null);
@@ -449,10 +443,10 @@ export function CustomPlayer({ src, srcH264, poster, videoId, transcodeStatus, o
                 const hls = new Hls({
                     startLevel: -1,
                     capLevelToPlayerSize: true,
-                    maxBufferLength: 45, // Deeper buffer for VOD
+                    maxBufferLength: 45,
                     maxMaxBufferLength: 90,
                     enableWorker: true,
-                    lowLatencyMode: false, // Explicitly disable low latency; this causes spinning circles in VOD
+                    lowLatencyMode: false,
                     backBufferLength: 15,
                 });
                 hls.loadSource(srcUrl);
@@ -464,14 +458,12 @@ export function CustomPlayer({ src, srcH264, poster, videoId, transcodeStatus, o
                     if (data.fatal) {
                         switch (data.type) {
                             case Hls.ErrorTypes.NETWORK_ERROR:
-                                // If the manifest itself fails to load (e.g. 404 because transcode is pending/failed or CORS)
                                 if (data.details === Hls.ErrorDetails.MANIFEST_LOAD_ERROR || data.details === Hls.ErrorDetails.MANIFEST_LOAD_TIMEOUT) {
-                                    console.warn("HLS Manifest failed to load, falling back to MP4:", src);
+                                    console.warn("HLS Manifest failed to load, falling back to MP4:", srcUrl);
                                     hls.destroy();
                                     hlsInstanceRef.current = null;
-                                    video.src = src; // Fallback to raw MP4
+                                    video.src = srcUrl;
                                     video.load();
-                                    // If user already clicked play (or we are trying to play), force it to resume
                                     video.play().catch(() => {});
                                     srcReadyRef.current = true;
                                 } else {
@@ -484,9 +476,8 @@ export function CustomPlayer({ src, srcH264, poster, videoId, transcodeStatus, o
                             default:
                                 hls.destroy();
                                 hlsInstanceRef.current = null;
-                                // Try native fallback before giving up completely
-                                console.warn("HLS Fatal Error, falling back to native MP4:", src);
-                                video.src = src;
+                                console.warn("HLS Fatal Error, falling back to native MP4:", srcUrl);
+                                video.src = srcUrl;
                                 video.load();
                                 srcReadyRef.current = true;
                                 break;
@@ -496,14 +487,14 @@ export function CustomPlayer({ src, srcH264, poster, videoId, transcodeStatus, o
                 hlsInstanceRef.current = hls;
             } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
                 video.src = srcUrl;
-                video.load(); // Explicitly force the browser to reload for native HLS
+                video.load();
                 srcReadyRef.current = true;
             } else {
                 setPlaybackError("HLS not supported in this browser.");
             }
         } else {
             video.src = srcUrl;
-            video.load(); // Explicitly force the browser to reload the media resource
+            video.load();
             srcReadyRef.current = true;
         }
     }, []);
@@ -519,8 +510,8 @@ export function CustomPlayer({ src, srcH264, poster, videoId, transcodeStatus, o
                 hlsInstanceRef.current = null;
             }
             loadSource(resolvedSrc);
-            video.load(); // Force native reload to clear internal browser errors
-            video.play().catch(() => {}); // Re-trigger playback post-load
+            video.load();
+            video.play().catch(() => {});
         }
     }, [resolvedSrc, loadSource]);
 
@@ -586,8 +577,6 @@ export function CustomPlayer({ src, srcH264, poster, videoId, transcodeStatus, o
                             if (timeTextRef.current) {
                                 timeTextRef.current.textContent = `${formatTime(time)} / ${formatTime(duration)}`;
                             }
-                            // Only update React state occasionally or skip it if we don't strictly need it.
-                            // We still need to sync it sometimes for the native range input value.
                             if (Math.abs(currentTime - time) > 1) {
                                 setCurrentTime(time);
                             }
@@ -607,9 +596,8 @@ export function CustomPlayer({ src, srcH264, poster, videoId, transcodeStatus, o
                         sendTelemetry('buffering_end', { offsetSeconds: videoRef.current?.currentTime || 0 });
                     }}
                     onError={() => {
-                        // Only handle errors after a src has actually been set
                         if (!srcReadyRef.current) return;
-                        
+
                         const currentSrc = videoRef.current?.src || resolvedSrc;
                         const nextSrc = currentSrc;
 
@@ -634,7 +622,7 @@ export function CustomPlayer({ src, srcH264, poster, videoId, transcodeStatus, o
                     }}
                 />
             </div>
- 
+
             {poster && (!hasStartedPlaying || hasEnded) && (
                 <div className="absolute inset-0 z-[10] pointer-events-none">
                     <Image
