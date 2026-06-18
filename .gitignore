@@ -56,3 +56,5 @@ venv/
 
 .vs/
 .vs/
+.env.local
+.vs/
