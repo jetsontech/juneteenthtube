@@ -2,7 +2,7 @@
 
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { UploadCloud, LayoutDashboard, ShieldCheck, Sparkles, X, Power } from "lucide-react";
 import { useVideo } from "@/context/VideoContext";
 
@@ -10,15 +10,16 @@ export default function CreatorStudioPage() {
     const { user, isAdmin, loading } = useAuth();
     const router = useRouter();
     const [activeTab, setActiveTab] = useState<'overview' | 'curation'>('overview');
-    const { uploadVideo, isUploading, uploadProgress, cancelUpload, toggleVideoFeatured, toggleVideoTrending } = useVideo();
-    const [fileRef, setFileRef] = useState<HTMLInputElement | null>(null);
+    const { toggleVideoFeatured, toggleVideoTrending } = useVideo();
+    const [_fileRef, _setFileRef] = useState<HTMLInputElement | null>(null);
 
     // Curation State
     const [isAlgorithmPaused, setIsAlgorithmPaused] = useState(false);
-    const [curatedVideos, setCuratedVideos] = useState<{ featured: any[], trending: any[] }>({ featured: [], trending: [] });
+    type CuratedVideo = { id: string; title: string; thumbnail_url?: string | null };
+    const [curatedVideos, setCuratedVideos] = useState<{ featured: CuratedVideo[], trending: CuratedVideo[] }>({ featured: [], trending: [] });
     const [isCurationLoading, setIsCurationLoading] = useState(true);
 
-    const loadCurationState = async () => {
+    const loadCurationState = useCallback(async () => {
         setIsCurationLoading(true);
         try {
             const [algRes, curRes] = await Promise.all([
@@ -34,19 +35,21 @@ export default function CreatorStudioPage() {
         } finally {
             setIsCurationLoading(false);
         }
-    };
+    }, []);
 
     useEffect(() => {
         if (activeTab === 'curation') {
-            loadCurationState();
+            const timer = window.setTimeout(() => {
+                void loadCurationState();
+            }, 0);
+            return () => window.clearTimeout(timer);
         }
-    }, [activeTab]);
+    }, [activeTab, loadCurationState]);
 
     const handleToggleAlgorithm = async () => {
         const newState = !isAlgorithmPaused;
         setIsAlgorithmPaused(newState);
         try {
-            const token = user?.id ? await (await fetch('/api/auth/session')).json() : ''; // Optional fallback depending on auth structure
             await fetch('/api/settings/algorithm', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -243,7 +246,7 @@ export default function CreatorStudioPage() {
                                     {/* Trending List */}
                                     <div className="bg-white/5 border border-white/10 rounded-3xl p-6">
                                         <h3 className="text-xl font-black text-white mb-6 border-l-4 border-red-500 pl-3">Curated Trending Rail</h3>
-                                        <p className="text-sm text-gray-400 mb-6 italic">These videos are forced into the "Trending Now" rail. If algorithm is paused, ONLY these appear.</p>
+                                        <p className="text-sm text-gray-400 mb-6 italic">These videos are forced into the &quot;Trending Now&quot; rail. If algorithm is paused, ONLY these appear.</p>
                                         
                                         <div className="space-y-4">
                                             {curatedVideos.trending.length === 0 ? (
@@ -274,7 +277,6 @@ export default function CreatorStudioPage() {
                             )}
                         </div>
                     )}
-
                 </div>
             </div>
         </div>
