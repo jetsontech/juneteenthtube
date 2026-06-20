@@ -32,7 +32,7 @@ export default function WatchPage({
     params: Promise<{ id: string }>;
 }) {
     const resolvedParams = use(params);
-    const { getVideoById, videos, getVideoComments, postComment, getLikes, toggleLike, getSubscription, toggleSubscription, addToHistory } = useVideo();
+    const { getVideoById, videos, isLoading, getVideoComments, postComment, getLikes, toggleLike, getSubscription, toggleSubscription, addToHistory } = useVideo();
     const [sidebarCategory, setSidebarCategory] = useState<string>("All");
     const [aiRecommendedIds, setAiRecommendedIds] = useState<string[]>([]);
     
@@ -174,8 +174,33 @@ export default function WatchPage({
         }
     };
 
+    if (isLoading) {
+        return (
+            <div className="p-8 text-white text-center flex flex-col items-center justify-center min-h-[50vh]">
+                <div className="w-8 h-8 border-4 border-j-gold border-t-transparent rounded-full animate-spin mb-4"></div>
+                <p className="text-gray-400">Loading video...</p>
+            </div>
+        );
+    }
+
     if (!video) {
-        return <div className="p-8 text-white text-center">Loading video...</div>;
+        return (
+            <div className="p-8 text-white text-center flex flex-col items-center justify-center min-h-[60vh] animate-revealUp">
+                <div className="w-20 h-20 rounded-full bg-j-red/10 flex items-center justify-center mb-6">
+                    <svg className="w-10 h-10 text-j-red" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                </div>
+                <h1 className="text-4xl font-black text-white uppercase tracking-tighter mb-2">Video Not Available</h1>
+                <p className="text-gray-400 mb-8 max-w-md">The video you are trying to watch may have been hidden, set to private, or does not exist.</p>
+                <Link
+                    href="/"
+                    className="bg-white text-black font-black px-8 py-3 rounded-2xl shadow-xl hover:scale-105 active:scale-95 transition-all uppercase tracking-widest text-xs"
+                >
+                    Go Back Home
+                </Link>
+            </div>
+        );
     }
 
     // Extracted Recommendations block for reusability (Mobile bottom vs Desktop side)

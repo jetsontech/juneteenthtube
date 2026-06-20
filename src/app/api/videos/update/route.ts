@@ -11,7 +11,7 @@ export async function PATCH(req: NextRequest) {
 
     try {
         const body = await req.json();
-        const { id, title, thumbnail_url, views, video_url, duration, owner_id, is_featured, is_trending, featured_title, featured_category, increment_views } = body;
+        const { id, title, thumbnail_url, views, video_url, duration, owner_id, is_featured, is_trending, featured_title, featured_category, increment_views, state } = body;
 
         if (!id) {
             return NextResponse.json({ error: 'Missing Video ID' }, { status: 400 });
@@ -28,6 +28,7 @@ export async function PATCH(req: NextRequest) {
             is_trending?: boolean;
             featured_title?: string;
             featured_category?: string;
+            state?: string;
         }
 
         const updates: VideoUpdates = {};
@@ -61,6 +62,10 @@ export async function PATCH(req: NextRequest) {
         if (featured_category !== undefined) {
             updates.featured_category = featured_category;
             console.log(`[API] Updating featured_category for ${id} to ${featured_category}`);
+        }
+        if (state !== undefined) {
+            updates.state = state;
+            console.log(`[API] Updating state for ${id} to ${state}`);
         }
 
         if (increment_views === true) {

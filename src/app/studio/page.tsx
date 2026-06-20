@@ -335,10 +335,22 @@ export default function StudioPage() {
                                             </div>
                                         </td>
                                         <td className="px-4 md:px-8 py-6 hidden md:table-cell">
-                                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-500/10 border border-green-500/20 text-green-500 text-[10px] font-black uppercase tracking-widest">
-                                                <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
-                                                Public
-                                            </div>
+                                            {video.state === 'HIDDEN' ? (
+                                                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-500 text-[10px] font-black uppercase tracking-widest">
+                                                    <div className="w-1.5 h-1.5 bg-amber-500 rounded-full" />
+                                                    Hidden
+                                                </div>
+                                            ) : video.state === 'GA' ? (
+                                                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-500 text-[10px] font-black uppercase tracking-widest">
+                                                    <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-pulse" />
+                                                    Georgia Only
+                                                </div>
+                                            ) : (
+                                                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-500/10 border border-green-500/20 text-green-500 text-[10px] font-black uppercase tracking-widest">
+                                                    <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
+                                                    Public
+                                                </div>
+                                            )}
                                         </td>
                                         <td className="px-4 md:px-8 py-6 hidden sm:table-cell">
                                             <p className="text-gray-400 text-sm font-medium">{video.postedAt}</p>

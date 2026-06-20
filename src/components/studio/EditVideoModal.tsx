@@ -14,11 +14,12 @@ interface EditVideoModalProps {
 }
 
 export function EditVideoModal({ video, isOpen, onClose }: EditVideoModalProps) {
-    const { updateVideoTitle, updateVideoThumbnail, toggleVideoFeatured, toggleVideoTrending } = useVideo();
+    const { updateVideoTitle, updateVideoThumbnail, updateVideoState, toggleVideoFeatured, toggleVideoTrending } = useVideo();
     const { isAdmin } = useAuth();
     const [title, setTitle] = useState(video.title);
     const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
     const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(video.thumbnail);
+    const [stateLocal, setStateLocal] = useState(video.state || 'GLOBAL');
     const [isSaving, setIsSaving] = useState(false);
     const [isAutoFilling, setIsAutoFilling] = useState(false);
     const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
@@ -73,6 +74,11 @@ export function EditVideoModal({ video, isOpen, onClose }: EditVideoModalProps) 
                 await updateVideoThumbnail(video.id, thumbnailFile);
             }
 
+            // Update Visibility if changed
+            if (stateLocal !== (video.state || 'GLOBAL')) {
+                await updateVideoState(video.id, stateLocal);
+            }
+
             // Update Admin Overrides
             if (isAdmin) {
                 if (isFeaturedLocal !== (video.isFeatured || false)) {
@@ -95,6 +101,15 @@ export function EditVideoModal({ video, isOpen, onClose }: EditVideoModalProps) 
             setIsSaving(false);
         }
     };
+
+    const hasChanges = 
+        title !== video.title || 
+        thumbnailFile !== null || 
+        stateLocal !== (video.state || 'GLOBAL') ||
+        (isAdmin && (
+            isFeaturedLocal !== (video.isFeatured || false) ||
+            isTrendingLocal !== (video.isTrending || false)
+        ));
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-md p-4 animate-in fade-in duration-300">
@@ -190,6 +205,26 @@ export function EditVideoModal({ video, isOpen, onClose }: EditVideoModalProps) 
                                 <p className="mt-2 text-[10px] text-gray-600 italic">Category cannot be changed after upload.</p>
                             </div>
 
+                            <div>
+                                <label className="block text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-2">Video Visibility</label>
+                                <div className="relative">
+                                    <select
+                                        value={stateLocal}
+                                        onChange={(e) => setStateLocal(e.target.value)}
+                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-j-red/50 transition-all font-medium appearance-none cursor-pointer"
+                                    >
+                                        <option value="GLOBAL" className="bg-[#1a1a1a] text-white">Public (Global)</option>
+                                        <option value="GA" className="bg-[#1a1a1a] text-white">Georgia State Only</option>
+                                        <option value="HIDDEN" className="bg-[#1a1a1a] text-white">Hidden / Paused</option>
+                                    </select>
+                                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-400">
+                                        <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                                            <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                            </div>
+
                             {isAdmin && (
                                 <div className="p-5 bg-white/[0.02] border border-j-gold/20 rounded-2xl space-y-4 relative overflow-hidden">
                                     <div className="absolute top-0 right-0 w-24 h-24 bg-j-gold/10 blur-[30px] rounded-full pointer-events-none" />
@@ -240,7 +275,7 @@ export function EditVideoModal({ video, isOpen, onClose }: EditVideoModalProps) 
                         </button>
                         <button
                             onClick={handleSave}
-                            disabled={isSaving || (title === video.title && !thumbnailFile)}
+                            disabled={isSaving || !hasChanges}
                             className={cn(
                                 "relative px-8 py-3 rounded-2xl font-black text-sm uppercase tracking-widest transition-all min-w-[140px]",
                                 saveStatus === 'success' ? "bg-green-500 text-white" :

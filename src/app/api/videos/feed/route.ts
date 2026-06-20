@@ -124,6 +124,9 @@ export async function GET(req: NextRequest) {
       dbQuery = dbQuery.not('owner_id', 'is', null);
     }
 
+    // Exclude hidden/paused videos from all public feeds
+    dbQuery = dbQuery.or('state.neq.HIDDEN,state.is.null');
+
     const { data, error } = await dbQuery.limit(200);
 
     if (error) {

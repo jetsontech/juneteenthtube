@@ -42,6 +42,7 @@ interface VideoContextType {
     cancelUpload: () => void;
     deleteVideo: (id: string) => Promise<void>;
     updateVideoTitle: (id: string, newTitle: string) => Promise<void>;
+    updateVideoState: (id: string, newState: string) => Promise<void>;
     updateVideoThumbnail: (id: string, file: File) => Promise<void>;
     updateVideoFile: (id: string, file: File) => Promise<void>;
     incrementView: (id: string) => Promise<void>;
@@ -155,7 +156,7 @@ export const extractVideoDuration = (file: File): Promise<string> => {
 
 
 export function VideoProvider({ children }: { children: ReactNode }) {
-    const { user, session } = useAuth();
+    const { user, session, isAdmin } = useAuth();
     const [videos, setVideos] = useState<VideoProps[]>([]);
 
     // Helper to generate authenticated request headers
@@ -229,10 +230,20 @@ export function VideoProvider({ children }: { children: ReactNode }) {
     // Helper to fetch videos
     const fetchVideos = useCallback(async () => {
         try {
-            const { data, error } = await supabase
+            let dbQuery = supabase
                 .from('videos')
                 .select('*')
-                .not('owner_id', 'is', null) // strictly banish legacy vault videos
+                .not('owner_id', 'is', null); // strictly banish legacy vault videos
+
+            if (!isAdmin) {
+                if (user?.id) {
+                    dbQuery = dbQuery.or(`state.neq.HIDDEN,owner_id.eq.${user.id}`);
+                } else {
+                    dbQuery = dbQuery.or('state.neq.HIDDEN,state.is.null');
+                }
+            }
+
+            const { data, error } = await dbQuery
                 .order('created_at', { ascending: false })
                 .limit(120); // Scale-safe boundary for catalog queries
 
@@ -295,7 +306,7 @@ export function VideoProvider({ children }: { children: ReactNode }) {
         } finally {
             setIsLoading(false);
         }
-    }, [user?.id]);
+    }, [user?.id, isAdmin]);
 
     // Initial Fetch & Realtime
     useEffect(() => {
@@ -548,6 +559,22 @@ export function VideoProvider({ children }: { children: ReactNode }) {
         } catch (error) {
             console.error("Error updating title:", error);
             toast.error("Failed to update title.");
+            throw error;
+        }
+    }, [getAuthHeaders]);
+
+    const updateVideoState = useCallback(async (id: string, newState: string) => {
+        try {
+            const response = await fetch('/api/videos/update', {
+                method: 'PATCH',
+                headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
+                body: JSON.stringify({ id, state: newState })
+            });
+            if (!response.ok) throw new Error('Failed to update visibility state');
+            setVideos(prev => prev.map(v => v.id === id ? { ...v, state: newState } : v));
+        } catch (error) {
+            console.error("Error updating visibility state:", error);
+            toast.error("Failed to update visibility.");
             throw error;
         }
     }, [getAuthHeaders]);
@@ -875,13 +902,13 @@ export function VideoProvider({ children }: { children: ReactNode }) {
 
     const contextValue = useMemo(() => ({
         videos, uploadVideo, uploadPhoto, getVideoById, isUploading, uploadProgress, cancelUpload,
-        deleteVideo, updateVideoTitle, updateVideoThumbnail, updateVideoFile, incrementView,
+        deleteVideo, updateVideoTitle, updateVideoState, updateVideoThumbnail, updateVideoFile, incrementView,
         deletePhoto, updatePhotoImage, updateUserAvatar,
         getVideoComments, postComment, getLikes, toggleLike, getSubscription, toggleSubscription, isLoading,
         watchHistory, addToHistory, clearHistory,
         watchLater, addToWatchLater, removeFromWatchLater, isInWatchLater, toggleVideoFeatured, toggleVideoTrending, updateVideoFeaturedText
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }), [videos, isUploading, uploadProgress, isLoading, uploadVideo, uploadPhoto, getVideoById, cancelUpload, deleteVideo, updateVideoTitle, updateVideoThumbnail, updateVideoFile, incrementView, deletePhoto, updatePhotoImage, updateUserAvatar, getVideoComments, postComment, getLikes, toggleLike, getSubscription, toggleSubscription, watchHistory, addToHistory, clearHistory, watchLater, addToWatchLater, removeFromWatchLater, isInWatchLater, toggleVideoFeatured, toggleVideoTrending, updateVideoFeaturedText, getAuthHeaders]);
+    }), [videos, isUploading, uploadProgress, isLoading, uploadVideo, uploadPhoto, getVideoById, cancelUpload, deleteVideo, updateVideoTitle, updateVideoState, updateVideoThumbnail, updateVideoFile, incrementView, deletePhoto, updatePhotoImage, updateUserAvatar, getVideoComments, postComment, getLikes, toggleLike, getSubscription, toggleSubscription, watchHistory, addToHistory, clearHistory, watchLater, addToWatchLater, removeFromWatchLater, isInWatchLater, toggleVideoFeatured, toggleVideoTrending, updateVideoFeaturedText, getAuthHeaders]);
 
     return (<VideoContext.Provider value={contextValue}>{children}</VideoContext.Provider>);
 }
