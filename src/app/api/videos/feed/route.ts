@@ -119,9 +119,9 @@ export async function GET(req: NextRequest) {
       dbQuery = dbQuery.eq('category', category);
     }
 
-    // Hide non-user uploaded videos (owner_id is null) from everything EXCEPT the Legacy Vault
+    // Hide non-user uploaded videos (owner_id is null) from everything EXCEPT the Legacy Vault, or if they are featured/trending
     if (category !== 'Vault') {
-      dbQuery = dbQuery.not('owner_id', 'is', null);
+      dbQuery = dbQuery.or('owner_id.not.is.null,is_featured.eq.true,is_trending.eq.true');
     }
 
     // Exclude hidden/paused videos from all public feeds

@@ -233,7 +233,7 @@ export function VideoProvider({ children }: { children: ReactNode }) {
             let dbQuery = supabase
                 .from('videos')
                 .select('*')
-                .not('owner_id', 'is', null); // strictly banish legacy vault videos
+                .or('owner_id.not.is.null,is_featured.eq.true,is_trending.eq.true'); // strictly banish legacy vault videos unless featured or trending
 
             if (!isAdmin) {
                 if (user?.id) {
