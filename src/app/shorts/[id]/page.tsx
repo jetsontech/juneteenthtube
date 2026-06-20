@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useEffect, useRef, useState, useCallback } from "react";
+import { use, useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { useVideo } from "@/context/VideoContext";
 import { VideoProps } from "@/components/video/VideoCard";
 import videojs from "video.js";
@@ -19,17 +19,20 @@ export default function ShortsPlayerPage({
 }) {
     const resolvedParams = use(params);
     const router = useRouter();
-    const [mode, setMode] = useState('portrait');
-    useEffect(() => {
+    const [mode, setMode] = useState(() => {
         if (typeof window !== 'undefined') {
             const params = new URLSearchParams(window.location.search);
-            setMode(params.get('mode') || 'portrait');
+            return params.get('mode') || 'portrait';
         }
-    }, []);
+        return 'portrait';
+    });
     const isLandscape = mode === 'landscape';
     const { getVideoById, videos, getLikes, toggleLike } = useVideo();
 
-    const [video, setVideo] = useState<VideoProps | undefined>();
+    const video = useMemo(() => {
+        if (!resolvedParams.id || videos.length === 0) return undefined;
+        return getVideoById(resolvedParams.id);
+    }, [resolvedParams.id, videos, getVideoById]);
     const [liked, setLiked] = useState(false);
     const [disliked, setDisliked] = useState(false);
     const [likesCount, setLikesCount] = useState(0);
@@ -85,12 +88,6 @@ export default function ShortsPlayerPage({
     });
 
     const currentIndex = shorts.findIndex(s => s.id === resolvedParams.id);
-
-    useEffect(() => {
-        if (resolvedParams.id && videos.length > 0) {
-            setVideo(getVideoById(resolvedParams.id));
-        }
-    }, [resolvedParams.id, videos, getVideoById]);
 
     useEffect(() => {
         if (!resolvedParams.id) return;

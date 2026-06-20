@@ -11,7 +11,6 @@ import { X, Share, Plus } from "lucide-react";
 export function InstallBanner() {
     const [show, setShow] = useState(false);
     const [isIOS, setIsIOS] = useState(false);
-    const [isAndroid, setIsAndroid] = useState(false);
 
     useEffect(() => {
         // Don't show if already installed as PWA
@@ -31,7 +30,6 @@ export function InstallBanner() {
         const android = /Android/i.test(userAgent);
         setTimeout(() => {
             setIsIOS(ios);
-            setIsAndroid(android);
         }, 0);
 
         // Show after 8 seconds of browsing

@@ -51,7 +51,7 @@ export default function WatchPage({
 
     // Derived Recommendations logic (AI Vector Match first, then Category Fallback)
     const filteredSidebarVideos = useMemo(() => {
-        let baseList = videos.filter(v => v.id !== resolvedParams.id);
+        const baseList = videos.filter(v => v.id !== resolvedParams.id);
         
         // If we have AI matches, surface them first if the category is "All"
         if (sidebarCategory === "All" && aiRecommendedIds.length > 0) {
@@ -269,7 +269,7 @@ export default function WatchPage({
                             </h1>
 
                             <p className="mt-2 text-[13px] text-gray-400 font-medium tracking-wide">
-                                {parseInt(video.views).toLocaleString()} VIEWS • {video.postedAt.toUpperCase()}
+                                {video.views} VIEWS • {video.postedAt?.toUpperCase() || "RECENTLY"}
                             </p>
 
                             {/* Actions Row */}
@@ -342,7 +342,7 @@ export default function WatchPage({
                             {/* Description Box */}
                             <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-4 mt-4 text-sm hover:bg-white/10 transition-colors cursor-pointer group shadow-lg">
                                 <div className="flex flex-wrap gap-x-3 gap-y-1 text-[13px] text-white mb-2">
-                                    <span className="font-bold">{parseInt(video.views).toLocaleString()} views</span>
+                                    <span className="font-bold">{video.views} views</span>
                                     <span className="font-bold">{video.postedAt}</span>
                                     <span className="text-j-gold font-medium">#Juneteenth #Atlanta</span>
                                 </div>

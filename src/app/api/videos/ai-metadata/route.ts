@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
     let cleanTitle = input.replace(/\.[^/.]+$/, "").replace(/[_-]/g, " ");
     
     // Capitalize words
-    cleanTitle = cleanTitle.replace(/\b\w/g, l => l.toUpperCase());
+    cleanTitle = cleanTitle.replace(/\b\w/g, (l: string) => l.toUpperCase());
     
     // Shorten title to 60 chars
     const title = cleanTitle.length > 60 ? cleanTitle.substring(0, 57) + "..." : cleanTitle;

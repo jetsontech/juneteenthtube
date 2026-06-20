@@ -7,7 +7,6 @@ import { useVideo } from "@/context/VideoContext";
 import { useAuth } from "@/context/AuthContext";
 import { useStateFilter } from "@/context/StateContext";
 import { AuthModal } from "../auth/AuthModal";
-// removed unused StateSelector and unused lucide-react icons imports
 import { US_STATES, DEFAULT_STATE, USState } from "@/lib/states";
 
 interface NavbarProps {
@@ -30,5 +29,443 @@ export function Navbar({ onMenuClick }: NavbarProps) {
     const userMenuRef = useRef<HTMLDivElement>(null);
     const thumbnailInputRef = useRef<HTMLInputElement>(null);
 
-    // ... rest unchanged ...
+    // Multi-step Upload State
+    const [uploadStep, setUploadStep] = useState<1 | 2>(1);
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const [selectedThumbnail, setSelectedThumbnail] = useState<File | null>(null);
+    const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
+    const progressFillRef = useRef<HTMLDivElement>(null);
+
+
+
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+                setIsUserMenuOpen(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
+    useEffect(() => {
+        if (progressFillRef.current) {
+            progressFillRef.current.style.setProperty("--progress", `${Math.min(100, uploadProgress)}%`);
+        }
+    }, [uploadProgress]);
+
+    const handleOpenAuth = (mode: 'login' | 'signup') => {
+        setAuthMode(mode);
+        setIsAuthModalOpen(true);
+    };
+
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const input = e.target;
+        const file = input.files?.[0];
+        if (!file) return;
+
+        const isImage = file.type.startsWith("image/");
+        const isVideo = file.type.startsWith("video/");
+
+        if (!isImage && !isVideo) {
+            alert("Please select an image or video file.");
+            input.value = "";
+            return;
+        }
+
+        if (isVideo) {
+            // For videos, go to step 2 to select metadata and thumbnail
+            setSelectedFile(file);
+            setUploadStep(2);
+        } else if (isImage) {
+            // Standard photo upload for direct image selection in Step 1
+            try {
+                await uploadPhoto(file, selectedCategory, selectedUploadState.code);
+                setIsUploadOpen(false);
+                setSelectedCategory("All");
+                setSelectedUploadState(DEFAULT_STATE);
+                input.value = "";
+                if (confirm(`Upload Successful! Press OK to refresh and see your photo.`)) {
+                    window.location.reload();
+                }
+            } catch (err) {
+                console.error("Photo upload failed:", err);
+                alert("Photo upload failed");
+            }
+        }
+    };
+
+    const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file && file.type.startsWith("image/")) {
+            setSelectedThumbnail(file);
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setThumbnailPreview(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const handleStartUpload = async () => {
+        if (!selectedFile) return;
+
+        try {
+            await uploadVideo(selectedFile, selectedThumbnail, selectedCategory, selectedUploadState.code);
+            setIsUploadOpen(false);
+            setUploadStep(1);
+            setSelectedFile(null);
+            setSelectedThumbnail(null);
+            setThumbnailPreview(null);
+            setSelectedCategory("All");
+            setSelectedUploadState(DEFAULT_STATE);
+
+            if (confirm(`Upload Successful! Your video is being processed. Press OK to refresh.`)) {
+                window.location.reload();
+            }
+        } catch (error: unknown) {
+            console.error("Upload error:", error);
+            const message = error instanceof Error ? error.message : "Unknown error";
+            if (message !== "Upload cancelled") {
+                alert(`Upload Failed: ${message}`);
+            }
+        }
+    };
+
+
+    const handleClose = () => {
+        if (isUploading) {
+            if (confirm("Upload in progress. Are you sure you want to cancel?")) {
+                cancelUpload();
+                setIsUploadOpen(false);
+                setUploadStep(1);
+            }
+        } else {
+            setIsUploadOpen(false);
+            setUploadStep(1);
+            setSelectedFile(null);
+            setSelectedThumbnail(null);
+            setThumbnailPreview(null);
+        }
+    };
+
+
+    return (
+        <>
+            <nav className="fixed z-[100] top-0 left-0 right-0 glass-heavy !border-x-0 !border-t-0 border-b border-white/5 px-4 py-2 min-h-[68px] !rounded-none flex items-center justify-between gap-3">
+                <div className="gloss-overlay" style={{ borderRadius: 'inherit', zIndex: 0 }} />
+                <div className="navbar-left relative z-10">
+                    <button
+                        onClick={onMenuClick}
+                        className="menu-btn"
+                        aria-label="Toggle menu"
+                    >
+                        <svg width="20" height="14" viewBox="0 0 20 14" fill="none">
+                            <rect width="20" height="2" rx="1" fill="currentColor" />
+                            <rect y="6" width="14" height="2" rx="1" fill="currentColor" />
+                            <rect y="12" width="20" height="2" rx="1" fill="currentColor" />
+                        </svg>
+                    </button>
+                    <Link href="/" className="flex items-center gap-2 group">
+                        <div className="relative w-8 h-8 md:w-9 md:h-9 animate-illuminating-shake">
+                            <Image
+                                src="/official-logo.png"
+                                alt="Logo"
+                                fill
+                                className="object-contain"
+                                priority
+                            />
+                        </div>
+                        <span className="logo-text pazzaz-text relative">
+                            CultureQuest
+                            <span className="text-[8px] text-white/40 absolute -bottom-1 -right-4 font-mono select-none">v1.1</span>
+                        </span>
+                    </Link>
+                    <div className="hidden sm:flex items-center">
+                        <select
+                            title="State Selector"
+                            value={selectedState.code}
+                            onChange={(e) => {
+                                const state = US_STATES.find(s => s.code === e.target.value);
+                                if (state) setSelectedState(state);
+                            }}
+                            className="bg-transparent border border-white/10 rounded-full px-3 py-1 text-gray-400 text-xs font-sans cursor-pointer outline-none ml-2"
+                        >
+                            <option value="GLOBAL" className="bg-[#111]">­ƒîì All States</option>
+                            {US_STATES.filter(s => s.code !== "GLOBAL").map(s => (
+                                <option key={s.code} value={s.code} className="bg-[#111]">{s.name}</option>
+                            ))}
+                        </select>
+                    </div>
+                </div>
+
+                {/* Middle Section - Search */}
+                <div className="navbar-mid">
+                    <form
+                        onSubmit={(e) => {
+                            e.preventDefault();
+                        }}
+                        className="search-wrap"
+                    >
+                        <input
+                            type="text"
+                            placeholder="Search CultureQuest..."
+                            className="search-input"
+                            aria-label="Search"
+                            onChange={(e) => {
+                                const params = new URLSearchParams(window.location.search);
+                                if (e.target.value) {
+                                    params.set('q', e.target.value);
+                                } else {
+                                    params.delete('q');
+                                }
+                                window.history.replaceState({}, '', `${window.location.pathname}?${params.toString()}`);
+                            }}
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                    const val = (e.target as HTMLInputElement).value;
+                                    window.location.href = `/?q=${encodeURIComponent(val)}`;
+                                }
+                            }}
+                        />
+                        <button
+                            type="submit"
+                            className="search-btn"
+                            aria-label="Search button"
+                        >
+                            <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
+                                <circle cx="9" cy="9" r="7" stroke="currentColor" strokeWidth="1.8" />
+                                <path d="M14 14l4 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+                            </svg>
+                        </button>
+                    </form>
+                </div>
+
+                {/* Right Section */}
+                <div className="navbar-right">
+                    <button
+                        className="icon-btn"
+                        aria-label="Upload video"
+                        onClick={() => {
+                            if (!user) {
+                                handleOpenAuth('login');
+                            } else if (!isAdmin) {
+                                alert("Creating a channel and uploading content is a premium Artist Network feature. Please contact support to upgrade your account.");
+                            } else {
+                                setIsUploadOpen(true);
+                            }
+                        }}
+                    >
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                            <path d="M15 10l-3-3-3 3M12 7v10M4 17v1a2 2 0 002 2h12a2 2 0 002-2v-1" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                    </button>
+                    {!user ? (
+                        <button
+                            onClick={() => handleOpenAuth('login')}
+                            className="signin-btn"
+                        >
+                            Sign In
+                        </button>
+                    ) : (
+                        <>
+                            <button className="icon-btn" title="Notifications">
+                                ­ƒöö<span className="notif-dot" />
+                            </button>
+                            <div className="relative" ref={userMenuRef}>
+                                <button
+                                    onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                                    className="avatar-btn"
+                                    aria-label="User menu"
+                                >
+                                    {user.email?.charAt(0).toUpperCase()}
+                                </button>
+
+                                <div className={`user-menu ${isUserMenuOpen ? 'open' : ''}`}>
+                                    <div className="user-menu-header">
+                                        <div className="user-menu-avatar">
+                                            {user.email?.charAt(0).toUpperCase()}
+                                        </div>
+                                        <div className="min-w-0">
+                                            <div className="user-menu-name truncate">{user.user_metadata?.full_name || 'User'}</div>
+                                            <div className="user-menu-email truncate">{user.email}</div>
+                                        </div>
+                                    </div>
+                                    {isAdmin && (
+                                        <button
+                                            onClick={() => { setIsUserMenuOpen(false); window.location.href = '/creator-studio'; }}
+                                            className="user-menu-item text-j-gold hover:text-white"
+                                        >
+                                            <span>­ƒÜÇ</span> Creator Studio
+                                        </button>
+                                    )}
+                                    <button
+                                        onClick={() => { setIsUserMenuOpen(false); window.location.href = '/studio'; }}
+                                        className="user-menu-item"
+                                    >
+                                        <span>­ƒÄ¼</span> CultureQuest Studio
+                                    </button>
+                                    <button
+                                        onClick={() => { setIsUserMenuOpen(false); window.location.href = '/settings'; }}
+                                        className="user-menu-item"
+                                    >
+                                        <span>ÔÜÖ´©Å</span> Settings
+                                    </button>
+                                    <div className="h-px bg-[var(--border)] my-1" />
+                                    <button
+                                        onClick={() => {
+                                            signOut();
+                                            setIsUserMenuOpen(false);
+                                        }}
+                                        className="user-menu-item danger"
+                                    >
+                                        <span>­ƒÜ¬</span> Sign Out
+                                    </button>
+                                </div>
+                            </div>
+                        </>
+                    )}
+                </div>
+            </nav>
+
+
+            <AuthModal
+                isOpen={isAuthModalOpen}
+                onClose={() => setIsAuthModalOpen(false)}
+                initialMode={authMode}
+            />
+
+            {/* Upload Modal */}
+            <div className={`modal-backdrop ${isUploadOpen ? 'open' : ''}`}>
+                <div className="modal">
+                    <div className="modal-header">
+                        <div className="modal-title">
+                            {uploadStep === 1 ? '­ƒôñ Upload Content' : uploadStep === 2 ? '­ƒÄ¼ Video Details' : 'ÔÜí Uploading...'}
+                        </div>
+                        <button className="close-btn" onClick={handleClose}>Ô£ò</button>
+                    </div>
+
+                    {uploadStep === 1 && !isUploading && (
+                        <div className="modal-body">
+                            <div
+                                className="dropzone"
+                                onDragOver={e => { e.preventDefault(); }}
+                                onDrop={(e) => {
+                                    e.preventDefault();
+                                    const file = e.dataTransfer.files[0];
+                                    if (file) {
+                                        const mockEvent = { target: { files: [file] } } as unknown as React.ChangeEvent<HTMLInputElement>;
+                                        handleFileChange(mockEvent);
+                                    }
+                                }}
+                                onClick={() => fileInputRef.current?.click()}
+                            >
+                                <div className="dropzone-icon">Ôÿü´©Å</div>
+                                <div className="dropzone-title">Drag & drop your file here</div>
+                                <div className="dropzone-sub">Photos and videos ÔÇó Stays private until you publish</div>
+                                <button className="upload-btn" onClick={e => { e.stopPropagation(); fileInputRef.current?.click(); }}>
+                                    Select Files
+                                </button>
+                                <input ref={fileInputRef} type="file" accept="image/*,video/*" hidden onChange={handleFileChange} />
+                            </div>
+                        </div>
+                    )}
+
+                    {uploadStep === 2 && !isUploading && selectedFile && (
+                        <div className="modal-body">
+                            <div className="upload-file-row">
+                                <div className="file-icon">­ƒÄÑ</div>
+                                <div>
+                                    <div className="file-name">{selectedFile.name}</div>
+                                    <div className="file-size">Ready to upload</div>
+                                </div>
+                                <button className="change-link" onClick={() => { setSelectedFile(null); setUploadStep(1); }}>Change</button>
+                            </div>
+
+                            <div className="form-grid">
+                                <div>
+                                    <div className="form-label">Thumbnail</div>
+                                    <div className="thumb-area" onClick={() => thumbnailInputRef.current?.click()}>
+                                        {thumbnailPreview
+                                            ? <Image src={thumbnailPreview} alt="thumb" fill className="object-cover" />
+                                            : <>
+                                                <div className="text-[28px]">­ƒû╝</div>
+                                                <div className="thumb-hint">Add Thumbnail</div>
+                                            </>
+                                        }
+                                        <input ref={thumbnailInputRef} type="file" accept="image/*" hidden onChange={handleThumbnailChange} />
+                                    </div>
+                                </div>
+
+                                <div className="form-side">
+                                    <div>
+                                        <label className="form-label">Content Category</label>
+                                        <select
+                                            title="Content Category"
+                                            className="form-select"
+                                            value={selectedCategory}
+                                            onChange={(e) => setSelectedCategory(e.target.value)}
+                                        >
+                                            {CATEGORIES.map(c => <option key={c} value={c} className="bg-[#111]">{c}</option>)}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="form-label">Regional Tag</label>
+                                        <select
+                                            title="Regional Tag"
+                                            className="form-select"
+                                            value={selectedUploadState.code}
+                                            onChange={(e) => {
+                                                const state = US_STATES.find(s => s.code === e.target.value);
+                                                if (state) setSelectedUploadState(state);
+                                            }}
+                                        >
+                                            <option value="GLOBAL" className="bg-[#111]">­ƒîì All States</option>
+                                            {US_STATES.filter(s => s.code !== "GLOBAL").map(s => (
+                                                <option key={s.code} value={s.code} className="bg-[#111]">{s.name}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="form-label">Visibility</label>
+                                        <select title="Visibility" className="form-select" defaultValue="public">
+                                            {['Public', 'Unlisted', 'Private'].map(v => <option key={v} value={v.toLowerCase()} className="bg-[#111]">{v}</option>)}
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button className="publish-btn" onClick={handleStartUpload}>­ƒÜÇ Publish Video</button>
+                            <div className="text-[11px] text-[var(--text-dim)] text-center mt-2">Details can be changed later in Studio</div>
+                        </div>
+                    )}
+
+                    {isUploading && (
+                        <div className="progress-wrap">
+                            <div className="text-5xl my-3">ÔÜí</div>
+                            <div className="progress-label">
+                                <span>Uploading</span>
+                                <span className="progress-pct">{Math.min(100, Math.floor(uploadProgress))}%</span>
+                            </div>
+                            <div className="progress-track">
+                                <div ref={progressFillRef} className="progress-fill" />
+                            </div>
+                            <div className="progress-pulse">
+                                <div className="pulse-dot" />
+                                Securing packet {Math.floor(uploadProgress * 12.4)}...
+                            </div>
+                            <button className="cancel-link" onClick={() => { if (confirm("Upload in progress. Are you sure you want to cancel?")) { cancelUpload(); setIsUploadOpen(false); setUploadStep(1); } }}>
+                                Ô£ò Cancel Upload
+                            </button>
+                        </div>
+                    )}
+
+                    <div className="modal-footer">
+                        By uploading, you agree to Net Post Media, LLC&apos;s Terms of Service
+                    </div>
+                </div>
+            </div>
+        </>
+    );
 }

@@ -1,13 +1,12 @@
 import { S3Client, GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import { spawn } from "child_process";
-import { rm, readdir } from "fs/promises";
+import { rm, readdir, mkdir } from "fs/promises";
 import { createWriteStream, createReadStream, existsSync } from "fs";
 import { join } from "path";
 import { createClient } from "@supabase/supabase-js";
 import path from "path";
 import dotenv from "dotenv";
 dotenv.config({ path: ".env.local" });
-import mime from "mime-types";
 
 const sanitizeEnv = (val: string | undefined) => val ? val.replace(/^['"]+|['"]+$/g, '').trim().replace(/[\n\r]/g, '') : undefined;
 const regionEnv = sanitizeEnv(process.env.S3_REGION);
@@ -54,11 +53,7 @@ export async function handleTranscoding(sourceKey: string, videoId: string, temp
     try {
         console.log(`[Transcoder] Started LOCAL HLS processing for videoId: ${videoId}`);
         
-        // Ensure hls dir exists
-        const fs = require('fs');
-        if (!fs.existsSync(hlsDir)) {
-            fs.mkdirSync(hlsDir, { recursive: true });
-        }
+        await mkdir(hlsDir, { recursive: true });
 
         // 1. Download source from S3
         console.log(`[Transcoder] Downloading source file to: ${inputPath}`);
@@ -75,8 +70,8 @@ export async function handleTranscoding(sourceKey: string, videoId: string, temp
 
         await new Promise<void>((resolve, reject) => {
             const ws = createWriteStream(inputPath);
-            // @ts-ignore
-            response.Body.pipe(ws).on("finish", resolve).on("error", reject);
+            const body = response.Body as NodeJS.ReadableStream;
+            body.pipe(ws).on("finish", resolve).on("error", reject);
         });
 
         // 2. Transcode with FFmpeg to HLS
@@ -138,7 +133,7 @@ export async function handleTranscoding(sourceKey: string, videoId: string, temp
         let m3u8PublicUrl = "";
 
         // Determine public domain from raw endpoint
-        let s3Domain = rawEndpoint;
+        let s3Domain = process.env.NEXT_PUBLIC_S3_PUBLIC_DOMAIN || process.env.S3_PUBLIC_DOMAIN || rawEndpoint;
         if (s3Domain.includes("cloudflarestorage.com") && process.env.NEXT_PUBLIC_R2_PUBLIC_URL) {
              s3Domain = process.env.NEXT_PUBLIC_R2_PUBLIC_URL;
         }
@@ -176,18 +171,18 @@ export async function handleTranscoding(sourceKey: string, videoId: string, temp
 
         console.log(`[Transcoder] SUCCESS: Transcoding completed for video: ${videoId}`);
 
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error(`[Transcoder] FATAL ERROR during transcoding lifecycle for video: ${videoId}`, err);
         try {
             await supabase.from("videos").update({ transcode_status: "failed" }).eq("id", videoId);
-        } catch (e) {}
+        } catch {}
     } finally {
         setTimeout(async () => {
             try {
                 if (existsSync(tempDir)) {
                     await rm(tempDir, { recursive: true, force: true });
                 }
-            } catch (cleanupErr) {}
+            } catch {}
         }, 10000);
     }
 }

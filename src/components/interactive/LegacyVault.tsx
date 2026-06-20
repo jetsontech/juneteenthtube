@@ -98,7 +98,8 @@ export function LegacyVault() {
 
     // Reset playing state when item changes
     React.useEffect(() => {
-        setIsPlaying(false);
+        const timer = window.setTimeout(() => setIsPlaying(false), 0);
+        return () => window.clearTimeout(timer);
     }, [activeItem]);
 
     // Dynamic background based on active tab

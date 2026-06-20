@@ -1,9 +1,8 @@
 "use client";
 
-import { useRef, useState, useEffect } from "react";
+import { useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { VideoProps } from "@/context/VideoContext";
 
 // Simple localization dictionary & helper to resolve internationalization warnings
@@ -38,37 +37,6 @@ export function ContentRail({
     headerControls,
 }: ContentRailProps) {
     const scrollRef = useRef<HTMLDivElement>(null);
-    const [canScrollLeft, setCanScrollLeft] = useState(false);
-    const [canScrollRight, setCanScrollRight] = useState(false);
-
-    const checkScroll = () => {
-        const el = scrollRef.current;
-        if (!el) return;
-        setCanScrollLeft(el.scrollLeft > 10);
-        setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 10);
-    };
-
-    useEffect(() => {
-        checkScroll();
-        const el = scrollRef.current;
-        if (!el) return;
-        el.addEventListener("scroll", checkScroll, { passive: true });
-        window.addEventListener("resize", checkScroll);
-        return () => {
-            el.removeEventListener("scroll", checkScroll);
-            window.removeEventListener("resize", checkScroll);
-        };
-    }, [videos]);
-
-    const scroll = (direction: "left" | "right") => {
-        const el = scrollRef.current;
-        if (!el) return;
-        const scrollAmount = el.clientWidth * 0.75;
-        el.scrollBy({
-            left: direction === "left" ? -scrollAmount : scrollAmount,
-            behavior: "smooth",
-        });
-    };
 
     if (videos.length === 0 && !headerControls) return null;
 
@@ -107,7 +75,6 @@ export function ContentRail({
 
             {/* Scrollable Container */}
             <div className="relative">
-
                 <div
                     ref={scrollRef}
                     className="flex gap-3 sm:gap-4 overflow-x-auto no-scrollbar scroll-smooth pt-6 -mt-6 px-2 -mx-2 pb-6 snap-x snap-mandatory"
@@ -131,7 +98,7 @@ export function ContentRail({
                                         src={video.thumbnail}
                                         alt={video.title}
                                         fill
-                                        sizes="340px"
+                                        sizes="(min-width: 768px) 340px, (min-width: 640px) 320px, 280px"
                                         className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
                                     />
                                 ) : (

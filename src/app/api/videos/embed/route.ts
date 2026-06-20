@@ -4,12 +4,14 @@ import { createClient } from '@supabase/supabase-js';
 
 // Initialize a singleton pipeline for feature extraction (embeddings)
 // This model downloads ~90MB to cache on first run.
-let embedPipeline: any = null;
+type FeatureExtractionPipeline = (text: string, options: { pooling: string; normalize: boolean }) => Promise<{ data: Iterable<number> }>;
+
+let embedPipeline: FeatureExtractionPipeline | null = null;
 
 async function getPipeline() {
   if (!embedPipeline) {
     // all-MiniLM-L6-v2 is a lightweight, high-quality open-source embedding model
-    embedPipeline = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
+    embedPipeline = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2') as FeatureExtractionPipeline;
   }
   return embedPipeline;
 }

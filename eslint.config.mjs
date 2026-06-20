@@ -11,12 +11,16 @@ const eslintConfig = defineConfig([
     ".next/**",
     "out/**",
     "build/**",
+    "_backup/**",
+    ".deadline-backup-*/**",
+    ".remediation-backup-*/**",
+    ".PRODUCTION_LOCK_BACKUP/**",
     "next-env.d.ts",
     "venv/**",
     ".venv/**",
     "scripts/**",
-    "*.js",
-    "*.mjs"
+    "**/*.js",
+    "**/*.mjs"
   ]),
 ]);
 

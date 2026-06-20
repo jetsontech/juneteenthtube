@@ -44,7 +44,8 @@ export async function GET(req: NextRequest) {
        return NextResponse.json({ recommendations: [] });
     }
 
-    return NextResponse.json({ recommendations: matches.map((m: any) => m.id) });
+    const recommendations = (matches as Array<{ id: string }> | null | undefined)?.map((m) => m.id) || [];
+    return NextResponse.json({ recommendations });
 
   } catch (error: unknown) {
     console.error('Recommendation API Error:', error);

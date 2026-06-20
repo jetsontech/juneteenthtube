@@ -2,7 +2,7 @@
 
 import { useVideo } from "@/context/VideoContext";
 import { VideoGrid } from "@/components/video/VideoGrid";
-import { Film, Loader2 } from "lucide-react";
+import { Film } from "lucide-react";
 import { CategoryBar } from "@/components/video/CategoryBar";
 import { useState, useMemo } from "react";
 

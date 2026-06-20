@@ -103,6 +103,26 @@ const getMockChannelData = (title: string | null | undefined) => {
 
 // View logic is now centralized in @/lib/viewHelpers
 
+export const normalizeUrl = (url: string | null | undefined): string => {
+    if (!url) return "";
+    const s3Domain = process.env.NEXT_PUBLIC_S3_PUBLIC_DOMAIN || "https://media.culturequest.vip";
+    if (!url.startsWith('http') && !url.startsWith('/uploads/')) {
+        if (url.startsWith('pub-efcc4aa0b3b24e3d97760577b0ec20bd/')) {
+            return `${s3Domain}/${url.substring('pub-efcc4aa0b3b24e3d97760577b0ec20bd/'.length)}`;
+        }
+        return `${s3Domain}/${url.startsWith('/') ? url.slice(1) : url}`;
+    }
+    if (url.includes("cloudflarestorage.com")) {
+        try {
+            const urlObj = new URL(url);
+            return `${s3Domain}${urlObj.pathname}`;
+        } catch {
+            return url.replace(/https?:\/\/[a-zA-Z0-9.-]+\.cloudflarestorage\.com/, s3Domain);
+        }
+    }
+    return url;
+};
+
 export const extractVideoDuration = (file: File): Promise<string> => {
     if (typeof window === 'undefined') return Promise.resolve("0:00");
     return new Promise((resolve) => {
@@ -229,34 +249,13 @@ export function VideoProvider({ children }: { children: ReactNode }) {
             }
 
             if (data && data.length > 0) {
-                const dbVideos: VideoProps[] = data.map((video: DBVideo) => {
+                const dbVideos: VideoProps[] = (data as unknown as DBVideo[]).map((video: DBVideo) => {
                     const mockChannel = getMockChannelData(video.title);
 
-                    // Normalize H264 URL
-                    let h264Url = video.video_url_h264;
-                    if (h264Url && !h264Url.startsWith('http')) {
-                        const s3Domain = process.env.NEXT_PUBLIC_S3_PUBLIC_DOMAIN || "https://media.culturequest.vip";
-                        h264Url = `${s3Domain}/${h264Url}`;
-                    }
-
-                    // Normalize original video URL (relative R2 paths)
-                    let videoUrl = video.video_url;
-                    if (videoUrl && !videoUrl.startsWith('http')) {
-                        const s3Domain = process.env.NEXT_PUBLIC_S3_PUBLIC_DOMAIN || "https://media.culturequest.vip";
-                        if (videoUrl.startsWith('pub-efcc4aa0b3b24e3d97760577b0ec20bd/')) {
-                            videoUrl = `${s3Domain}/${videoUrl.substring('pub-efcc4aa0b3b24e3d97760577b0ec20bd/'.length)}`;
-                        } else {
-                            videoUrl = `${s3Domain}/${videoUrl}`;
-                        }
-                    }
-
-                    let thumbnail = video.thumbnail_url || "";
-                    if (thumbnail) {
-                        if (!thumbnail.startsWith('http') && !thumbnail.startsWith('/uploads/')) {
-                            const s3Domain = process.env.NEXT_PUBLIC_S3_PUBLIC_DOMAIN || "https://media.culturequest.vip";
-                            thumbnail = `${s3Domain}/${thumbnail.startsWith('/') ? thumbnail.slice(1) : thumbnail}`;
-                        }
-                    }
+                    // Normalize URLs using helper
+                    const h264Url = video.video_url_h264 ? normalizeUrl(video.video_url_h264) : undefined;
+                    const videoUrl = normalizeUrl(video.video_url);
+                    const thumbnail = video.thumbnail_url ? normalizeUrl(video.thumbnail_url) : "";
                     const duration = video.duration || mockChannel.duration || "5:00";
 
                     return {
@@ -309,20 +308,8 @@ export function VideoProvider({ children }: { children: ReactNode }) {
                 { event: 'UPDATE', schema: 'public', table: 'videos' },
                 (payload) => {
                     const video = payload.new as DBVideo;
-                    const s3Domain = process.env.NEXT_PUBLIC_S3_PUBLIC_DOMAIN || "https://media.culturequest.vip";
-
-                    let h264Url = video.video_url_h264;
-                    if (h264Url && !h264Url.startsWith('http')) {
-                        h264Url = `${s3Domain}/${h264Url}`;
-                    }
-
-                    // Normalize thumbnail URL
-                    let thumbnail = video.thumbnail_url || "";
-                    if (thumbnail) {
-                        if (!thumbnail.startsWith('http') && !thumbnail.startsWith('/uploads/')) {
-                            thumbnail = `${s3Domain}/${thumbnail.startsWith('/') ? thumbnail.slice(1) : thumbnail}`;
-                        }
-                    }
+                    const h264Url = video.video_url_h264 ? normalizeUrl(video.video_url_h264) : undefined;
+                    const thumbnail = video.thumbnail_url ? normalizeUrl(video.thumbnail_url) : "";
 
                     const isMyVideo = !!(user?.id && video.owner_id === user.id);
                     const dbViewsCount = Number(video.views) || 0;

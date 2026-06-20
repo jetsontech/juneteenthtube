@@ -1,66 +1,50 @@
-const nextConfig = {
-  /* config options here */
-  // turbopack: {
-  //   root: process.cwd(),
-  // },
+import type { NextConfig } from "next";
 
-  typescript: {
-    ignoreBuildErrors: true,
-  },
+const nextConfig: NextConfig = {
+  compress: true,
+  allowedDevOrigins: ['10.0.0.9', '10.0.0.9:3001', 'localhost:3001'],
 
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-
-  // Performance optimizations
-  compress: true, // Enable gzip compression
-
-  // Optimize images
   images: {
-    loader: 'custom',
-    loaderFile: './src/lib/cloudflare-loader.ts',
-    formats: ['image/avif', 'image/webp'],
+    loader: "custom",
+    loaderFile: "./src/lib/cloudflare-loader.ts",
+    formats: ["image/avif", "image/webp"],
     remotePatterns: [
       {
-        protocol: 'https',
-        hostname: 'pub-efcc4aa0b3b24e3d97760577b0ec20bd.r2.dev',
+        protocol: "https",
+        hostname: "media.culturequest.vip",
       },
       {
-        protocol: 'https',
-        hostname: 'images.unsplash.com',
+        protocol: "https",
+        hostname: "pub-efcc4aa0b3b24e3d97760577b0ec20bd.r2.dev",
       },
       {
-        protocol: 'https',
-        hostname: 'archive.org',
+        protocol: "https",
+        hostname: "images.unsplash.com",
       },
       {
-        protocol: 'https',
-        hostname: '**', // Allow all HTTPS domains for maximum compatibility with user uploads
-      },
+        protocol: "https",
+        hostname: "archive.org",
+      }
     ],
   },
 
-  // Production optimizations
-
-
-  // Experimental features for better performance
   experimental: {
-    optimizePackageImports: ['lucide-react', 'date-fns'],
+    optimizePackageImports: ["lucide-react", "date-fns"],
   },
 
   async rewrites() {
     return [
       {
-        source: '/external-archive/smithsonian/:path*',
-        destination: 'https://www.si.edu/:path*',
+        source: "/external-archive/smithsonian/:path*",
+        destination: "https://www.si.edu/:path*",
       },
       {
-        source: '/external-archive/archives-gov/:path*',
-        destination: 'https://www.archives.gov/:path*',
+        source: "/external-archive/archives-gov/:path*",
+        destination: "https://www.archives.gov/:path*",
       },
       {
-        source: '/external-archive/sova/:path*',
-        destination: 'https://sova.si.edu/:path*',
+        source: "/external-archive/sova/:path*",
+        destination: "https://sova.si.edu/:path*",
       },
     ];
   },

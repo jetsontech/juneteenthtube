@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
 import { useVideo, VideoProps } from "@/context/VideoContext";
 import { useAuth } from "@/context/AuthContext";
@@ -20,7 +20,15 @@ import {
 } from "lucide-react";
 import { EditVideoModal } from "@/components/studio/EditVideoModal";
 import Link from "next/link";
-import { useEffect } from "react";
+
+type StudioComment = {
+    id: string | number;
+    user: string;
+    timestamp: string;
+    videoThumbnail?: string;
+    videoTitle?: string;
+    text: string;
+};
 
 export default function StudioPage() {
     const { videos, deleteVideo, isLoading } = useVideo();
@@ -30,19 +38,12 @@ export default function StudioPage() {
     const [activeTab, setActiveTab] = useState<'overview' | 'content' | 'community'>('overview');
     
     // Community Comments
-    const [comments, setComments] = useState<any[]>([]);
+    const [comments, setComments] = useState<StudioComment[]>([]);
     const [isCommentsLoading, setIsCommentsLoading] = useState(false);
 
-    useEffect(() => {
-        if (activeTab === 'community' && comments.length === 0 && user) {
-            fetchComments();
-        }
-    }, [activeTab, user]);
-
-    const fetchComments = async () => {
+    const fetchComments = useCallback(async () => {
         setIsCommentsLoading(true);
         try {
-            const token = await (await fetch('/api/auth/session')).json(); // Helper if needed, but fetch usually handles cookies. Since we use supabase headers in context, we can just use raw fetch if it relies on cookie, or use context helper. Wait, `useVideo` doesn't export a general fetcher. We'll use standard fetch relying on cookies/token.
             const res = await fetch('/api/videos/my-comments', {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('sb-fybxhwpkujbodlfoadem-auth-token') ? JSON.parse(localStorage.getItem('sb-fybxhwpkujbodlfoadem-auth-token') as string).access_token : ''}`
@@ -55,7 +56,16 @@ export default function StudioPage() {
         } finally {
             setIsCommentsLoading(false);
         }
-    };
+    }, []);
+
+    useEffect(() => {
+        if (activeTab === 'community' && comments.length === 0 && user) {
+            const timer = window.setTimeout(() => {
+                void fetchComments();
+            }, 0);
+            return () => window.clearTimeout(timer);
+        }
+    }, [activeTab, comments.length, fetchComments, user]);
 
     // Filter videos to show ONLY the current user's uploads
     // If user is not logged in, they shouldn't see anything here (or maybe a login prompt)
@@ -183,7 +193,7 @@ export default function StudioPage() {
                                 <h3 className="text-lg font-black text-white mb-6 uppercase tracking-widest text-gray-500">Top Performing Asset</h3>
                                 <div className="flex flex-col sm:flex-row gap-6 bg-white/[0.02] border border-white/5 rounded-3xl p-6">
                                     <div className="w-full sm:w-64 aspect-video bg-zinc-900 rounded-2xl overflow-hidden relative shrink-0">
-                                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                                        { }
                                         {userVideos.sort((a,b) => (parseInt(b.views.replace(/,/g,'')) || 0) - (parseInt(a.views.replace(/,/g,'')) || 0))[0].thumbnail && (
                                             // eslint-disable-next-line @next/next/no-img-element
                                             <img src={userVideos.sort((a,b) => (parseInt(b.views.replace(/,/g,'')) || 0) - (parseInt(a.views.replace(/,/g,'')) || 0))[0].thumbnail} alt="Top Video" className="object-cover w-full h-full" />
@@ -218,7 +228,7 @@ export default function StudioPage() {
                         ) : comments.length === 0 ? (
                             <div className="text-center py-24 bg-white/5 border border-white/10 rounded-3xl">
                                 <MessageSquare className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-                                <h3 className="text-xl font-bold text-white mb-2">It's quiet here...</h3>
+                                <h3 className="text-xl font-bold text-white mb-2">It&apos;s quiet here...</h3>
                                 <p className="text-gray-400">No comments have been posted on your videos yet.</p>
                             </div>
                         ) : (
@@ -277,7 +287,7 @@ export default function StudioPage() {
                     </div>
                     <h2 className="text-2xl font-black text-white mb-2 uppercase tracking-tight">No videos found</h2>
                     <p className="text-gray-500 mb-8 max-w-sm">
-                        {searchQuery ? "No videos match your search criteria." : "You haven't uploaded any videos yet. Start sharing your CultureQuest moments today!"}
+                        {searchQuery ? "No videos match your search criteria." : "You haven&apos;t uploaded any videos yet. Start sharing your CultureQuest moments today!"}
                     </p>
                     <button
                         onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} // Assuming Nav has the upload button

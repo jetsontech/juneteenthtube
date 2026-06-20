@@ -1,12 +1,19 @@
 "use client";
 
-import React, { useEffect, useRef, useState, useCallback } from "react";
+import * as React from "react";
+const { useEffect, useRef, useState, useCallback, useMemo } = React;
+
 import Image from "next/image";
+
+// lucide-react module resolution in this environment
 import {
     Play, Pause, Volume2, VolumeX, Maximize, Minimize,
     PictureInPicture, Maximize2, AlertCircle, Settings, Cast
 } from "lucide-react";
+
+// path alias and hls types may not resolve in the typechecker here
 import { cn } from "@/lib/utils";
+// hls.js module resolution
 import Hls from "hls.js";
 
 interface HTMLVideoElementWithPlaybackTarget extends HTMLVideoElement {
@@ -43,8 +50,29 @@ export function CustomPlayer({ src, srcH264, poster, videoId, transcodeStatus, o
         }
     }, [videoId]);
 
+    const isSafariOrIOS = useCallback(() => {
+        if (typeof window === 'undefined') return false;
+        const ua = navigator.userAgent;
+        const isIOS = /iPad|iPhone|iPod/.test(ua) && !('MSStream' in window);
+        const isSafari = /^((?!chrome|android).)*safari/i.test(ua);
+        return isIOS || isSafari;
+    }, []);
+
+    const isMov = useMemo(() => {
+        if (!src) return false;
+        try {
+            const url = src.split('?')[0].toLowerCase();
+            return url.endsWith('.mov') || url.endsWith('.qt');
+        } catch {
+            return src.toLowerCase().includes('.mov') || src.toLowerCase().includes('.qt');
+        }
+    }, [src]);
+
+    const showQualitySelector = !!srcH264 && (!isMov || isSafariOrIOS());
+
     const [qualityMode, setQualityMode] = useState<'master' | 'optimized'>(srcH264 ? 'optimized' : 'master');
-    const [activeSrc, setActiveSrc] = useState(srcH264 || src);
+    // derive active source from quality mode and incoming props to avoid setState-in-effect
+    const activeSrc = qualityMode === 'master' ? src : (srcH264 || src);
     const [isPlaying, setIsPlaying] = useState(false);
     const [isMuted, setIsMuted] = useState(false);
     const [currentTime, setCurrentTime] = useState(0);
@@ -126,18 +154,34 @@ export function CustomPlayer({ src, srcH264, poster, videoId, transcodeStatus, o
         }
     }, [videoId]);
 
-    const resolvedSrc = React.useMemo(() => {
-        if (typeof window === "undefined") return activeSrc;
-        if (activeSrc.startsWith("/")) {
-            return `${window.location.origin}${activeSrc}`;
+    // prefer explicit production base URL; avoid using localhost origin unless NEXT_PUBLIC_BASE_URL is unset and host is not localhost
+    const BASE_URL = (typeof process !== 'undefined' && (process as unknown as { env?: Record<string, string> }).env?.NEXT_PUBLIC_BASE_URL) || "";
+
+    const resolvedSrc = useMemo(() => {
+        if (!activeSrc) return activeSrc;
+
+        // absolute URL -> return as-is
+        if (!activeSrc.startsWith("/")) return activeSrc;
+
+        // 1) prefer explicit env var
+        if (BASE_URL) return `${BASE_URL}${activeSrc}`;
+
+        // 2) if running in browser and not on localhost, use window.origin
+        if (typeof window !== "undefined") {
+            const host = window.location.hostname || "";
+            const isLocalhost = /^localhost$/.test(host) || host.endsWith(".local");
+            if (!isLocalhost) {
+                return `${window.location.origin}${activeSrc}`;
+            }
+            // avoid using localhost as base when NEXT_PUBLIC_BASE_URL is not set
+            console.warn("[CustomPlayer] NEXT_PUBLIC_BASE_URL not set and host is localhost; resolved video path will remain relative.");
         }
+
+        // 3) fallback: return relative path (caller should set NEXT_PUBLIC_BASE_URL to point to production)
         return activeSrc;
-    }, [activeSrc]);
+    }, [activeSrc, BASE_URL]);
 
     // sync activeSrc after render when props change
-    useEffect(() => {
-        setActiveSrc(srcH264 || src);
-    }, [src, srcH264]);
 
     const resetControls = useCallback(() => {
         setShowControls(true);
@@ -202,7 +246,6 @@ export function CustomPlayer({ src, srcH264, poster, videoId, transcodeStatus, o
         if (!srcH264) return;
         const newMode = qualityMode === 'master' ? 'optimized' : 'master';
         setQualityMode(newMode);
-        setActiveSrc(newMode === 'master' ? src : srcH264);
         sendTelemetry('quality_change', { from: qualityMode, to: newMode });
 
         if (videoRef.current) {
@@ -324,7 +367,7 @@ export function CustomPlayer({ src, srcH264, poster, videoId, transcodeStatus, o
         if (!isFinite(time)) return "0:00";
         const m = Math.floor(time / 60);
         const s = Math.floor(time % 60);
-        return `${m}:${s.toString().padStart(2, "0")}`;
+        return `${m}:${s < 10 ? '0' + s : String(s)}`;
     };
 
     useEffect(() => {
@@ -440,6 +483,7 @@ export function CustomPlayer({ src, srcH264, poster, videoId, transcodeStatus, o
         setIsBuffering(true);
 
         if (srcUrl.includes('.m3u8')) {
+            const proxyUrl = `/api/cors-proxy?url=${encodeURIComponent(srcUrl)}`;
             if (Hls.isSupported()) {
                 const hls = new Hls({
                     startLevel: -1,
@@ -450,7 +494,7 @@ export function CustomPlayer({ src, srcH264, poster, videoId, transcodeStatus, o
                     lowLatencyMode: false,
                     backBufferLength: 15,
                 });
-                hls.loadSource(srcUrl);
+                hls.loadSource(proxyUrl);
                 hls.attachMedia(video);
                 hls.on(Hls.Events.MANIFEST_PARSED, () => {
                     srcReadyRef.current = true;
@@ -487,7 +531,7 @@ export function CustomPlayer({ src, srcH264, poster, videoId, transcodeStatus, o
                 });
                 hlsInstanceRef.current = hls;
             } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                video.src = srcUrl;
+                video.src = proxyUrl;
                 video.load();
                 srcReadyRef.current = true;
             } else {
@@ -597,6 +641,13 @@ export function CustomPlayer({ src, srcH264, poster, videoId, transcodeStatus, o
                         sendTelemetry('buffering_end', { offsetSeconds: videoRef.current?.currentTime || 0 });
                     }}
                     onError={() => {
+                        if (qualityMode === 'master' && srcH264) {
+                            console.warn("[CustomPlayer] Ultra HD playback failed, falling back to Optimized HLS");
+                            setQualityMode('optimized');
+                            setPlaybackError("Ultra HD not supported on this device. Switched to Optimized mode.");
+                            return;
+                        }
+
                         if (!srcReadyRef.current) return;
 
                         const currentSrc = videoRef.current?.src || resolvedSrc;
@@ -728,7 +779,7 @@ export function CustomPlayer({ src, srcH264, poster, videoId, transcodeStatus, o
                             <button onClick={(e) => { e.stopPropagation(); setIsZoomed(!isZoomed); }} className="text-white hover:text-j-gold transition-colors p-3 sm:p-4 -m-3 sm:-m-4 relative z-50" title={isZoomed ? "Original Aspect" : "Zoom to Fill"}>
                                 <Maximize2 className="w-5 h-5 sm:w-6 sm:h-6" />
                             </button>
-                            {srcH264 && (
+                            {showQualitySelector && (
                                 <button onClick={toggleQuality} className={cn("flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all border", qualityMode === 'master' ? "bg-j-gold/20 text-j-gold border-j-gold/50 shadow-lg shadow-j-gold/10" : "bg-white/5 text-white/60 border-white/10 hover:bg-white/10")}>
                                     <Settings className={cn("w-3.5 h-3.5 flex-shrink-0", qualityMode === 'master' && "animate-spin-slow")} />
                                     <span className="hidden sm:inline">{qualityMode === 'master' ? 'Ultra HD' : 'Optimized'}</span>

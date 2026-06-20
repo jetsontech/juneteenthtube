@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, startTransition } from "react";
+import { useState, useEffect, useRef, startTransition, useCallback } from "react";
 import { X, ChevronLeft, ChevronRight, Image as ImageIcon, Trash2, Upload } from "lucide-react";
 import Image from "next/image";
 import { useVideo } from "@/context/VideoContext";
@@ -23,7 +23,7 @@ export default function PhotosPage() {
     const { deletePhoto, updatePhotoImage, isUploading } = useVideo();
 
     // Fetch photos from API
-    const fetchPhotos = async () => {
+    const fetchPhotos = useCallback(async () => {
         try {
             const res = await fetch('/api/photos');
             if (res.ok) {
@@ -35,11 +35,14 @@ export default function PhotosPage() {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, []);
 
     useEffect(() => {
-        fetchPhotos();
-    }, []);
+        const timer = window.setTimeout(() => {
+            void fetchPhotos();
+        }, 0);
+        return () => window.clearTimeout(timer);
+    }, [fetchPhotos]);
 
     const openLightbox = (index: number) => {
         startTransition(() => {

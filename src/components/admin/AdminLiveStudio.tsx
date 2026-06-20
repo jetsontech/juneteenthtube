@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useCallback, useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import {
     Tv,
@@ -49,11 +49,7 @@ export function AdminLiveStudio() {
     const inactiveCount = channels.filter(c => c.status === 'inactive').length;
     const internalCount = channels.filter(c => c.is_internal_vod).length;
 
-    useEffect(() => {
-        fetchChannels();
-    }, []);
-
-    const fetchChannels = async () => {
+    const fetchChannels = useCallback(async () => {
         setIsLoading(true);
         try {
             const { data, error } = await supabase
@@ -69,7 +65,14 @@ export function AdminLiveStudio() {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, []);
+
+    useEffect(() => {
+        const timer = window.setTimeout(() => {
+            void fetchChannels();
+        }, 0);
+        return () => window.clearTimeout(timer);
+    }, [fetchChannels]);
 
     const toggleChannelStatus = async (id: string, currentStatus: string) => {
         const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
@@ -258,8 +261,9 @@ export function AdminLiveStudio() {
                                     } else {
                                         throw new Error(data.error);
                                     }
-                                } catch (err: any) {
-                                    alert("Sync Failed: " + err.message);
+                                } catch (err: unknown) {
+                                    const error = err instanceof Error ? err : new Error(String(err));
+                                    alert("Sync Failed: " + error.message);
                                 }
                             }
                         }}

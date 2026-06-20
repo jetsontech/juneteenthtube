@@ -148,7 +148,7 @@ async function run() {
         
         let m3u8PublicUrl = "";
 
-        let s3Domain = rawEndpoint;
+        let s3Domain = process.env.NEXT_PUBLIC_S3_PUBLIC_DOMAIN || process.env.S3_PUBLIC_DOMAIN || rawEndpoint;
         if (s3Domain.includes("cloudflarestorage.com") && process.env.R2_PUBLIC_URL) {
              s3Domain = process.env.R2_PUBLIC_URL;
         } else if (process.env.NEXT_PUBLIC_R2_PUBLIC_URL) {

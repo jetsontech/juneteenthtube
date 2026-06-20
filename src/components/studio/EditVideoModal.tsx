@@ -34,7 +34,7 @@ export function EditVideoModal({ video, isOpen, onClose }: EditVideoModalProps) 
             const res = await fetch('/api/videos/ai-metadata', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ contextTitle: title || video.title || video.filename })
+                body: JSON.stringify({ contextTitle: title || video.title })
             });
             const data = await res.json();
             if (data.title) {
@@ -216,7 +216,7 @@ export function EditVideoModal({ video, isOpen, onClose }: EditVideoModalProps) 
                                     <label className="flex items-center justify-between cursor-pointer group">
                                         <div>
                                             <span className="block text-sm font-bold text-white group-hover:text-j-gold transition-colors">Curated Trending</span>
-                                            <span className="block text-[10px] text-gray-400 mt-0.5">Push this to the 'Trending Now' section manually</span>
+                                            <span className="block text-[10px] text-gray-400 mt-0.5">Push this to the &apos;Trending Now&apos; section manually</span>
                                         </div>
                                         <div className="relative">
                                             <input type="checkbox" className="sr-only" checked={isTrendingLocal} onChange={(e) => setIsTrendingLocal(e.target.checked)} />

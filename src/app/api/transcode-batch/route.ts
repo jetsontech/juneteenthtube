@@ -73,8 +73,9 @@ export async function POST() {
             count: dispatchedCount
         });
 
-    } catch (e: any) {
-        console.error(`[Batcher API] POST Exception:`, e);
-        return NextResponse.json({ error: e.message || String(e) }, { status: 500 });
+    } catch (e: unknown) {
+        const error = e instanceof Error ? e : new Error(String(e));
+        console.error(`[Batcher API] POST Exception:`, error);
+        return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }

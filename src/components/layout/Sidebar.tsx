@@ -1,9 +1,12 @@
 "use client";
 
 import { Home, Library, History, PlaySquare, Clock, Users, Film, Image, Flag, Map, Database, Shield } from "lucide-react";
-import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useSidebar } from "@/context/SidebarContext";
+import { useAuth } from "@/context/AuthContext";
+import { useStateFilter } from "@/context/StateContext";
+import { US_STATES } from "@/lib/states";
 
 interface SidebarProps {
     isOpen: boolean;
@@ -30,17 +33,11 @@ const secondaryLinks = [
     { icon: Shield, label: "Admin Panel", href: "/admin" },
 ];
 
-import { useState, useEffect } from "react";
-import { useSidebar } from "@/context/SidebarContext";
-import { useAuth } from "@/context/AuthContext";
-
-export function Sidebar({ isOpen, onClose }: SidebarProps) {
+export function Sidebar({ isOpen }: SidebarProps) {
     const pathname = usePathname();
     const { isMobile, setIsOpen } = useSidebar();
     const { user } = useAuth();
-
-    // The visual state of the sidebar is dictated by context "isOpen"
-    // No hover mechanism needed for the new UI format, it acts as a drawer
+    const { selectedState, setSelectedState } = useStateFilter();
 
     const handleMobileClose = () => {
         if (isMobile) {
@@ -58,6 +55,27 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
             <aside className={`sidebar glass-heavy ${isOpen ? 'open' : ''}`}>
                 <div className="gloss-overlay" />
+
+                {/* Mobile State Selector */}
+                <div className="sm:hidden px-4 py-2 mx-2 mb-2 flex flex-col gap-1.5">
+                    <div className="text-[10px] font-bold tracking-[0.14em] text-zinc-500 uppercase">Region</div>
+                    <select
+                        title="State Selector"
+                        value={selectedState.code}
+                        onChange={(e) => {
+                            const state = US_STATES.find(s => s.code === e.target.value);
+                            if (state) setSelectedState(state);
+                        }}
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-gray-300 text-xs font-sans cursor-pointer outline-none"
+                    >
+                        <option value="GLOBAL" className="bg-[#111]">All States</option>
+                        {US_STATES.filter(s => s.code !== "GLOBAL").map(s => (
+                            <option key={s.code} value={s.code} className="bg-[#111]">{s.name}</option>
+                        ))}
+                    </select>
+                    <div className="h-px bg-white/5 my-2" />
+                </div>
+
                 <div className="sidebar-section-title">Discover</div>
 
                 {mainLinks.map((link) => {
@@ -79,7 +97,6 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 <div className="sidebar-section-title">Your Library</div>
 
                 {secondaryLinks.map((link) => {
-                    // Make some links require auth optionally if desired
                     if (link.label === "Admin Panel" && !user) return null;
 
                     const isActive = pathname === link.href;

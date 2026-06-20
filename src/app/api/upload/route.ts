@@ -83,7 +83,7 @@ export async function POST(req: NextRequest) {
 
         // Determine Public URL
         let publicUrl = "";
-        const publicDomain = sanitizeEnv(process.env.S3_PUBLIC_DOMAIN);
+        const publicDomain = sanitizeEnv(process.env.NEXT_PUBLIC_S3_PUBLIC_DOMAIN) || sanitizeEnv(process.env.S3_PUBLIC_DOMAIN);
         if (publicDomain) {
             publicUrl = `${publicDomain}/${key}`;
         } else {

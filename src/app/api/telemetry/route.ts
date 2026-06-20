@@ -1,11 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import crypto from 'crypto';
+import { checkRateLimit } from '@/lib/rateLimit';
 
-// In-memory rate limiting map for flood protection (in a real production app, use Redis)
-const rateLimitMap = new Map<string, { count: number; expiresAt: number }>();
-const RATE_LIMIT_WINDOW_MS = 60000; // 1 minute
-const MAX_REQUESTS_PER_WINDOW = 30; // 30 events per minute per IP/Session
+// Configurable limits via environment variables (with sensible defaults)
+const LIMIT_MINUTE = Number(process.env.TELEMETRY_LIMIT_MINUTE || 30);
+const LIMIT_HOUR = Number(process.env.TELEMETRY_LIMIT_HOUR || 500);
+const LIMIT_DAY = Number(process.env.TELEMETRY_LIMIT_DAY || 5000);
+
+const telemetryLimits = {
+  minute: LIMIT_MINUTE,
+  hour: LIMIT_HOUR,
+  day: LIMIT_DAY
+};
 
 export async function POST(req: NextRequest) {
     try {
@@ -15,42 +22,26 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Payload Too Large' }, { status: 413 });
         }
 
-        // 2. Flood Protection / Rate Limiting
-        const ip = req.headers.get('x-forwarded-for') || req.headers.get('cf-connecting-ip') || 'unknown-ip';
-        const now = Date.now();
-        
-        let rateLimitInfo = rateLimitMap.get(ip);
-        if (!rateLimitInfo || rateLimitInfo.expiresAt < now) {
-            rateLimitInfo = { count: 0, expiresAt: now + RATE_LIMIT_WINDOW_MS };
-        }
-        
-        rateLimitInfo.count++;
-        rateLimitMap.set(ip, rateLimitInfo);
-        
-        if (rateLimitInfo.count > MAX_REQUESTS_PER_WINDOW) {
-            return NextResponse.json({ error: 'Too Many Requests' }, { status: 429 });
-        }
-
-        // 3. Malformed Payload Rejection / Event Validation
+        // 2. Parse Payload safely
         let body;
         try {
             body = await req.json();
-        } catch (e) {
+        } catch {
             return NextResponse.json({ error: 'Invalid JSON payload' }, { status: 400 });
         }
 
         const { eventType, videoId, guestId, details, idempotencyKey } = body;
 
-        const validEventTypes = ['playback_start', 'playback_stop', 'buffering_start', 'buffering_end', 'playback_error', 'quality_change', 'abandonment', 'watch_complete', 'video_view'];
-        if (!eventType || !validEventTypes.includes(eventType)) {
-            return NextResponse.json({ error: 'Invalid or missing eventType' }, { status: 400 });
+                // 3. Flood Protection / Rate Limiting (by IP, User, and Session/Guest)
+        const ip = req.headers.get('x-forwarded-for') || req.headers.get('cf-connecting-ip') || 'unknown-ip';
+        
+        // Check IP-based limit
+        const ipLimitOk = await checkRateLimit('telemetry', `ip:${ip}`, telemetryLimits);
+        if (!ipLimitOk) {
+            return NextResponse.json({ error: 'Too Many Requests (IP)' }, { status: 429 });
         }
 
-        // 3. Replay Protection
-        // Require idempotencyKey for client events, or generate a deterministic one based on IP+Time if missing
-        const iKey = idempotencyKey || crypto.createHash('sha256').update(`${ip}-${eventType}-${videoId}-${Date.now()}`).digest('hex');
-
-        // Authenticate the user session token safely if present to prevent spoofing
+        // Authenticate the user session token safely if present
         const token = req.headers.get("Authorization")?.split(' ')[1] || req.cookies.get('sb-fybxhwpkujbodlfoadem-auth-token')?.value || '';
         let authenticatedUserId = null;
         if (token) {
@@ -60,20 +51,39 @@ export async function POST(req: NextRequest) {
             }
         }
 
-        // Validate that videoId is a valid UUID format and exists in our database to prevent FK constraint crashes
+        // Check User-based limit
+        if (authenticatedUserId) {
+            const userLimitOk = await checkRateLimit('telemetry', `user:${authenticatedUserId}`, telemetryLimits);
+            if (!userLimitOk) {
+                return NextResponse.json({ error: 'Too Many Requests (User)' }, { status: 429 });
+            }
+        } 
+        
+        // Check Session-based limit
+        const activeGuestId = guestId || ip;
+        if (activeGuestId) {
+            const guestLimitOk = await checkRateLimit('telemetry', `guest:${activeGuestId}`, telemetryLimits);
+            if (!guestLimitOk) {
+                return NextResponse.json({ error: 'Too Many Requests (Session)' }, { status: 429 });
+            }
+        }
+
+        // 4. Malformed Payload Rejection / Event Validation
+        const validEventTypes = ['playback_start', 'playback_stop', 'buffering_start', 'buffering_end', 'playback_error', 'quality_change', 'abandonment', 'watch_complete', 'video_view'];
+        if (!eventType || !validEventTypes.includes(eventType)) {
+            return NextResponse.json({ error: 'Invalid or missing eventType' }, { status: 400 });
+        }
+
+        // 5. Replay Protection
+        const iKey = idempotencyKey || crypto.createHash('sha256').update(`${ip}-${eventType}-${videoId}-${Date.now()}`).digest('hex');
+
+        // P0 Sprint 4: Remove database pre-read validation.
+        // Validate UUID format via RegExp before inserting. Database FK constraint will handle existence checks.
         let resolvedVideoId = null;
         const isValidUuid = (id: string) => /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(id);
         
         if (videoId && isValidUuid(videoId)) {
-            const { data: videoExists } = await supabaseAdmin
-                .from('videos')
-                .select('id')
-                .eq('id', videoId)
-                .maybeSingle();
-            
-            if (videoExists) {
-                resolvedVideoId = videoId;
-            }
+            resolvedVideoId = videoId;
         }
 
         // Insert event into analytics_events table using service_role bypasses RLS
@@ -96,6 +106,11 @@ export async function POST(req: NextRequest) {
                 return NextResponse.json({ success: true, warning: 'Duplicate event ignored' }, { status: 202 });
             }
             
+            // Catch Foreign Key violation (video does not exist in videos table)
+            if (error.code === '23503') {
+                return NextResponse.json({ error: 'Referenced video does not exist' }, { status: 400 });
+            }
+
             console.warn('[Telemetry Fallback Ingested] Gracefully logging database insert warning:', error.message);
             return NextResponse.json({ 
                 success: true, 

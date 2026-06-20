@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Lock, ArrowRight, Play } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn, safeSessionStorageSet } from '@/lib/utils';
 
 interface LoginSplashProps {
     onUnlock: () => void;
@@ -14,17 +14,35 @@ export const LoginSplash: React.FC<LoginSplashProps> = ({ onUnlock }) => {
     const [isExiting, setIsExiting] = useState(false);
     const [isLoaded, setIsLoaded] = useState(false);
     const [phase, setPhase] = useState<'gate' | 'welcome'>('gate');
+    const [isMobile, setIsMobile] = useState(false);
 
     const videoRef = useRef<HTMLVideoElement>(null);
+    const [videoFailed, setVideoFailed] = useState(false);
 
     useEffect(() => {
-        if (videoRef.current) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setIsMobile(window.innerWidth < 640);
+        const checkMobile = () => {
+            setIsMobile(window.innerWidth < 640);
+        };
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
+
+    useEffect(() => {
+        if (!isMobile && videoRef.current) {
             videoRef.current.muted = true; // Force DOM-level mute to bypass React's attribute bug
             videoRef.current.play().catch((err) => {
                 console.warn("[LoginSplash] Video play failed or was blocked by autoplay policies:", err);
+                setVideoFailed(true);
             });
         }
-        setTimeout(() => setIsLoaded(true), 6000);
+    }, [isMobile]);
+
+    useEffect(() => {
+        // Rapidly display login/gateway screen (150ms instead of 2000ms) to prevent mobile users from staring at a black screen
+        const timer = setTimeout(() => setIsLoaded(true), 150);
+        return () => clearTimeout(timer);
     }, []);
 
     // Removed the pause effect so the video loops continuously in the background
@@ -42,7 +60,7 @@ export const LoginSplash: React.FC<LoginSplashProps> = ({ onUnlock }) => {
 
         if (inputCode === validCode) {
             setPhase('welcome');
-            sessionStorage.setItem('guest_access_granted', 'true');
+            safeSessionStorageSet('guest_access_granted', 'true');
         } else {
             setError(true);
             setTimeout(() => setError(false), 500);
@@ -52,7 +70,7 @@ export const LoginSplash: React.FC<LoginSplashProps> = ({ onUnlock }) => {
     const handleFinalEnter = () => {
         setIsExiting(true);
         setTimeout(() => {
-            sessionStorage.setItem('guest_access_granted', 'true');
+            safeSessionStorageSet('guest_access_granted', 'true');
             onUnlock();
         }, 800);
     };
@@ -66,8 +84,13 @@ export const LoginSplash: React.FC<LoginSplashProps> = ({ onUnlock }) => {
             "fixed inset-0 z-[9999] flex items-center justify-center bg-[#050505] transition-all duration-1000 ease-in-out overflow-hidden",
             isExiting ? "opacity-0 scale-110 pointer-events-none" : "opacity-100 scale-100"
         )}>
-            {/* Shared Background System */}
+            {/* Fallback animated gradient when video fails or is loading */}
+            <div className="absolute inset-0 z-[-1] bg-gradient-to-br from-[#0a0a0a] via-[#1a0f00] to-[#0a0a0a]">
+                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_30%_20%,rgba(212,175,55,0.08),transparent_50%)]" />
+                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_70%_80%,rgba(227,28,35,0.06),transparent_50%)]" />
+            </div>
             {/* Background Video */}
+            {!isMobile && !videoFailed && (
             <video
                 ref={videoRef}
                 autoPlay
@@ -75,6 +98,7 @@ export const LoginSplash: React.FC<LoginSplashProps> = ({ onUnlock }) => {
                 muted
                 playsInline
                 preload="auto"
+                onError={() => setVideoFailed(true)}
                 className={cn(
                     "absolute inset-0 w-full h-full object-contain sm:object-cover z-0 transition-opacity duration-1000",
                     isLoaded ? "opacity-30" : "opacity-100"
@@ -82,6 +106,7 @@ export const LoginSplash: React.FC<LoginSplashProps> = ({ onUnlock }) => {
             >
                 <source src="/cq4.mp4" type="video/mp4" />
             </video>
+            )}
 
             {/* Dark glassmorphism overlay that fades in when login screen is loaded */}
             <div className={cn(
@@ -126,7 +151,7 @@ export const LoginSplash: React.FC<LoginSplashProps> = ({ onUnlock }) => {
                                     onChange={(e) => setAccessCode(e.target.value)}
                                     placeholder="ENTER ACCESS CODE"
                                     className={cn(
-                                        "w-full bg-white/[0.03] border border-white/10 rounded-2xl px-6 py-4 text-center text-lg tracking-[0.3em] font-bold text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-white/20 transition-all backdrop-blur-md",
+                                        "w-full bg-white/[0.03] border border-white/10 rounded-2xl px-6 py-4 text-center text-lg tracking-[0.1em] sm:tracking-[0.3em] font-bold text-white placeholder:text-white/20 placeholder:tracking-normal focus:outline-none focus:ring-2 focus:ring-white/20 transition-all backdrop-blur-md",
                                         error && "border-red-500/50 animate-[shake_0.2s_ease-in-out_infinite] ring-2 ring-red-500/20"
                                     )}
                                     autoFocus

@@ -16,3 +16,22 @@ export function safeUUID(): string {
         return v.toString(16);
     });
 }
+
+export function safeSessionStorageGet(key: string): string | null {
+    if (typeof window === 'undefined') return null;
+    try {
+        return window.sessionStorage.getItem(key);
+    } catch (e) {
+        console.warn("sessionStorage.getItem failed:", e);
+        return null;
+    }
+}
+
+export function safeSessionStorageSet(key: string, value: string): void {
+    if (typeof window === 'undefined') return;
+    try {
+        window.sessionStorage.setItem(key, value);
+    } catch (e) {
+        console.warn("sessionStorage.setItem failed:", e);
+    }
+}

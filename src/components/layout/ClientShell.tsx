@@ -1,8 +1,8 @@
 "use client";
-
+import React, { useState, useEffect } from "react";
 import { Navbar } from "./Navbar";
 import { Sidebar } from "./Sidebar";
-import { cn } from "@/lib/utils";
+import { cn, safeSessionStorageGet } from "@/lib/utils";
 import { VideoProvider } from "@/context/VideoContext";
 import { SidebarProvider, useSidebar } from "@/context/SidebarContext";
 import { AuthProvider } from "@/context/AuthContext";
@@ -10,7 +10,6 @@ import { StateProvider } from "@/context/StateContext";
 import { LoginSplash } from "./LoginSplash";
 import { BackgroundSystem } from "./BackgroundSystem";
 import { InstallBanner } from "./InstallBanner";
-import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 
 function ShellContent({ children }: { children: React.ReactNode }) {
@@ -23,7 +22,7 @@ function ShellContent({ children }: { children: React.ReactNode }) {
 
     // Gateway enabled - check sessionStorage
     useEffect(() => {
-        const hasAccess = sessionStorage.getItem('guest_access_granted');
+        const hasAccess = safeSessionStorageGet('guest_access_granted');
         if (hasAccess === 'true') {
             setTimeout(() => setIsLocked(false), 0);
         }
