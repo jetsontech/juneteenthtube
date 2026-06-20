@@ -17,7 +17,7 @@ function ShellContent({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
     const isWatchPage = pathname?.startsWith('/watch/') || pathname?.startsWith('/shorts/');
 
-    const [isLocked, setIsLocked] = useState(true); // Default to LOCKED
+    const [isLocked, setIsLocked] = useState(false); // Default to UNLOCKED (Public release)
     const [touchStart, setTouchStart] = useState<{ x: number, y: number } | null>(null);
 
     // Gateway enabled - check sessionStorage
