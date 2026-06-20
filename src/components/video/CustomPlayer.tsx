@@ -497,6 +497,7 @@ export function CustomPlayer({ src, srcH264, poster, videoId, transcodeStatus, o
                 hls.attachMedia(video);
                 hls.on(Hls.Events.MANIFEST_PARSED, () => {
                     srcReadyRef.current = true;
+                    video.play().catch(() => {});
                 });
                 hls.on(Hls.Events.ERROR, (_event, data) => {
                     if (data.fatal) {
@@ -523,6 +524,7 @@ export function CustomPlayer({ src, srcH264, poster, videoId, transcodeStatus, o
                                 console.warn("HLS Fatal Error, falling back to native MP4:", srcUrl);
                                 video.src = srcUrl;
                                 video.load();
+                                video.play().catch(() => {});
                                 srcReadyRef.current = true;
                                 break;
                         }
@@ -533,6 +535,7 @@ export function CustomPlayer({ src, srcH264, poster, videoId, transcodeStatus, o
                 video.src = srcUrl;
                 video.load();
                 srcReadyRef.current = true;
+                video.play().catch(() => {});
             } else {
                 setPlaybackError("HLS not supported in this browser.");
             }
@@ -540,6 +543,7 @@ export function CustomPlayer({ src, srcH264, poster, videoId, transcodeStatus, o
             video.src = srcUrl;
             video.load();
             srcReadyRef.current = true;
+            video.play().catch(() => {});
         }
     }, []);
 
@@ -589,7 +593,7 @@ export function CustomPlayer({ src, srcH264, poster, videoId, transcodeStatus, o
                     )}
                     preload="auto"
                     playsInline
-                    autoPlay={false}
+                    autoPlay={true}
                     onPlay={() => {
                         setIsPlaying(true);
                         sendTelemetry('playback_start', { quality: qualityMode });
