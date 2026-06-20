@@ -483,7 +483,6 @@ export function CustomPlayer({ src, srcH264, poster, videoId, transcodeStatus, o
         setIsBuffering(true);
 
         if (srcUrl.includes('.m3u8')) {
-            const proxyUrl = `/api/cors-proxy?url=${encodeURIComponent(srcUrl)}`;
             if (Hls.isSupported()) {
                 const hls = new Hls({
                     startLevel: -1,
@@ -494,7 +493,7 @@ export function CustomPlayer({ src, srcH264, poster, videoId, transcodeStatus, o
                     lowLatencyMode: false,
                     backBufferLength: 15,
                 });
-                hls.loadSource(proxyUrl);
+                hls.loadSource(srcUrl);
                 hls.attachMedia(video);
                 hls.on(Hls.Events.MANIFEST_PARSED, () => {
                     srcReadyRef.current = true;
@@ -531,7 +530,7 @@ export function CustomPlayer({ src, srcH264, poster, videoId, transcodeStatus, o
                 });
                 hlsInstanceRef.current = hls;
             } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                video.src = proxyUrl;
+                video.src = srcUrl;
                 video.load();
                 srcReadyRef.current = true;
             } else {

@@ -113,9 +113,9 @@ export function EditVideoModal({ video, isOpen, onClose }: EditVideoModalProps) 
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-md p-4 animate-in fade-in duration-300">
-            <div className="bg-[#1a1a1a] border border-white/10 rounded-[32px] w-full max-w-2xl overflow-hidden shadow-2xl shadow-black/50">
+            <div className="bg-[#1a1a1a] border border-white/10 rounded-[32px] w-full max-w-2xl flex flex-col max-h-[90vh] overflow-hidden shadow-2xl shadow-black/50">
                 {/* Header */}
-                <div className="flex items-center justify-between p-6 border-b border-white/5 bg-white/[0.02]">
+                <div className="flex items-center justify-between p-6 border-b border-white/5 bg-white/[0.02] shrink-0">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-2xl bg-j-red/20 flex items-center justify-center">
                             <Video className="w-5 h-5 text-j-red" />
@@ -131,7 +131,8 @@ export function EditVideoModal({ video, isOpen, onClose }: EditVideoModalProps) 
                     </button>
                 </div>
 
-                <div className="p-8">
+                {/* Content Body - Scrollable */}
+                <div className="p-6 sm:p-8 flex-1 overflow-y-auto min-h-0">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         {/* Thumbnail Side */}
                         <div className="space-y-4">
@@ -264,35 +265,35 @@ export function EditVideoModal({ video, isOpen, onClose }: EditVideoModalProps) 
                             )}
                         </div>
                     </div>
+                </div>
 
-                    {/* Footer Actions */}
-                    <div className="mt-10 flex items-center justify-end gap-3 pt-6 border-t border-white/5">
-                        <button
-                            onClick={onClose}
-                            className="px-6 py-3 text-sm font-black text-gray-400 hover:text-white transition-all uppercase tracking-widest"
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            onClick={handleSave}
-                            disabled={isSaving || !hasChanges}
-                            className={cn(
-                                "relative px-8 py-3 rounded-2xl font-black text-sm uppercase tracking-widest transition-all min-w-[140px]",
-                                saveStatus === 'success' ? "bg-green-500 text-white" :
-                                    saveStatus === 'error' ? "bg-red-500 text-white" :
-                                        "bg-j-red text-white hover:scale-105 active:scale-95 shadow-xl shadow-j-red/20 disabled:opacity-50 disabled:scale-100"
-                            )}
-                        >
-                            <span className={cn("flex items-center justify-center gap-2", isSaving && "opacity-0")}>
-                                {saveStatus === 'success' ? <><Check className="w-4 h-4" /> Updated</> : 'Save Changes'}
-                            </span>
-                            {isSaving && (
-                                <div className="absolute inset-0 flex items-center justify-center">
-                                    <Loader2 className="w-5 h-5 animate-spin" />
-                                </div>
-                            )}
-                        </button>
-                    </div>
+                {/* Footer Actions */}
+                <div className="px-6 py-4 border-t border-white/5 bg-[#1f1f1f] flex items-center justify-end gap-3 shrink-0">
+                    <button
+                        onClick={onClose}
+                        className="px-6 py-3 text-sm font-black text-gray-400 hover:text-white transition-all uppercase tracking-widest"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        onClick={handleSave}
+                        disabled={isSaving || !hasChanges}
+                        className={cn(
+                            "relative px-8 py-3 rounded-2xl font-black text-sm uppercase tracking-widest transition-all min-w-[140px]",
+                            saveStatus === 'success' ? "bg-green-500 text-white" :
+                                saveStatus === 'error' ? "bg-red-500 text-white" :
+                                    "bg-j-red text-white hover:scale-105 active:scale-95 shadow-xl shadow-j-red/20 disabled:opacity-50 disabled:scale-100"
+                        )}
+                    >
+                        <span className={cn("flex items-center justify-center gap-2", isSaving && "opacity-0")}>
+                            {saveStatus === 'success' ? <><Check className="w-4 h-4" /> Updated</> : 'Save Changes'}
+                        </span>
+                        {isSaving && (
+                            <div className="absolute inset-0 flex items-center justify-center">
+                                <Loader2 className="w-5 h-5 animate-spin" />
+                            </div>
+                        )}
+                    </button>
                 </div>
             </div>
         </div>

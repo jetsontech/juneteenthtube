@@ -100,41 +100,41 @@ export default function StudioPage() {
     return (
         <main className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 flex flex-col md:flex-row gap-8 min-h-[80vh]">
             {/* Sidebar Navigation */}
-            <aside className="w-full md:w-64 shrink-0 flex flex-col gap-2">
-                <div className="flex items-center gap-3 mb-8 px-2">
+            <aside className="w-full md:w-64 shrink-0 flex flex-col gap-4 md:gap-2">
+                <div className="flex items-center gap-3 md:mb-8 px-2">
                     <div className="w-12 h-12 bg-j-red rounded-xl flex items-center justify-center shadow-lg shadow-j-red/20">
                         <Video className="w-6 h-6 text-white" />
                     </div>
                     <div>
-                        <h1 className="text-xl font-black text-white leading-tight">Creator<br/>Hub</h1>
+                        <h1 className="text-xl font-black text-white leading-tight">Creator Hub</h1>
                     </div>
                 </div>
 
-                <nav className="space-y-2">
+                <nav className="flex flex-row md:flex-col gap-2 md:space-y-2 overflow-x-auto pb-2 md:pb-0 scrollbar-none">
                     <button
                         onClick={() => setActiveTab('overview')}
-                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-bold ${activeTab === 'overview' ? 'bg-white/10 text-white shadow-inner' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}
+                        className={`flex-1 md:flex-none flex items-center justify-center md:justify-start gap-3 px-4 py-3 rounded-xl transition-all font-bold whitespace-nowrap ${activeTab === 'overview' ? 'bg-white/10 text-white shadow-inner' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}
                     >
                         <LayoutDashboard className="w-5 h-5" />
                         Overview
                     </button>
                     <button
                         onClick={() => setActiveTab('content')}
-                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-bold ${activeTab === 'content' ? 'bg-white/10 text-white shadow-inner' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}
+                        className={`flex-1 md:flex-none flex items-center justify-center md:justify-start gap-3 px-4 py-3 rounded-xl transition-all font-bold whitespace-nowrap ${activeTab === 'content' ? 'bg-white/10 text-white shadow-inner' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}
                     >
                         <Video className="w-5 h-5" />
                         Content
                     </button>
                     <button
                         onClick={() => setActiveTab('community')}
-                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-bold ${activeTab === 'community' ? 'bg-white/10 text-white shadow-inner' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}
+                        className={`flex-1 md:flex-none flex items-center justify-center md:justify-start gap-3 px-4 py-3 rounded-xl transition-all font-bold whitespace-nowrap ${activeTab === 'community' ? 'bg-white/10 text-white shadow-inner' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}
                     >
                         <MessageSquare className="w-5 h-5" />
                         Community
                     </button>
                 </nav>
                 
-                <div className="mt-8 p-5 bg-gradient-to-br from-amber-500/10 to-red-500/10 border border-amber-500/20 rounded-2xl relative overflow-hidden group cursor-pointer">
+                <div className="hidden md:block mt-8 p-5 bg-gradient-to-br from-amber-500/10 to-red-500/10 border border-amber-500/20 rounded-2xl relative overflow-hidden group cursor-pointer">
                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(245,158,11,0.2),transparent_60%)] pointer-events-none" />
                     <Sparkles className="w-5 h-5 text-amber-500 mb-3" />
                     <h3 className="text-sm font-black text-white mb-1">Frontier AI Engine</h3>
