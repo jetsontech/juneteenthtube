@@ -135,7 +135,6 @@ async function fetchVideos(limit: number) {
         .from("videos")
         .select("id,title,thumbnail_url,category,state,created_at")
         .not("thumbnail_url", "is", null)
-        .not("owner_id", "is", null)
         .order("created_at", { ascending: false })
         .limit(limit);
 

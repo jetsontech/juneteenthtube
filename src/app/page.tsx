@@ -390,7 +390,7 @@ export default function HomePage() {
                     <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 via-transparent to-emerald-500/5 pointer-events-none"></div>
                     <div className="relative z-10 max-w-xl text-center md:text-left">
                         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-black uppercase tracking-[0.2em] mb-4">
-                            ðŸ§© Daily Puzzle
+                            🧩 Daily Puzzle
                         </span>
                         <h2 className="text-3xl sm:text-4xl font-black tracking-tighter text-white uppercase leading-tight mb-4">
                             CultureQuest

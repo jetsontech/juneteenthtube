@@ -8,6 +8,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useStateFilter } from "@/context/StateContext";
 import { AuthModal } from "../auth/AuthModal";
 import { US_STATES, DEFAULT_STATE, USState } from "@/lib/states";
+import { Bell, LayoutDashboard, Video, Settings, LogOut, UploadCloud, X, Film, Image as ImageIcon, Loader2 } from "lucide-react";
 
 interface NavbarProps {
     onMenuClick: () => void;
@@ -192,7 +193,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                             }}
                             className="bg-transparent border border-white/10 rounded-full px-3 py-1 text-gray-400 text-xs font-sans cursor-pointer outline-none ml-2"
                         >
-                            <option value="GLOBAL" className="bg-[#111]">­ƒîì All States</option>
+                            <option value="GLOBAL" className="bg-[#111]">🌍 All States</option>
                             {US_STATES.filter(s => s.code !== "GLOBAL").map(s => (
                                 <option key={s.code} value={s.code} className="bg-[#111]">{s.name}</option>
                             ))}
@@ -271,7 +272,8 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                     ) : (
                         <>
                             <button className="icon-btn" title="Notifications">
-                                ­ƒöö<span className="notif-dot" />
+                                <Bell className="w-5 h-5" />
+                                <span className="notif-dot" />
                             </button>
                             <div className="relative" ref={userMenuRef}>
                                 <button
@@ -295,22 +297,22 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                                     {isAdmin && (
                                         <button
                                             onClick={() => { setIsUserMenuOpen(false); window.location.href = '/creator-studio'; }}
-                                            className="user-menu-item text-j-gold hover:text-white"
+                                            className="user-menu-item text-j-gold hover:text-white flex items-center gap-2"
                                         >
-                                            <span>­ƒÜÇ</span> Creator Studio
+                                            <LayoutDashboard className="w-4 h-4 text-j-gold" /> Creator Studio
                                         </button>
                                     )}
                                     <button
                                         onClick={() => { setIsUserMenuOpen(false); window.location.href = '/studio'; }}
-                                        className="user-menu-item"
+                                        className="user-menu-item flex items-center gap-2"
                                     >
-                                        <span>­ƒÄ¼</span> CultureQuest Studio
+                                        <Video className="w-4 h-4" /> CultureQuest Studio
                                     </button>
                                     <button
                                         onClick={() => { setIsUserMenuOpen(false); window.location.href = '/settings'; }}
-                                        className="user-menu-item"
+                                        className="user-menu-item flex items-center gap-2"
                                     >
-                                        <span>ÔÜÖ´©Å</span> Settings
+                                        <Settings className="w-4 h-4" /> Settings
                                     </button>
                                     <div className="h-px bg-[var(--border)] my-1" />
                                     <button
@@ -318,9 +320,9 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                                             signOut();
                                             setIsUserMenuOpen(false);
                                         }}
-                                        className="user-menu-item danger"
+                                        className="user-menu-item danger flex items-center gap-2"
                                     >
-                                        <span>­ƒÜ¬</span> Sign Out
+                                        <LogOut className="w-4 h-4" /> Sign Out
                                     </button>
                                 </div>
                             </div>
@@ -340,10 +342,12 @@ export function Navbar({ onMenuClick }: NavbarProps) {
             <div className={`modal-backdrop ${isUploadOpen ? 'open' : ''}`}>
                 <div className="modal">
                     <div className="modal-header">
-                        <div className="modal-title">
-                            {uploadStep === 1 ? '­ƒôñ Upload Content' : uploadStep === 2 ? '­ƒÄ¼ Video Details' : 'ÔÜí Uploading...'}
+                        <div className="modal-title flex items-center gap-2">
+                            {uploadStep === 1 ? '📤 Upload Content' : uploadStep === 2 ? '🎬 Video Details' : '⚡ Uploading...'}
                         </div>
-                        <button className="close-btn" onClick={handleClose}>Ô£ò</button>
+                        <button className="close-btn flex items-center justify-center" onClick={handleClose}>
+                            <X className="w-4 h-4" />
+                        </button>
                     </div>
 
                     {uploadStep === 1 && !isUploading && (
@@ -361,9 +365,11 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                                 }}
                                 onClick={() => fileInputRef.current?.click()}
                             >
-                                <div className="dropzone-icon">Ôÿü´©Å</div>
+                                <div className="dropzone-icon flex justify-center mb-2">
+                                    <UploadCloud className="w-12 h-12 text-zinc-500" />
+                                </div>
                                 <div className="dropzone-title">Drag & drop your file here</div>
-                                <div className="dropzone-sub">Photos and videos ÔÇó Stays private until you publish</div>
+                                <div className="dropzone-sub">Photos and videos • Stays private until you publish</div>
                                 <button className="upload-btn" onClick={e => { e.stopPropagation(); fileInputRef.current?.click(); }}>
                                     Select Files
                                 </button>
@@ -374,23 +380,27 @@ export function Navbar({ onMenuClick }: NavbarProps) {
 
                     {uploadStep === 2 && !isUploading && selectedFile && (
                         <div className="modal-body">
-                            <div className="upload-file-row">
-                                <div className="file-icon">­ƒÄÑ</div>
+                            <div className="upload-file-row flex items-center gap-3">
+                                <div className="file-icon">
+                                    <Film className="w-6 h-6 text-j-gold" />
+                                </div>
                                 <div>
                                     <div className="file-name">{selectedFile.name}</div>
                                     <div className="file-size">Ready to upload</div>
                                 </div>
-                                <button className="change-link" onClick={() => { setSelectedFile(null); setUploadStep(1); }}>Change</button>
+                                <button className="change-link ml-auto" onClick={() => { setSelectedFile(null); setUploadStep(1); }}>Change</button>
                             </div>
 
                             <div className="form-grid">
                                 <div>
                                     <div className="form-label">Thumbnail</div>
-                                    <div className="thumb-area" onClick={() => thumbnailInputRef.current?.click()}>
+                                    <div className="thumb-area flex flex-col items-center justify-center" onClick={() => thumbnailInputRef.current?.click()}>
                                         {thumbnailPreview
                                             ? <Image src={thumbnailPreview} alt="thumb" fill className="object-cover" />
                                             : <>
-                                                <div className="text-[28px]">­ƒû╝</div>
+                                                <div className="text-[28px] mb-1">
+                                                    <ImageIcon className="w-8 h-8 text-zinc-600" />
+                                                </div>
                                                 <div className="thumb-hint">Add Thumbnail</div>
                                             </>
                                         }
@@ -421,7 +431,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                                                 if (state) setSelectedUploadState(state);
                                             }}
                                         >
-                                            <option value="GLOBAL" className="bg-[#111]">­ƒîì All States</option>
+                                            <option value="GLOBAL" className="bg-[#111]">🌍 All States</option>
                                             {US_STATES.filter(s => s.code !== "GLOBAL").map(s => (
                                                 <option key={s.code} value={s.code} className="bg-[#111]">{s.name}</option>
                                             ))}
@@ -436,27 +446,29 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                                 </div>
                             </div>
 
-                            <button className="publish-btn" onClick={handleStartUpload}>­ƒÜÇ Publish Video</button>
+                            <button className="publish-btn flex items-center justify-center gap-2" onClick={handleStartUpload}>🚀 Publish Video</button>
                             <div className="text-[11px] text-[var(--text-dim)] text-center mt-2">Details can be changed later in Studio</div>
                         </div>
                     )}
 
                     {isUploading && (
-                        <div className="progress-wrap">
-                            <div className="text-5xl my-3">ÔÜí</div>
-                            <div className="progress-label">
+                        <div className="progress-wrap flex flex-col items-center">
+                            <div className="text-5xl my-3">
+                                <Loader2 className="w-12 h-12 text-j-gold animate-spin" />
+                            </div>
+                            <div className="progress-label w-full flex justify-between items-center px-4">
                                 <span>Uploading</span>
                                 <span className="progress-pct">{Math.min(100, Math.floor(uploadProgress))}%</span>
                             </div>
-                            <div className="progress-track">
+                            <div className="progress-track w-full">
                                 <div ref={progressFillRef} className="progress-fill" />
                             </div>
-                            <div className="progress-pulse">
-                                <div className="pulse-dot" />
+                            <div className="progress-pulse flex items-center gap-2">
+                                <div className="pulse-dot animate-ping" />
                                 Securing packet {Math.floor(uploadProgress * 12.4)}...
                             </div>
-                            <button className="cancel-link" onClick={() => { if (confirm("Upload in progress. Are you sure you want to cancel?")) { cancelUpload(); setIsUploadOpen(false); setUploadStep(1); } }}>
-                                Ô£ò Cancel Upload
+                            <button className="cancel-link flex items-center gap-1.5" onClick={() => { if (confirm("Upload in progress. Are you sure you want to cancel?")) { cancelUpload(); setIsUploadOpen(false); setUploadStep(1); } }}>
+                                <X className="w-4 h-4" /> Cancel Upload
                             </button>
                         </div>
                     )}

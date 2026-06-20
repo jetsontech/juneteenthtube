@@ -128,7 +128,7 @@ function VideoCardInner({ video }: { video: VideoProps }) {
             setIsTouchPreviewing(true);
             startPreview();
             if (navigator.vibrate) navigator.vibrate(30);
-        }, 500);
+        }, 1000);
     }, [previewSrc, startPreview]);
 
     const handleTouchEnd = useCallback(() => {
@@ -147,7 +147,10 @@ function VideoCardInner({ video }: { video: VideoProps }) {
             clearTimeout(longPressTimerRef.current);
             longPressTimerRef.current = null;
         }
-    }, []);
+        setIsTouchPreviewing(false);
+        stopPreview();
+        preventNavigationRef.current = false;
+    }, [stopPreview]);
 
     const handleClick = useCallback((e: React.MouseEvent) => {
         console.log(`[VideoCard] Clicked: ${video.id}, preventNavigation: ${preventNavigationRef.current}`);
